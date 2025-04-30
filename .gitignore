@@ -26,3 +26,4 @@ Thumbs.db
 .Trashes
 *.swp
 *.swo
+.docusaurus/**
