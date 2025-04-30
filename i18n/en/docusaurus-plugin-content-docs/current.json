@@ -2,5 +2,9 @@
   "version.label": {
     "message": "Next",
     "description": "The label for version current"
+  },
+  "sidebar.docs.category.Environment Setup": {
+    "message": "Environment Setup",
+    "description": "The label for category Environment Setup in sidebar docs"
   }
 }

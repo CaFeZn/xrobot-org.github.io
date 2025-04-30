@@ -21,6 +21,19 @@ module.exports = {
     },
   },
 
+  plugins: [
+    [
+      require.resolve('@cmfcmf/docusaurus-search-local'),
+      /** @type {import('@cmfcmf/docusaurus-search-local').PluginOptions} */
+      ({
+        indexDocs: true,
+        indexBlog: true,
+        indexPages: false,
+        language: ['en', 'zh'],
+      }),
+    ],
+  ],
+
   presets: [
     [
       'classic',
