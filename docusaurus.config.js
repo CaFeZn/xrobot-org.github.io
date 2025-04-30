@@ -55,7 +55,7 @@ module.exports = {
       title: 'XRobot Docs',
       logo: {
         alt: 'XRobot Logo',
-        src: 'img/XRobot.jpeg',
+        src: 'img/XRobot.png',
       },
       items: [
         {

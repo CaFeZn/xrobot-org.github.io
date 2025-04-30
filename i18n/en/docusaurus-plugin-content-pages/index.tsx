@@ -3,7 +3,9 @@ import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Translate, { translate } from '@docusaurus/Translate';
+import { motion } from 'framer-motion';
 import commitInfo from '../../../src/data/commitInfo.json';
+import '../../../src/pages/Home.css';
 
 export default function Home(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
@@ -17,21 +19,51 @@ export default function Home(): JSX.Element {
       })}
     >
       <main>
+        <div className="animated-background" />
         <section className="hero hero--primary">
           <div className="container">
-            <h1 className="hero__title">
+            <motion.img
+              src="/img/XRobot.png"
+              alt="XRobot Logo"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1 }}
+              style={{ width: '240px', marginBottom: '1rem' }}
+            />
+
+            <motion.h1
+              className="hero__title typewriter"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
               <Translate id="homepage.heroTitle">Welcome to XRobot</Translate>
-            </h1>
-            <p className="hero__subtitle">
+            </motion.h1>
+
+            <motion.p
+              className="hero__subtitle"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+            >
               <Translate id="homepage.heroSubtitle">
-                A documentation and tutorial platform for robotics and embedded developers
+                A documentation and tutorial platform for robotics/embedded developers.
               </Translate>
-            </p>
-            <div className="buttons">
-              <Link className="button button--secondary button--lg" to="/docs/intro">
+            </motion.p>
+
+            <motion.div
+              className="buttons"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.6, duration: 0.6 }}
+            >
+              <Link
+                className="button button--secondary button--lg"
+                to="/docs/intro"
+              >
                 <Translate id="homepage.getStarted">Get Started</Translate>
               </Link>
-            </div>
+            </motion.div>
           </div>
         </section>
 
@@ -39,35 +71,53 @@ export default function Home(): JSX.Element {
           <div className="container">
             <div className="row">
               <div className="col col--3">
-                <h3><Translate id="homepage.feature1.title">Documentation Support</Translate></h3>
-                <p><Translate id="homepage.feature1.content">
-                  Content is organized in modular blocks, covering setup, tutorials, and advanced usage for easy reference and maintenance.
-                </Translate></p>
+                <h3>
+                  <Translate id="homepage.feature1.title">Documentation Support</Translate>
+                </h3>
+                <p>
+                  <Translate id="homepage.feature1.content">
+                    Organize all kinds of project content in a modular way—from environment setup to advanced usage—making it easy to maintain and browse.
+                  </Translate>
+                </p>
               </div>
               <div className="col col--3">
-                <h3><Translate id="homepage.feature2.title">Complete Ecosystem</Translate></h3>
-                <p><Translate id="homepage.feature2.content">
-                  Supports Windows/Linux, and provides Docker images for modular design and automation workflows.
-                </Translate></p>
+                <h3>
+                  <Translate id="homepage.feature2.title">Complete Ecosystem</Translate>
+                </h3>
+                <p>
+                  <Translate id="homepage.feature2.content">
+                    Development environments support both Windows and Linux, with Docker images to enable modular design and automation.
+                  </Translate>
+                </p>
               </div>
               <div className="col col--3">
-                <h3><Translate id="homepage.feature3.title">Powerful Features</Translate></h3>
-                <p><Translate id="homepage.feature3.content">
-                  From peripheral and RTOS support to coordinate transforms and kinematics algorithms, XRobot is your Swiss army knife for development.
-                </Translate></p>
+                <h3>
+                  <Translate id="homepage.feature3.title">Powerful Features</Translate>
+                </h3>
+                <p>
+                  <Translate id="homepage.feature3.content">
+                    From supporting various peripherals and RTOSes to coordinate transformations and kinematic solvers, XRobot is your Swiss army knife for development.
+                  </Translate>
+                </p>
               </div>
               <div className="col col--3">
-                <h3><Translate id="homepage.feature4.title">Open Collaboration</Translate></h3>
-                <p><Translate id="homepage.feature4.content">
-                  Contributions are welcome. Help improve the content and build a better XRobot together.
-                </Translate></p>
+                <h3>
+                  <Translate id="homepage.feature4.title">Open Source Collaboration</Translate>
+                </h3>
+                <p>
+                  <Translate id="homepage.feature4.content">
+                    Contributors are welcome to help expand and improve content—let’s build a better XRobot together.
+                  </Translate>
+                </p>
               </div>
             </div>
           </div>
         </section>
 
         <section className="container margin-top--lg">
-          <h2><Translate id="homepage.versionTitle">Repository Versions</Translate></h2>
+          <h2>
+            <Translate id="homepage.versionTitle">Current Repository Versions</Translate>
+          </h2>
           <ul>
             XRobot: <code>{commitInfo.XRobot || 'N/A'}</code>{' '}
             libxr: <code>{commitInfo.LibXR || 'N/A'}</code>{' '}
@@ -77,8 +127,8 @@ export default function Home(): JSX.Element {
 
         <section className="container margin-top--lg">
           <ul>
-            This documentation includes usage and coding tutorials only.  
-            For API and CLI documentation, please refer to the Documents section in the footer.
+            This documentation only includes usage guides and coding tutorials.
+            For API references and CLI tools, please see the Documents section in the footer.
           </ul>
         </section>
       </main>

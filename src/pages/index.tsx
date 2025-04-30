@@ -3,8 +3,9 @@ import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Translate, { translate } from '@docusaurus/Translate';
-
+import { motion } from 'framer-motion';
 import commitInfo from '../data/commitInfo.json';
+import './Home.css';
 
 export default function Home(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
@@ -18,24 +19,51 @@ export default function Home(): JSX.Element {
       })}
     >
       <main>
+        <div className="animated-background" />
         <section className="hero hero--primary">
           <div className="container">
-            <h1 className="hero__title">
+            <motion.img
+              src="/img/XRobot.png"
+              alt="XRobot Logo"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1 }}
+              style={{ width: '240px', marginBottom: '1rem' }}
+            />
+
+            <motion.h1
+              className="hero__title typewriter"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
               <Translate id="homepage.heroTitle">欢迎来到 XRobot</Translate>
-            </h1>
-            <p className="hero__subtitle">
+            </motion.h1>
+
+            <motion.p
+              className="hero__subtitle"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+            >
               <Translate id="homepage.heroSubtitle">
                 面向机器人/嵌入式开发者的文档和教程平台
               </Translate>
-            </p>
-            <div className="buttons">
+            </motion.p>
+
+            <motion.div
+              className="buttons"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.6, duration: 0.6 }}
+            >
               <Link
                 className="button button--secondary button--lg"
                 to="/docs/intro"
               >
                 <Translate id="homepage.getStarted">开始阅读</Translate>
               </Link>
-            </div>
+            </motion.div>
           </div>
         </section>
 
@@ -99,7 +127,7 @@ export default function Home(): JSX.Element {
 
         <section className="container margin-top--lg">
           <ul>
-            当前文档仅包含使用和编码教程。
+            本文档仅包含使用和编码教程。
             库函数 API 和命令行工具文档请参考页脚中的 Documents 部分。
           </ul>
         </section>

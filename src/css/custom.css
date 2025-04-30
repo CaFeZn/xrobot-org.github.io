@@ -3,7 +3,7 @@
 /* ===================== */
 .hero--primary,
 .custom-hero {
-    background: linear-gradient(135deg, #4e54c8, #8f94fb);
+    background: linear-gradient(135deg, #2e36c9, #9498ff);
     /* 明亮的蓝紫渐变 */
     color: #fff;
     padding: 4rem 1rem;
@@ -119,7 +119,7 @@ html[data-theme='dark'] {
 
 html[data-theme='dark'] .hero--primary,
 html[data-theme='dark'] .custom-hero {
-    background: linear-gradient(135deg, #1c1f4a, #343882);
+    background: linear-gradient(135deg, #555ee0, #343882);
     color: #ffffff;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
 }
