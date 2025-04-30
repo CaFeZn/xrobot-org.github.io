@@ -1,49 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Translate, { translate } from '@docusaurus/Translate';
-import axios from 'axios';
+import commitInfo from '../../../src/data/commitInfo.json';
 
 export default function Home(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
-
-  const [commits, setCommits] = useState<{
-    [key: string]: string;
-  }>({});
-
-  useEffect(() => {
-    const repos = {
-      XRobot: 'xrobot-org/XRobot',
-      LibXR: 'Jiu-xiao/libxr',
-      CodeGen: 'Jiu-xiao/LibXR_CppCodeGenerator',
-    };
-
-    const fetchCommits = async () => {
-      const newCommits: { [key: string]: string } = {};
-      await Promise.all(
-        Object.entries(repos).map(async ([name, repo]) => {
-          try {
-            const res = await axios.get(
-              `https://api.github.com/repos/${repo}/commits/master`
-            );
-            newCommits[name] = res.data.sha.substring(0, 7);
-          } catch (err) {
-            newCommits[name] = 'Error';
-          }
-        })
-      );
-      setCommits(newCommits);
-    };
-
-    fetchCommits();
-  }, []);
 
   return (
     <Layout
       title={translate({ message: 'Home', id: 'homepage.title' })}
       description={translate({
-        message: 'The documentation homepage for the XRobot project',
+        message: 'Documentation homepage for the XRobot project',
         id: 'homepage.description',
       })}
     >
@@ -59,75 +28,57 @@ export default function Home(): JSX.Element {
               </Translate>
             </p>
             <div className="buttons">
-              <Link
-                className="button button--secondary button--lg"
-                to="/docs/intro"
-              >
+              <Link className="button button--secondary button--lg" to="/docs/intro">
                 <Translate id="homepage.getStarted">Get Started</Translate>
               </Link>
             </div>
           </div>
         </section>
+
         <section className="features">
           <div className="container">
             <div className="row">
               <div className="col col--3">
-                <h3>
-                  <Translate id="homepage.feature1.title">Documentation Support</Translate>
-                </h3>
-                <p>
-                  <Translate id="homepage.feature1.content">
-                    Project content is organized modularly—from environment setup to advanced usage—for easy maintenance and reference.
-                  </Translate>
-                </p>
+                <h3><Translate id="homepage.feature1.title">Documentation Support</Translate></h3>
+                <p><Translate id="homepage.feature1.content">
+                  Content is organized in modular blocks, covering setup, tutorials, and advanced usage for easy reference and maintenance.
+                </Translate></p>
               </div>
               <div className="col col--3">
-                <h3>
-                  <Translate id="homepage.feature2.title">Complete Ecosystem</Translate>
-                </h3>
-                <p>
-                  <Translate id="homepage.feature2.content">
-                    Development environments support Windows/Linux, and Docker images are provided to support modular design and automation.
-                  </Translate>
-                </p>
+                <h3><Translate id="homepage.feature2.title">Complete Ecosystem</Translate></h3>
+                <p><Translate id="homepage.feature2.content">
+                  Supports Windows/Linux, and provides Docker images for modular design and automation workflows.
+                </Translate></p>
               </div>
               <div className="col col--3">
-                <h3>
-                  <Translate id="homepage.feature3.title">Powerful Features</Translate>
-                </h3>
-                <p>
-                  <Translate id="homepage.feature3.content">
-                    From supporting various peripherals and RTOSs to coordinate transforms and kinematics, XRobot is like a Swiss army knife for development.
-                  </Translate>
-                </p>
+                <h3><Translate id="homepage.feature3.title">Powerful Features</Translate></h3>
+                <p><Translate id="homepage.feature3.content">
+                  From peripheral and RTOS support to coordinate transforms and kinematics algorithms, XRobot is your Swiss army knife for development.
+                </Translate></p>
               </div>
               <div className="col col--3">
-                <h3>
-                  <Translate id="homepage.feature4.title">Open Collaboration</Translate>
-                </h3>
-                <p>
-                  <Translate id="homepage.feature4.content">
-                    Contributors are welcome to help improve and expand the content—let’s build a better XRobot together.
-                  </Translate>
-                </p>
+                <h3><Translate id="homepage.feature4.title">Open Collaboration</Translate></h3>
+                <p><Translate id="homepage.feature4.content">
+                  Contributions are welcome. Help improve the content and build a better XRobot together.
+                </Translate></p>
               </div>
             </div>
           </div>
         </section>
 
         <section className="container margin-top--lg">
-          <h2>
-            <Translate id="homepage.versionTitle">Repository Versions</Translate>
-          </h2>
+          <h2><Translate id="homepage.versionTitle">Repository Versions</Translate></h2>
           <ul>
-            XRobot: <code>{commits.XRobot || 'Loading...'}</code> libxr: <code>{commits.LibXR || 'Loading...'}</code> LibXR_CppCodeGenerator: <code>{commits.CodeGen || 'Loading...'}</code>
+            XRobot: <code>{commitInfo.XRobot || 'N/A'}</code>{' '}
+            libxr: <code>{commitInfo.LibXR || 'N/A'}</code>{' '}
+            LibXR_CppCodeGenerator: <code>{commitInfo.CodeGen || 'N/A'}</code>
           </ul>
         </section>
 
         <section className="container margin-top--lg">
           <ul>
             This documentation includes usage and coding tutorials only.  
-            For API and CLI references, see the Documents section in the footer.
+            For API and CLI documentation, please refer to the Documents section in the footer.
           </ul>
         </section>
       </main>

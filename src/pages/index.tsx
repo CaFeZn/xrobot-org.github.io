@@ -1,43 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Translate, { translate } from '@docusaurus/Translate';
-import axios from 'axios';
+
+import commitInfo from '../data/commitInfo.json';
 
 export default function Home(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
-
-  const [commits, setCommits] = useState<{
-    [key: string]: string;
-  }>({});
-
-  useEffect(() => {
-    const repos = {
-      XRobot: 'xrobot-org/XRobot',
-      LibXR: 'Jiu-xiao/libxr',
-      CodeGen: 'Jiu-xiao/LibXR_CppCodeGenerator',
-    };
-
-    const fetchCommits = async () => {
-      const newCommits: { [key: string]: string } = {};
-      await Promise.all(
-        Object.entries(repos).map(async ([name, repo]) => {
-          try {
-            const res = await axios.get(
-              `https://api.github.com/repos/${repo}/commits/master`
-            );
-            newCommits[name] = res.data.sha.substring(0, 7);
-          } catch (err) {
-            newCommits[name] = 'Error';
-          }
-        })
-      );
-      setCommits(newCommits);
-    };
-
-    fetchCommits();
-  }, []);
 
   return (
     <Layout
@@ -68,6 +38,7 @@ export default function Home(): JSX.Element {
             </div>
           </div>
         </section>
+
         <section className="features">
           <div className="container">
             <div className="row">
@@ -120,14 +91,16 @@ export default function Home(): JSX.Element {
             <Translate id="homepage.versionTitle">当前文档对应仓库版本</Translate>
           </h2>
           <ul>
-            XRobot: <code>{commits.XRobot || 'Loading...'}</code> libxr: <code>{commits.LibXR || 'Loading...'}</code> LibXR_CppCodeGenerator: <code>{commits.CodeGen || 'Loading...'}</code>
+            XRobot: <code>{commitInfo.XRobot || 'N/A'}</code>{' '}
+            libxr: <code>{commitInfo.LibXR || 'N/A'}</code>{' '}
+            LibXR_CppCodeGenerator: <code>{commitInfo.CodeGen || 'N/A'}</code>
           </ul>
         </section>
 
         <section className="container margin-top--lg">
           <ul>
-            当前文档仅包含使用和编码教程
-            库函数API和命令行工具文档请参考页脚中的Documents部分
+            当前文档仅包含使用和编码教程。
+            库函数 API 和命令行工具文档请参考页脚中的 Documents 部分。
           </ul>
         </section>
       </main>
