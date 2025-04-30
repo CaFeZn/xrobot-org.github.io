@@ -174,7 +174,6 @@ html[data-theme='dark'] .footer a:hover {
 /*        Themed Footer Styling     */
 /* ================================ */
 
-/* 🌞 Light Theme Footer */
 :root[data-theme='light'] .footer {
     background: linear-gradient(180deg, #f5f7fa 0%, #e9edf3 100%);
     color: #333;

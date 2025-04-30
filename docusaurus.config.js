@@ -67,13 +67,25 @@ module.exports = {
               label: '入门',
               to: '/',
             },
+            {
+              label: 'LibXR 类文档',
+              href: 'https://jiu-xiao.github.io/libxr/',
+            },
+            {
+              label: 'CodeGenerator命令行工具',
+              href: 'https://pypi.org/project/libxr/',
+            },
+            {
+              label: 'XRobot命令行工具',
+              href: 'https://pypi.org/project/xrobot/',
+            },
           ],
         },
         {
           title: '社区',
           items: [
             {
-              label: 'GitHub Org',
+              label: 'GitHub仓库',
               href: 'https://github.com/xrobot-org',
             },
             {
@@ -84,6 +96,36 @@ module.exports = {
               label: 'CodeGenerator',
               href: 'https://github.com/Jiu-xiao/LibXR_CppCodeGenerator',
             },
+            {
+              label: 'QDU Robomaster未来战队',
+              href: 'https://github.com/QDU-Robomaster',
+            }
+          ],
+        },
+        {
+          title: '媒体',
+          items: [
+            {
+              label: 'Bilibili视频教程',
+              href: 'https://space.bilibili.com/339766655/lists',
+            },
+            {
+              label: '未来战队B站频道',
+              href: 'https://space.bilibili.com/1309383975',
+            }
+          ],
+        },
+        {
+          title: '联系方式',
+          items: [
+            {
+              label: '邮箱',
+              href: 'mailto:Cong.Liu_Xiao@outlook.com',
+            },
+            {
+              label: 'QQ群: 608182228',
+              href: 'https://qm.qq.com/q/RPgE71OXmw',
+            }
           ],
         },
       ],

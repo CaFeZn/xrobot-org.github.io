@@ -41,9 +41,9 @@ export default function Home(): JSX.Element {
 
   return (
     <Layout
-      title={translate({ message: '首页', id: 'homepage.title' })}
+      title={translate({ message: 'Home', id: 'homepage.title' })}
       description={translate({
-        message: 'XRobot 项目的文档首页',
+        message: 'The documentation homepage for the XRobot project',
         id: 'homepage.description',
       })}
     >
@@ -51,11 +51,11 @@ export default function Home(): JSX.Element {
         <section className="hero hero--primary">
           <div className="container">
             <h1 className="hero__title">
-              <Translate id="homepage.heroTitle">欢迎来到 XRobot</Translate>
+              <Translate id="homepage.heroTitle">Welcome to XRobot</Translate>
             </h1>
             <p className="hero__subtitle">
               <Translate id="homepage.heroSubtitle">
-                面向机器人/嵌入式开发者的文档和教程平台
+                A documentation and tutorial platform for robotics and embedded developers
               </Translate>
             </p>
             <div className="buttons">
@@ -63,7 +63,7 @@ export default function Home(): JSX.Element {
                 className="button button--secondary button--lg"
                 to="/docs/intro"
               >
-                <Translate id="homepage.getStarted">开始阅读</Translate>
+                <Translate id="homepage.getStarted">Get Started</Translate>
               </Link>
             </div>
           </div>
@@ -73,41 +73,41 @@ export default function Home(): JSX.Element {
             <div className="row">
               <div className="col col--3">
                 <h3>
-                  <Translate id="homepage.feature1.title">文档支持</Translate>
+                  <Translate id="homepage.feature1.title">Documentation Support</Translate>
                 </h3>
                 <p>
                   <Translate id="homepage.feature1.content">
-                    通过模块化方式组织各类项目内容，从环境配置、入门到进阶应用，方便维护与查阅。
+                    Project content is organized modularly—from environment setup to advanced usage—for easy maintenance and reference.
                   </Translate>
                 </p>
               </div>
               <div className="col col--3">
                 <h3>
-                  <Translate id="homepage.feature2.title">完整生态</Translate>
+                  <Translate id="homepage.feature2.title">Complete Ecosystem</Translate>
                 </h3>
                 <p>
                   <Translate id="homepage.feature2.content">
-                    开发环境支持Windows/Linux，提供Docker镜像来支持项目的模块化设计与自动化工作流。
+                    Development environments support Windows/Linux, and Docker images are provided to support modular design and automation.
                   </Translate>
                 </p>
               </div>
               <div className="col col--3">
                 <h3>
-                  <Translate id="homepage.feature3.title">功能强大</Translate>
+                  <Translate id="homepage.feature3.title">Powerful Features</Translate>
                 </h3>
                 <p>
                   <Translate id="homepage.feature3.content">
-                    从对各种外设和不同RTOS的兼容，到坐标系旋转和运动学解算等多种算法组件，XRobot就像开发过程中的瑞士军刀。
+                    From supporting various peripherals and RTOSs to coordinate transforms and kinematics, XRobot is like a Swiss army knife for development.
                   </Translate>
                 </p>
               </div>
               <div className="col col--3">
                 <h3>
-                  <Translate id="homepage.feature4.title">开源协作</Translate>
+                  <Translate id="homepage.feature4.title">Open Collaboration</Translate>
                 </h3>
                 <p>
                   <Translate id="homepage.feature4.content">
-                    欢迎贡献者参与内容补充与修正，一起构建更好的XRobot。
+                    Contributors are welcome to help improve and expand the content—let’s build a better XRobot together.
                   </Translate>
                 </p>
               </div>
@@ -117,7 +117,7 @@ export default function Home(): JSX.Element {
 
         <section className="container margin-top--lg">
           <h2>
-            <Translate id="homepage.versionTitle">当前文档对应仓库版本</Translate>
+            <Translate id="homepage.versionTitle">Repository Versions</Translate>
           </h2>
           <ul>
             XRobot: <code>{commits.XRobot || 'Loading...'}</code> libxr: <code>{commits.LibXR || 'Loading...'}</code> LibXR_CppCodeGenerator: <code>{commits.CodeGen || 'Loading...'}</code>
@@ -126,8 +126,8 @@ export default function Home(): JSX.Element {
 
         <section className="container margin-top--lg">
           <ul>
-            当前文档仅包含使用和编码教程
-            库函数API和命令行工具文档请参考页脚中的Documents部分
+            This documentation includes usage and coding tutorials only.  
+            For API and CLI references, see the Documents section in the footer.
           </ul>
         </section>
       </main>
