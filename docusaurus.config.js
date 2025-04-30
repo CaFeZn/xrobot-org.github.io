@@ -26,7 +26,7 @@ module.exports = {
       'classic',
       {
         docs: {
-          routeBasePath: '/',
+          routeBasePath: '/docs',
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl: 'https://github.com/xrobot-org/xrobot-org.github.io/edit/XRobot2.0/',
         },

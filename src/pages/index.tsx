@@ -61,7 +61,7 @@ export default function Home(): JSX.Element {
             <div className="buttons">
               <Link
                 className="button button--secondary button--lg"
-                to="/intro"
+                to="/docs/intro"
               >
                 <Translate id="homepage.getStarted">开始阅读</Translate>
               </Link>
