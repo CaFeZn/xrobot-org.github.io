@@ -12,4 +12,4 @@ XRobot前身为[qdu-rm-mcu](https://gitee.com/qsheeeeen/qdu-rm-mcu.git)，在201
 
 Github主页： [@xiao](https://github.com/Jiu-xiao)
 
-邮箱：[Cong.Liu_Xiao@outlook.com](Cong.Liu_Xiao@outlook.com)
+邮箱：[Cong.Liu_Xiao@outlook.com](mailto:Cong.Liu_Xiao@outlook.com)
