@@ -5,10 +5,12 @@
   "scripts": {
     "start": "docusaurus start",
     "build": "docusaurus build",
-    "deploy": "docusaurus deploy"
+    "deploy": "docusaurus deploy",
+    "serve": "docusaurus serve"
   },
   "dependencies": {
     "@docusaurus/core": "^2.3.1",
-    "@docusaurus/preset-classic": "^2.3.1"
+    "@docusaurus/preset-classic": "^2.3.1",
+    "axios": "^1.9.0"
   }
 }

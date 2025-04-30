@@ -8,11 +8,12 @@ module.exports = {
   onBrokenMarkdownLinks: 'warn',
   onDuplicateRoutes: 'warn',
   favicon: 'img/favicon.ico',
+
   organizationName: 'xrobot-org',
   projectName: 'xrobot-org.github.io',
 
   i18n: {
-    defaultLocale: 'en',
+    defaultLocale: 'zh',
     locales: ['en', 'zh'],
     localeConfigs: {
       en: { label: 'English' },
@@ -55,9 +56,44 @@ module.exports = {
         },
       ],
     },
+
     footer: {
       style: 'dark',
+      links: [
+        {
+          title: '文档',
+          items: [
+            {
+              label: '入门',
+              to: '/',
+            },
+          ],
+        },
+        {
+          title: '社区',
+          items: [
+            {
+              label: 'GitHub Org',
+              href: 'https://github.com/xrobot-org',
+            },
+            {
+              label: 'LibXR',
+              href: 'https://github.com/Jiu-xiao/libxr',
+            },
+            {
+              label: 'CodeGenerator',
+              href: 'https://github.com/Jiu-xiao/LibXR_CppCodeGenerator',
+            },
+          ],
+        },
+      ],
       copyright: `Copyright © ${new Date().getFullYear()} XRobot`,
+    },
+
+    prism: {
+      theme: require('prism-react-renderer/themes/github'),
+      darkTheme: require('prism-react-renderer/themes/dracula'),
+      additionalLanguages: ['cmake', 'bash'],
     },
   },
 };
