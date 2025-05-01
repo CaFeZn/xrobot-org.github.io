@@ -42,7 +42,7 @@ Thread priorities are defined as follows:
 
 ## Configuration File
 
-For non-bare-metal systems, the following configuration will be generated in `User\libxr_config.yaml`:
+For non-bare-metal systems, the following configuration will be generated in `User/libxr_config.yaml`:
 
 ```yaml
 software_timer:
@@ -51,4 +51,4 @@ software_timer:
 ```
 
 You can modify this file directly. To apply updated settings, run `xr_cubemx_cfg -d .` or  
-`xr_gen_code_stm32 -i .\.config.yaml -o .\User\app_main.cpp` to regenerate the code.
+`xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp` to regenerate the code.

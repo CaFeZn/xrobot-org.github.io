@@ -36,4 +36,4 @@ FDCAN:
 可直接修改该配置文件。如需应用更改，请执行以下命令重新生成代码：  
 `xr_cubemx_cfg -d .`  
 或  
-`xr_gen_code_stm32 -i .\.config.yaml -o .\User\app_main.cpp`
+`xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp`

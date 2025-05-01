@@ -33,4 +33,4 @@ I2C:
 You can directly modify this file. To apply the updated configuration, run one of the following commands to regenerate the code:  
 `xr_cubemx_cfg -d .`  
 or  
-`xr_gen_code_stm32 -i .\.config.yaml -o .\User\app_main.cpp`
+`xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp`

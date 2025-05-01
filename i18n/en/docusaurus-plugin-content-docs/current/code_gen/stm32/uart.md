@@ -64,4 +64,4 @@ USB:
 You can modify this file directly. To apply updated settings, run either of the following commands:  
 `xr_cubemx_cfg -d .`  
 or  
-`xr_gen_code_stm32 -i .\.config.yaml -o .\User\app_main.cpp`
+`xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp`

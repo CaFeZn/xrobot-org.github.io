@@ -34,13 +34,13 @@ This command will perform the following steps automatically:
 [INFO] LibXR submodule already exists. Checking for updates...
 [INFO] [OK] cd . && git submodule update --init --recursive
 [INFO] LibXR submodule updated.
-Found .ioc file: .\atom.ioc
+Found .ioc file: ./atom.ioc
 Parsing .ioc file...
-[INFO] [OK] xr_parse_ioc -d . -o .\.config.yaml
+[INFO] [OK] xr_parse_ioc -d . -o ./.config.yaml
 Generating C++ code...
-[INFO] [OK] xr_gen_code_stm32 -i .\.config.yaml -o .\User\app_main.cpp
+[INFO] [OK] xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp
 Modifying STM32 interrupt files...
-[INFO] [OK] xr_stm32_it .\Core/Src
+[INFO] [OK] xr_stm32_it ./Core/Src
 [INFO] [OK] xr_stm32_cmake .
 [INFO] [Pass] All tasks completed successfully!
 ```

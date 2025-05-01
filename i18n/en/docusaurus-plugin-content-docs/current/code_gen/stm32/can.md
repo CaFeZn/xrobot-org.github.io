@@ -36,4 +36,4 @@ FDCAN:
 To apply changes, modify this file directly and run:  
 `xr_cubemx_cfg -d .`  
 or  
-`xr_gen_code_stm32 -i .\.config.yaml -o .\User\app_main.cpp`
+`xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp`
