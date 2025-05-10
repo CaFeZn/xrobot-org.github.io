@@ -7,7 +7,7 @@ sidebar_position: 2
 
 # Integrate with XRobot
 
-By including the `--xrobot` flag during code generation, the tool will produce a hardware container (`LibXR::HardwareContainer`) specifically designed for XRobot initialization and runtime integration.
+By including the `--xrobot` flag during code generation, the tool will produce a hardware container （[LibXR::HardwareContainer](https://jiu-xiao.github.io/libxr/class_lib_x_r_1_1_hardware_container.html)） specifically designed for XRobot initialization and runtime integration.
 
 ## Example
 
@@ -23,11 +23,8 @@ xr_gen_code_stm32 -i .\.config.yaml -o .\User\app_main.cpp --xrobot
 This will append the following XRobot-compatible structure in `app_main.cpp`:
 
 ```cpp
-  LibXR::HardwareContainer<
-    LibXR::Entry<LibXR::PowerManager>,
-    ...
-  > peripherals{
-    LibXR::Entry<LibXR::PowerManager>(power_manager)
+  LibXR::HardwareContainer peripherals{
+    LibXR::Entry<LibXR::PowerManager>({power_manager, {"power_manager"}}),
     ...
   };
 

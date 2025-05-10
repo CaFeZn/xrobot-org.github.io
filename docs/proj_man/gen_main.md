@@ -40,13 +40,12 @@ modules:
 // Module headers
 #include "BlinkLED.hpp"
 
-template <typename HardwareContainer>
-static void XRobotMain(HardwareContainer &hw) {
+static void XRobotMain(LibXR::HardwareContainer &hw) {
   using namespace LibXR;
   ApplicationManager appmgr;
 
   // Auto-generated module instantiations
-  static BlinkLED<HardwareContainer> blinkled(hw, appmgr, 250);
+  static BlinkLED blinkled(hw, appmgr, 250);
 
   while (true) {
     appmgr.MonitorAll();
