@@ -331,5 +331,8 @@
   "cmfcmf/d-s-l.searchBar.noResults": {
     "message": "No results found.",
     "description": "message shown if no results are found"
+  },
+  "homepage.onlineDemo": {
+    "message": "Online Demo"
   }
 }

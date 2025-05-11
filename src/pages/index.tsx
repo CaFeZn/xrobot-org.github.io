@@ -53,6 +53,7 @@ export default function Home(): JSX.Element {
 
             <motion.div
               className="buttons"
+              style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.6, duration: 0.6 }}
@@ -62,6 +63,13 @@ export default function Home(): JSX.Element {
                 to="/docs/intro"
               >
                 <Translate id="homepage.getStarted">开始阅读</Translate>
+              </Link>
+              
+              <Link
+                className="button button--secondary button--lg"
+                to="https://xrobot-org.github.io/libxr_web_demo/"
+              >
+                <Translate id="homepage.onlineDemo">在线演示</Translate>
               </Link>
             </motion.div>
           </div>
