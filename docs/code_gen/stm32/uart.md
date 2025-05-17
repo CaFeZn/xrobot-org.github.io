@@ -6,9 +6,10 @@ sidebar_position: 10
 
 # 串口与终端
 
-LibXR支持两种串口：硬件串口和USB CDC。都可以用于串口调试和终端。
+LibXR 支持两种串口类型：**硬件串口** 和 **USB CDC**。它们均可用于串口调试与终端交互。
 
-硬件串口需要开启串口中断和DMA，USB CDC也需要开启相关中断，并启用官方USB库。
+- **硬件串口** 需启用中断与 DMA；
+- **USB CDC** 需启用中断，并根据所用系统（如 FreeRTOS 或 ThreadX）启用对应 USB 支持。
 
 ## 串口代码示例
 
@@ -16,16 +17,25 @@ LibXR支持两种串口：硬件串口和USB CDC。都可以用于串口调试�
 // 硬件串口
 STM32UART usart1(&huart1, usart1_rx_buf, usart1_tx_buf, 5, 5);
 
-// USB CDC
+// USB CDC（FreeRTOS 或裸机下）
 STM32VirtualUART uart_cdc(hUsbDeviceFS, UserTxBufferFS, UserRxBufferFS, 5, 5);
+
+// USB CDC（ThreadX + USBX）
+STM32VirtualUART uart_cdc(&hpcd_USB_FS, 2048, 2, 2048, 2, 5, 12, 256);
 ```
+
+> 注意：在 **ThreadX 系统** 中，使用 USBX 替代 ST 官方 USB 库，构造函数参数也不同，使用 USB PCD 句柄（如 `&hpcd_USB_FS`）初始化。
 
 ## 终端代码示例
 
 ```cpp
-// 重定向标准输入输出
+// 如果使用硬件串口
 STDIO::read_ = &usart1.read_port_;
 STDIO::write_ = &usart1.write_port_;
+
+// 如果使用 USB CDC
+STDIO::read_ = &uart_cdc.read_port_;
+STDIO::write_ = &uart_cdc.write_port_;
 
 // 创建虚拟文件系统
 RamFS ramfs("XRobot");
@@ -33,19 +43,30 @@ RamFS ramfs("XRobot");
 // 创建终端
 Terminal<32, 32, 5, 5> terminal(ramfs);
 
-// 启动终端任务
+// 方式一：作为任务运行（默认）
 auto terminal_task = Timer::CreateTask(terminal.TaskFun, &terminal, 10);
 Timer::Add(terminal_task);
 Timer::Start(terminal_task);
+
+// 方式二：作为线程运行（独立线程）
+LibXR::Thread terminal_thread;
+terminal_thread.Create(&terminal, terminal.ThreadFun, "terminal", 512,
+                       LibXR::Thread::Priority::MEDIUM);
 ```
 
-## 配置文件
+## 配置文件说明
 
-USB的buffer_size需要在STM32CubeMX的官方USB库中修改
+可通过配置文件控制串口与终端行为：
 
 ```yaml
-# 指定终端使用的串口，''表示不生成终端相关代码
+# 选择默认终端绑定的串口（usb 或 usart1 等），留空表示不启用终端
 terminal_source: usb
+
+# 终端相关配置（可选）
+terminal:
+  RunAsThread: true       # 是否作为线程运行（ThreadX 推荐）
+  ThreadStackDepth: 512   # 线程栈深度
+  ThreadPriority: 3       # 线程优先级（对应 LibXR::Thread::Priority）
 
 # 硬件串口配置
 USART:
@@ -55,13 +76,28 @@ USART:
     tx_queue_size: 5
     rx_queue_size: 5
 
-# USB CDC配置
+# USB CDC 配置（FreeRTOS 下有效）
 USB:
   tx_queue_size: 12
   rx_queue_size: 12
 ```
 
-可直接修改该文件。如需应用更新配置，请执行以下任一命令以重新生成代码：  
-`xr_cubemx_cfg -d .`  
-或  
-`xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp`
+> USB 的 `UserTxBufferFS` 与 `UserRxBufferFS` 缓冲区仅在使用 **官方 USB 库**（FreeRTOS）时有效。ThreadX + USBX 模式不需要配置这些缓冲。
+
+---
+
+## 生成代码命令
+
+修改 `.config.yaml` 后，可使用以下任一命令重新生成代码：
+
+```bash
+# 重新生成整个工程
+xr_cubemx_cfg -d .
+```
+
+或：
+
+```bash
+# 只重新生成app_main.cpp
+xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp
+```

@@ -1,51 +1,73 @@
 ---
 id: stm32-code-gen-uart
-title: UART & Terminal
+title: UART and Terminal
 sidebar_position: 10
 ---
 
-# UART & Terminal
+# UART and Terminal
 
-LibXR supports two types of UART interfaces: hardware UART and USB CDC. Both can be used for serial debugging and terminal interaction.
+LibXR supports two types of UARTs: **Hardware UART** and **USB CDC**. Both can be used for serial debugging and terminal interaction.
 
-For hardware UART, enable UART interrupts and DMA. For USB CDC, enable the corresponding interrupts and use the official STM32 USB library.
+- **Hardware UART** requires interrupt and DMA enabled;
+- **USB CDC** requires interrupt enabled, and the appropriate USB support depending on the OS (e.g., FreeRTOS or ThreadX).
 
-## UART Code Example
+## UART Code Examples
 
 ```cpp
 // Hardware UART
 STM32UART usart1(&huart1, usart1_rx_buf, usart1_tx_buf, 5, 5);
 
-// USB CDC
+// USB CDC (FreeRTOS or bare-metal)
 STM32VirtualUART uart_cdc(hUsbDeviceFS, UserTxBufferFS, UserRxBufferFS, 5, 5);
+
+// USB CDC (ThreadX + USBX)
+STM32VirtualUART uart_cdc(&hpcd_USB_FS, 2048, 2, 2048, 2, 5, 12, 256);
 ```
 
-## Terminal Code Example
+> Note: On **ThreadX**, USBX replaces the official ST USB library. The constructor parameters are different and require a USB PCD handle (e.g., `&hpcd_USB_FS`).
+
+## Terminal Code Examples
 
 ```cpp
-// Redirect standard input/output
+// If using hardware UART
 STDIO::read_ = &usart1.read_port_;
 STDIO::write_ = &usart1.write_port_;
 
-// Create virtual file system
+// If using USB CDC
+STDIO::read_ = &uart_cdc.read_port_;
+STDIO::write_ = &uart_cdc.write_port_;
+
+// Create a virtual file system
 RamFS ramfs("XRobot");
 
-// Create terminal
+// Create the terminal
 Terminal<32, 32, 5, 5> terminal(ramfs);
 
-// Launch terminal task
+// Method 1: Run as a task (default)
 auto terminal_task = Timer::CreateTask(terminal.TaskFun, &terminal, 10);
 Timer::Add(terminal_task);
 Timer::Start(terminal_task);
+
+// Method 2: Run as a thread (independent thread)
+LibXR::Thread terminal_thread;
+terminal_thread.Create(&terminal, terminal.ThreadFun, "terminal", 512,
+                       LibXR::Thread::Priority::MEDIUM);
 ```
 
-## Configuration File
+## Configuration File Explanation
 
-Note: The `buffer_size` for USB must be configured inside STM32CubeMX using the official USB library.
+You can control UART and terminal behavior through the configuration file:
 
 ```yaml
-# Specify the UART source used for terminal; empty string disables terminal code generation
+# Select the default UART source for terminal binding (usb or usart1, etc.)
+# Leave empty to disable terminal
 terminal_source: usb
+
+# Terminal-related settings (optional)
+terminal:
+  RunAsThread: true       # Run as a thread (recommended for ThreadX)
+  ThreadStackDepth: 512   # Thread stack depth
+  ThreadPriority: 3       # Thread priority (matches LibXR::Thread::Priority)
 
 # Hardware UART configuration
 USART:
@@ -55,13 +77,28 @@ USART:
     tx_queue_size: 5
     rx_queue_size: 5
 
-# USB CDC configuration
+# USB CDC configuration (effective under FreeRTOS)
 USB:
   tx_queue_size: 12
   rx_queue_size: 12
 ```
 
-You can modify this file directly. To apply updated settings, run either of the following commands:  
-`xr_cubemx_cfg -d .`  
-or  
-`xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp`
+> The `UserTxBufferFS` and `UserRxBufferFS` buffers are only used when the **official ST USB library** (under FreeRTOS) is used. These are not required in ThreadX + USBX mode.
+
+---
+
+## Code Generation Command
+
+After modifying `.config.yaml`, use one of the following commands to regenerate the code:
+
+```bash
+# Regenerate the entire project
+xr_cubemx_cfg -d .
+```
+
+Or:
+
+```bash
+# Regenerate only app_main.cpp
+xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp
+```
