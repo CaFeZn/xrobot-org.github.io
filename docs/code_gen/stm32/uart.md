@@ -15,13 +15,13 @@ LibXR 支持两种串口类型：**硬件串口** 和 **USB CDC**。它们均可
 
 ```cpp
 // 硬件串口
-STM32UART usart1(&huart1, usart1_rx_buf, usart1_tx_buf, 5, 5);
+STM32UART usart1(&huart1, usart1_rx_buf, usart1_tx_buf, 5);
 
 // USB CDC（FreeRTOS 或裸机下）
-STM32VirtualUART uart_cdc(hUsbDeviceFS, UserTxBufferFS, UserRxBufferFS, 5, 5);
+STM32VirtualUART uart_cdc(hUsbDeviceFS, UserTxBufferFS, UserRxBufferFS, 5);
 
 // USB CDC（ThreadX + USBX）
-STM32VirtualUART uart_cdc(&hpcd_USB_FS, 2048, 2, 2048, 2, 5, 12, 256);
+STM32VirtualUART uart_cdc(&hpcd_USB_FS, 2048, 2, 2048, 2, 12, 256);
 ```
 
 > 注意：在 **ThreadX 系统** 中，使用 USBX 替代 ST 官方 USB 库，构造函数参数也不同，使用 USB PCD 句柄（如 `&hpcd_USB_FS`）初始化。
@@ -30,12 +30,12 @@ STM32VirtualUART uart_cdc(&hpcd_USB_FS, 2048, 2, 2048, 2, 5, 12, 256);
 
 ```cpp
 // 如果使用硬件串口
-STDIO::read_ = &usart1.read_port_;
-STDIO::write_ = &usart1.write_port_;
+STDIO::read_ = usart1.read_port_;
+STDIO::write_ = usart1.write_port_;
 
 // 如果使用 USB CDC
-STDIO::read_ = &uart_cdc.read_port_;
-STDIO::write_ = &uart_cdc.write_port_;
+STDIO::read_ = uart_cdc.read_port_;
+STDIO::write_ = uart_cdc.write_port_;
 
 // 创建虚拟文件系统
 RamFS ramfs("XRobot");
@@ -63,10 +63,14 @@ terminal_thread.Create(&terminal, terminal.ThreadFun, "terminal", 512,
 terminal_source: usb
 
 # 终端相关配置（可选）
-terminal:
-  RunAsThread: true       # 是否作为线程运行（ThreadX 推荐）
-  ThreadStackDepth: 512   # 线程栈深度
-  ThreadPriority: 3       # 线程优先级（对应 LibXR::Thread::Priority）
+Terminal:
+  READ_BUFF_SIZE: 32      # 终端读取缓冲区大小
+  MAX_LINE_SIZE: 32       # 每行最大字符数
+  MAX_ARG_NUMBER: 5       # 每行最大参数个数
+  MAX_HISTORY_NUMBER: 5   # 历史命令个数
+  RunAsThread: true       # 是否作为线程运行
+  ThreadStackDepth: 1024  # 线程栈深度（仅在线程下有效）
+  ThreadPriority: 3       # 线程优先级（仅在线程下有效）
 
 # 硬件串口配置
 USART:
@@ -74,12 +78,10 @@ USART:
     tx_buffer_size: 128
     rx_buffer_size: 128
     tx_queue_size: 5
-    rx_queue_size: 5
 
 # USB CDC 配置（FreeRTOS 下有效）
 USB:
   tx_queue_size: 12
-  rx_queue_size: 12
 ```
 
 > USB 的 `UserTxBufferFS` 与 `UserRxBufferFS` 缓冲区仅在使用 **官方 USB 库**（FreeRTOS）时有效。ThreadX + USBX 模式不需要配置这些缓冲。

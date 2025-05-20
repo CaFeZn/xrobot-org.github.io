@@ -10,11 +10,11 @@ LibXR 支持标准 CAN 和 CAN FD。在 STM32CubeMX 中需要启用相应的外�
 
 ## 示例
 
-第三个参数表示发送队列大小，用于缓冲待发送的数据帧。
+第二个参数表示发送队列大小，用于缓冲待发送的数据帧。
 
 ```cpp
-STM32CAN can1(&hcan1, "can1", 5);
-STM32CANFD fdcan1(&hfdcan1, "fdcan1", 5);
+STM32CAN can1(&hcan1, 5);
+STM32CANFD fdcan1(&hfdcan1, 5);
 ```
 
 ## 配置文件

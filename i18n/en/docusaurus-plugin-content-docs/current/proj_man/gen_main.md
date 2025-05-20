@@ -1,6 +1,4 @@
-
 ---
-
 id: proj-man-gen-main
 title: Generate Main Function
 sidebar_position: 2

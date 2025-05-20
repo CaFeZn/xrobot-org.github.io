@@ -1,4 +1,3 @@
-
 ---
 id: proj-man-add-mod
 title: Add Module

@@ -10,11 +10,11 @@ LibXR supports both standard CAN and CAN FD. You need to enable the respective p
 
 ## Example
 
-The third parameter represents the transmission queue size, which buffers outgoing messages.
+The second parameter represents the transmission queue size, which buffers outgoing messages.
 
 ```cpp
-STM32CAN can1(&hcan1, "can1", 5);
-STM32CANFD fdcan1(&hfdcan1, "fdcan1", 5);
+STM32CAN can1(&hcan1, 5);
+STM32CANFD fdcan1(&hfdcan1, 5);
 ```
 
 ## Configuration File

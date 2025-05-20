@@ -1,4 +1,3 @@
-
 ---
 id: proj-man-setup
 title: One-Click Setup

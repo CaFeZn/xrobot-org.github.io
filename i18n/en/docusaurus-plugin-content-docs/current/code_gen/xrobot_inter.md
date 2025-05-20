@@ -1,4 +1,3 @@
-
 ---
 id: code-gen-xrobot-inter
 title: Integrate with XRobot

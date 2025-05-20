@@ -1,4 +1,3 @@
-
 ---
 id: proj-man-create-mod
 title: Quickly Create a Module

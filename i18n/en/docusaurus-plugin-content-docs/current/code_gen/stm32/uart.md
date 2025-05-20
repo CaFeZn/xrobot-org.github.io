@@ -15,13 +15,13 @@ LibXR supports two types of UARTs: **Hardware UART** and **USB CDC**. Both can b
 
 ```cpp
 // Hardware UART
-STM32UART usart1(&huart1, usart1_rx_buf, usart1_tx_buf, 5, 5);
+STM32UART usart1(&huart1, usart1_rx_buf, usart1_tx_buf, 5);
 
 // USB CDC (FreeRTOS or bare-metal)
-STM32VirtualUART uart_cdc(hUsbDeviceFS, UserTxBufferFS, UserRxBufferFS, 5, 5);
+STM32VirtualUART uart_cdc(hUsbDeviceFS, UserTxBufferFS, UserRxBufferFS, 5);
 
 // USB CDC (ThreadX + USBX)
-STM32VirtualUART uart_cdc(&hpcd_USB_FS, 2048, 2, 2048, 2, 5, 12, 256);
+STM32VirtualUART uart_cdc(&hpcd_USB_FS, 2048, 2, 2048, 2, 12, 256);
 ```
 
 > Note: On **ThreadX**, USBX replaces the official ST USB library. The constructor parameters are different and require a USB PCD handle (e.g., `&hpcd_USB_FS`).
@@ -30,12 +30,12 @@ STM32VirtualUART uart_cdc(&hpcd_USB_FS, 2048, 2, 2048, 2, 5, 12, 256);
 
 ```cpp
 // If using hardware UART
-STDIO::read_ = &usart1.read_port_;
-STDIO::write_ = &usart1.write_port_;
+STDIO::read_ = usart1.read_port_;
+STDIO::write_ = usart1.write_port_;
 
 // If using USB CDC
-STDIO::read_ = &uart_cdc.read_port_;
-STDIO::write_ = &uart_cdc.write_port_;
+STDIO::read_ = uart_cdc.read_port_;
+STDIO::write_ = uart_cdc.write_port_;
 
 // Create a virtual file system
 RamFS ramfs("XRobot");
@@ -64,10 +64,14 @@ You can control UART and terminal behavior through the configuration file:
 terminal_source: usb
 
 # Terminal-related settings (optional)
-terminal:
-  RunAsThread: true       # Run as a thread (recommended for ThreadX)
-  ThreadStackDepth: 512   # Thread stack depth
-  ThreadPriority: 3       # Thread priority (matches LibXR::Thread::Priority)
+Terminal:
+  READ_BUFF_SIZE: 32      # Terminal read buffer size
+  MAX_LINE_SIZE: 32       # Maximum line size
+  MAX_ARG_NUMBER: 5       # Maximum argument number
+  MAX_HISTORY_NUMBER: 5   # Maximum history number
+  RunAsThread: true       # Run as a thread
+  ThreadStackDepth: 1024  # Thread stack depth (only effective under thread mode)
+  ThreadPriority: 3       # Thread priority (only effective under thread mode)
 
 # Hardware UART configuration
 USART:
@@ -75,12 +79,10 @@ USART:
     tx_buffer_size: 128
     rx_buffer_size: 128
     tx_queue_size: 5
-    rx_queue_size: 5
 
 # USB CDC configuration (effective under FreeRTOS)
 USB:
   tx_queue_size: 12
-  rx_queue_size: 12
 ```
 
 > The `UserTxBufferFS` and `UserRxBufferFS` buffers are only used when the **official ST USB library** (under FreeRTOS) is used. These are not required in ThreadX + USBX mode.

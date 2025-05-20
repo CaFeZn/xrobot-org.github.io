@@ -1,7 +1,7 @@
 ---
 id: code-gen
 title: 代码生成（CodeGenerator）
-sidebar_position: 3
+sidebar_position: 4
 ---
 
 # 代码生成（CodeGenerator）

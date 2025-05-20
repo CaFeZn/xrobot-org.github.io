@@ -1,6 +1,4 @@
-
 ---
-
 id: proj-man-init-mod
 title: Initialize Module Repository
 sidebar_position: 1
