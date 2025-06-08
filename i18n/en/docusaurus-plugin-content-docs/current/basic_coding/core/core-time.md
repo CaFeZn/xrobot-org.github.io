@@ -29,10 +29,10 @@ class TimeDiffUS {
  public:
   TimeDiffUS(uint64_t diff);
   operator uint64_t() const;
-  double to_second() const;
-  float to_secondf() const;
-  uint64_t to_microsecond() const;
-  uint32_t to_millisecond() const;
+  double ToSecond() const;
+  float ToSecondf() const;
+  uint64_t ToMicrosecond() const;
+  uint32_t ToMillisecond() const;
 };
 ```
 
@@ -59,10 +59,10 @@ class TimeDiffMS {
  public:
   TimeDiffMS(uint32_t diff);
   operator uint32_t() const;
-  double to_second();
-  float to_secondf();
-  uint32_t to_millisecond() const;
-  uint64_t to_microsecond() const;
+  double ToSecond();
+  float ToSecondf();
+  uint64_t ToMicrosecond() const;
+  uint32_t ToMillisecond() const;
 };
 ```
 
