@@ -52,3 +52,15 @@ You can install it using apt. Ensure the version is 18.1 or above (versions in U
 sudo apt update
 sudo apt install -y clang clangd
 ```
+
+## IDE Configuration
+
+All IDEs need to configure the STM32CubeCLT path. CLion also requires OpenOCD.
+
+### VSCode
+
+Use the official STM32 extension (`STMicroelectronics.stm32-vscode-extension`) to import and build the project.
+
+### CLion
+
+Create a new project in CLion, choose STM32CubeMX, and import the generated project.

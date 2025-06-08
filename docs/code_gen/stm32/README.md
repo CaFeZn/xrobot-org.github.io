@@ -108,6 +108,7 @@ int main() {
 
 - 必须为 STM32CubeMX 导出的 CMake 工程；
 - 必须存在 `.ioc` 文件；
+- FreeRTOS 必须开启互斥锁（`configUSE_MUTEXES`）
 
 ---
 

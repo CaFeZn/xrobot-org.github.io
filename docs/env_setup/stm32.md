@@ -49,3 +49,15 @@ sudo ln -s /opt/arm-gun-toolchain-xx.x/bin/* /usr/bin
 sudo apt update
 sudo apt install -y clang clangd
 ```
+
+## IDE配置
+
+所有IDE都需要配置STM32CubeCLT路径，CLion还需要OpenOCD。
+
+### VSCode
+
+使用STM32官方插件（`STMicroelectronics.stm32-vscode-extension`）导入工程即可编译。
+
+### CLion
+
+使用CLion新建工程，选择STM32CubeMX，导入生成好的工程即可。

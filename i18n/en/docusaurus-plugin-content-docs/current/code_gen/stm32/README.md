@@ -108,6 +108,7 @@ Place `app_main()` in the entry function of the main thread.
 
 - Must be a CMake project exported from STM32CubeMX  
 - Must contain a valid `.ioc` file  
+- Must enable Mutex when using FreeRTOS(`configUSE_MUTEXES`)
 
 ---
 
