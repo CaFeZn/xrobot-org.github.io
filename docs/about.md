@@ -1,7 +1,7 @@
 ---
 id: about
 title: 关于
-sidebar_position: 7
+sidebar_position: 8
 ---
 
 # 关于本项目

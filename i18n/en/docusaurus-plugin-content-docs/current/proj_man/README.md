@@ -1,7 +1,7 @@
 ---
 id: proj-man
 title: Project Management (XRobot)
-sidebar_position: 5
+sidebar_position: 6
 ---
 
 # Project Management (XRobot)

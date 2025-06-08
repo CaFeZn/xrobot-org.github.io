@@ -1,7 +1,7 @@
 ---
 id: basic-coding
 title: Basic Programming (libxr)
-sidebar_position: 6
+sidebar_position: 7
 ---
 
 # Basic Programming (libxr)

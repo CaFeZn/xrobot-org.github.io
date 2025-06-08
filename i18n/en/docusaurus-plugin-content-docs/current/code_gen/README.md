@@ -1,7 +1,7 @@
 ---
 id: code-gen
 title: Code Generation
-sidebar_position: 4
+sidebar_position: 5
 ---
 
 # CodeGenerator

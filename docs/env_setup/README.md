@@ -1,7 +1,7 @@
 ---
 id: env-setup
 title: 环境配置
-sidebar_position: 3
+sidebar_position: 4
 ---
 
 # 环境配置
