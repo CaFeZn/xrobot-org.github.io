@@ -1,7 +1,7 @@
 ---
 id: core-coding
 title: 核心组件
-sidebar_position: 3
+sidebar_position: 1
 ---
 
 # 核心组件
