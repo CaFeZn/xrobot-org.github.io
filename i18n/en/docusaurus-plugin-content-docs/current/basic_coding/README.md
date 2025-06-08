@@ -6,4 +6,4 @@ sidebar_position: 7
 
 # Basic Programming (libxr)
 
-This page provides a brief introduction to CMake configuration and basic API usage in LibXR, including common utilities, peripherals, OS APIs, and various control algorithms.
+This chapter briefly introduces the CMake configuration and basic API usage of LibXR, including common utilities, peripherals, OS APIs, and various control algorithms.

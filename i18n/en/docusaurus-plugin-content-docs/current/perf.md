@@ -35,7 +35,7 @@ void (*fun)(uint32_t *) = [](uint32_t *count) {
   XR_LOG_INFO("\r\ncount: %d, speed: %d BAUD", *count,
               *count * 10 * sizeof(write_buffer));
   *count = 0;
-  static uint8_t cpu_info[1000];
+  static uint8_t cpu_info[400];
 
   memset(cpu_info, 0, 400);
   vTaskList((char *)&cpu_info);
