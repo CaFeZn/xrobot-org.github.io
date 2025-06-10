@@ -55,11 +55,14 @@ These macros are enabled or disabled by `LIBXR_DEBUG_BUILD` and are recommended 
 ## Usage Example
 
 ```cpp
-LibXR::Assert::RegisterFatalErrorCB(
-    LibXR::Callback<const char*, uint32_t>::Create([](bool in_isr, const char* file, uint32_t line) {
-        printf("Fatal error at %s:%u (ISR=%d)\n", file, line, in_isr);
-    }, nullptr));
+auto err_cb = LibXR::Assert::Callback::Create(
+    [](bool in_isr, Arg arg, const char *file, uint32_t line)
+    {
+    // do something
+    },
+    arg);
 
+LibXR::Assert::RegisterFatalErrorCB(err_cb);
 ASSERT(buffer != nullptr);
 ASSERT_ISR(interrupt_flag == true);
 ```
