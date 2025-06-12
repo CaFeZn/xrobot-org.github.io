@@ -130,6 +130,8 @@ LibXR::STDIO::Printf("Hello, %d", 123);
 
 ## Usage Examples
 
+For data size of 0, Write will return success directly, and Read will wait for any data to be available before returning (blocking mode).
+
 ```cpp
 // Blocking write to UART, timeout set to 100ms (default is infinite wait)
 WriteOperation op_block(sem, 100);

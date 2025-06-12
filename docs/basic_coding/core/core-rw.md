@@ -130,6 +130,8 @@ LibXR::STDIO::Printf("Hello, %d", 123);
 
 ## 用例示例
 
+对于数据大小为0的情况，Write会直接返回成功，Read会等待有任何数据可读再返回（阻塞模式下）。
+
 ```cpp
 // 阻塞写入串口，超时为 100ms （默认永远等待）
 WriteOperation op_block(sem, 100);

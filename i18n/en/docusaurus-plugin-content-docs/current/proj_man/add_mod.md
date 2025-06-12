@@ -6,41 +6,96 @@ sidebar_position: 4
 
 # Add Module
 
-The `xrobot_add_mod` tool allows you to quickly add a new module to the repository, or create an instance of an existing module.
+XRobot provides the `xrobot_add_mod` tool to:
 
-## Usage
+- **Add remote module repositories** (appends to `modules.yaml` and pulls)
+- **Add module instances** (appends to `xrobot.yaml` and enables code generation)
 
-### Add a Remote Module to the Repository
+---
 
-The `--version` option can be omitted, but make sure the specified branch exists when using it.
+## 1. Add a Remote Module
+
+You can quickly add a module by specifying its repository address:
 
 ```bash
-$ xrobot_add_mod https://github.com/yourorg/BlinkLED.git --version main
-[SUCCESS] Added repo module 'BlinkLED' to Modules/modules.yaml
+xrobot_add_mod xrobot-org/BlinkLED@master
 ```
 
-Then fetch the module:
+Example output:
 
 ```bash
-$ xrobot_init_mod
-[INFO] Cloning new module: BlinkLED
+[SUCCESS] Added repo module 'xrobot-org/BlinkLED@master' to Modules/modules.yaml
+```
+
+Then initialize the modules:
+
+```bash
+xrobot_init_mod
+```
+
+This will fetch all modules automatically:
+
+```bash
+[INFO] Cloning new module: xrobot-org/BlinkLED
 Cloning into 'Modules/BlinkLED'...
-remote: Enumerating objects: 22, done.
-remote: Counting objects: 100% (22/22), done.
-remote: Compressing objects: 100% (15/15), done.
-remote: Total 22 (delta 7), reused 22 (delta 7), pack-reused 0 (from 0)
-Receiving objects: 100% (22/22), done.
-Resolving deltas: 100% (7/7), done.
-[SUCCESS] All modules processed
+remote: Enumerating objects: 37, done.
+remote: Counting objects: 100% (37/37), done.
+remote: Compressing objects: 100% (25/25), done.
+remote: Total 37 (delta 11), reused 33 (delta 10), pack-reused 0 (from 0)
+Receiving objects: 100% (37/37), 7.48 KiB | 3.74 MiB/s, done.
+Resolving deltas: 100% (11/11), done.
+Already on 'master'
+Your branch is up to date with 'origin/master'.
+[SUCCESS] All modules and their dependencies processed.
 ```
 
-### Create a Module Instance
+---
+
+## 2. Add a Module Instance (for Code Generation)
+
+Assuming the BlinkLED module is already pulled:
 
 ```bash
-$ xrobot_add_mod BlinkLED
-[SUCCESS] Appended module instance 'BlinkLED' to User/xrobot.yaml
-
-# Regenerate code
-$ xrobot_gen_main
-...
+xrobot_add_mod BlinkLED
 ```
+
+Sample output:
+
+```bash
+[SUCCESS] Appended module instance 'BlinkLED' as id 'BlinkLED_0' to User/xrobot.yaml
+```
+
+This will append a new entry to `xrobot.yaml`:
+
+```yaml
+modules:
+- id: BlinkLED_0
+  name: BlinkLED
+  constructor_args:
+    blink_cycle: 250
+```
+
+You can now generate the main function:
+
+```bash
+xrobot_gen_main
+```
+
+---
+
+## 3. Custom Instance ID
+
+The default instance ID is `ModuleName_Index`, such as `BlinkLED_0`. You can override it:
+
+```bash
+xrobot_add_mod BlinkLED --instance-id myled
+```
+
+---
+
+## 5. Configuration File Locations
+
+| Config Type       | Default Path             | Description                             |
+|-------------------|--------------------------|-----------------------------------------|
+| Module Repository | `Modules/modules.yaml`   | Stores module addresses and version info|
+| Instance Config   | `User/xrobot.yaml`       | Stores module instance IDs and parameters|

@@ -11,11 +11,11 @@ sidebar_position: 2
 ## 示例
 
 ```bash
-xr_gen_code_stm32 -i .\.config.yaml -o .\User\app_main.cpp --xrobot
+xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp --xrobot
 [INFO] Detected FreeRTOS configuration
 [INFO] FlashLayout is generated and injected, MCU: STM32G431KBU6
-[INFO] Flash layout map written to: .\User\flash_map.hpp
-[INFO] Successfully generated: .\User
+[INFO] Flash layout map written to: ./User/flash_map.hpp
+[INFO] Successfully generated: ./User
 [INFO] Generated header file: app_main.h
 ```
 
