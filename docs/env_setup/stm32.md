@@ -1,6 +1,6 @@
 ---
 id: env-setup-stm32
-title: STM32 环境配置
+title: STM32环境配置
 sidebar_position: 1
 ---
 
