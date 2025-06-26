@@ -25,6 +25,7 @@ SPI:
   spi1:
     tx_buffer_size: 32
     rx_buffer_size: 32
+    dma_section: ''
     dma_enable_min_size: 3
 ```
 

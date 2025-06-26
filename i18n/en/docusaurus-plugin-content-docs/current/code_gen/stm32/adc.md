@@ -35,10 +35,12 @@ After the code is generated, an ADC configuration section will appear in the `Us
 ADC:
   adcX:
     buffer_size: 128
+    dma_section: ''
     vref: 3.3
 ```
 
 - `buffer_size`: The size of the ADC buffer.  
+- `dma_section`: The memory section where the DMA buffer is located.
 - `vref`: The reference voltage for the ADC, in volts.
 
 You can modify this file directly. To apply the updated configuration, run either of the following commands to regenerate the code:  

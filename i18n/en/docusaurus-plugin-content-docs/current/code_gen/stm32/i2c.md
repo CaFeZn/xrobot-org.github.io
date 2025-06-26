@@ -24,10 +24,12 @@ After code generation, an I2C configuration section will appear in the `User/lib
 I2C:
   i2c1:
     buffer_size: 32
+    dma_section: ''
     dma_enable_min_size: 3
 ```
 
 - `buffer_size`: Size of the I2C transmission/reception buffer.  
+- `dma_section`: The memory section where the DMA buffer is located.
 - `dma_enable_min_size`: Minimum data size required to enable DMA transfer.
 
 You can directly modify this file. To apply the updated configuration, run one of the following commands to regenerate the code:  

@@ -24,10 +24,12 @@ STM32I2C i2c1(&hi2c1, i2c1_buf, 3);
 I2C:
   i2c1:
     buffer_size: 32
+    dma_section: ''
     dma_enable_min_size: 3
 ```
 
 - `buffer_size`：I2C 传输/接收缓冲区大小  
+- `dma_section`：缓冲区所在的内存区域
 - `dma_enable_min_size`：启用 DMA 的最小传输字节数
 
 可直接修改该文件。如需应用更新配置，请执行以下任一命令以重新生成代码：  

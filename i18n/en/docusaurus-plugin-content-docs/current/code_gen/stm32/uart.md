@@ -78,6 +78,7 @@ USART:
   usart1:
     tx_buffer_size: 128
     rx_buffer_size: 128
+    dma_section: ''
     tx_queue_size: 5
 
 # USB CDC configuration (effective under FreeRTOS)
