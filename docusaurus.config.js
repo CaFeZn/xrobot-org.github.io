@@ -12,6 +12,14 @@ module.exports = {
   organizationName: 'xrobot-org',
   projectName: 'xrobot-org.github.io',
 
+  scripts: [
+    {
+      src: 'https://static.cloudflareinsights.com/beacon.min.js',
+      defer: true,
+      'data-cf-beacon': '{"token": "8659aca76cfa4141bdd852a2f5652c32"}',
+    },
+  ],
+
   i18n: {
     defaultLocale: 'zh',
     locales: ['en', 'zh'],
