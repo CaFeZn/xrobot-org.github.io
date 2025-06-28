@@ -93,6 +93,33 @@ xrobot_add_mod BlinkLED --instance-id myled
 
 ---
 
+## 4. Passing Other Module Instances as Arguments
+
+You can pass other module instances as arguments to a module:
+
+```yaml
+modules:
+- id: BlinkLED_0
+  name: BlinkLED
+  constructor_args:
+    blink_cycle: 250
+- id: TestModule_0
+  name: TestModule
+  constructor_args:
+    test_arg5: '@BlinkLED_0'
+```
+
+The following code will be generated:
+
+```cpp
+static BlinkLED BlinkLED_0(hw, appmgr, 250);
+static TestModule TestModule_0(hw, appmgr, BlinkLED_0);
+```
+
+The syntax`'@obj->GetMember()'` or `'@obj.member'`is also supported, allowing access to members of other module instances.
+
+---
+
 ## 5. Configuration File Locations
 
 | Config Type       | Default Path             | Description                             |

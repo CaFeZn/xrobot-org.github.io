@@ -93,6 +93,33 @@ xrobot_add_mod BlinkLED --instance-id myled
 
 ---
 
+## 4. 将别的模块实例作为参数
+
+你可以将别的模块实例作为参数传递给模块：
+
+```yaml
+modules:
+- id: BlinkLED_0
+  name: BlinkLED
+  constructor_args:
+    blink_cycle: 250
+- id: TestModule_0
+  name: TestModule
+  constructor_args:
+    test_arg5: '@BlinkLED_0'
+```
+
+会生成以下代码:
+
+```cpp
+static BlinkLED BlinkLED_0(hw, appmgr, 250);
+static TestModule TestModule_0(hw, appmgr, BlinkLED_0);
+```
+
+还支持`'@obj->GetMember()'`或`'@obj.member'`这样的语法，用于访问别的模块实例的成员。
+
+---
+
 ## 5. 配置文件位置说明
 
 | 配置类型     | 默认路径              | 内容                        |

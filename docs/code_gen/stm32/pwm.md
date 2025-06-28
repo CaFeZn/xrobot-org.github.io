@@ -10,6 +10,8 @@ sidebar_position: 6
 
 ## 示例
 
+第三个参数为`true`时，使用此定时器通道的互补输出。
+
 ```cpp
-STM32PWM pwm_timX_chX(&htimX, TIM_CHANNEL_1);
+STM32PWM pwm_timX_chX(&htimX, TIM_CHANNEL_X, false);
 ```
