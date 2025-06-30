@@ -65,13 +65,13 @@ terminal_source: usb
 
 # Terminal-related settings (optional)
 Terminal:
-  READ_BUFF_SIZE: 32      # Terminal read buffer size
-  MAX_LINE_SIZE: 32       # Maximum line size
-  MAX_ARG_NUMBER: 5       # Maximum argument number
-  MAX_HISTORY_NUMBER: 5   # Maximum history number
-  RunAsThread: true       # Run as a thread
-  ThreadStackDepth: 1024  # Thread stack depth (only effective under thread mode)
-  ThreadPriority: 3       # Thread priority (only effective under thread mode)
+  read_buff_size: 32      # Terminal read buffer size
+  max_line_size: 32       # Maximum line size
+  max_arg_number: 5       # Maximum argument number
+  max_history_number: 5   # Maximum history number
+  run_as_thread: true       # Run as a thread
+  thread_stack_depth: 1024  # Thread stack depth (only effective under thread mode)
+  thread_priority: 3       # Thread priority (only effective under thread mode)
 
 # Hardware UART configuration
 USART:

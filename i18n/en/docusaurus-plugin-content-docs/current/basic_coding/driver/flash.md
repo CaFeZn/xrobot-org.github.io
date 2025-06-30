@@ -15,16 +15,25 @@ class Flash {
 public:
   Flash(size_t min_erase_size, size_t min_write_size, RawData flash_area);
 
-  // Erase a specified region (starting offset and size)
+  // Erase the specified region (starting offset and length)
   virtual ErrorCode Erase(size_t offset, size_t size) = 0;
 
-  // Write data to a specified offset address
+  // Write data to the specified offset
   virtual ErrorCode Write(size_t offset, ConstRawData data) = 0;
 
-  size_t min_erase_size_;   // Minimum erasable block size (in bytes)
-  size_t min_write_size_;   // Minimum writable block size (in bytes)
-  RawData flash_area_;      // Mapped flash memory region
+  // Read data from the specified offset
+  virtual ErrorCode Read(size_t offset, RawData data) = 0;
+
+  // Get the minimum erasable block size
+  size_t MinEraseSize() const { return min_erase_size_; }
+
+  // Get the minimum writable block size
+  size_t MinWriteSize() const { return min_write_size_; }
+
+  // Get the size of the flash
+  size_t Size() const { return flash_area_.size_; }
 };
+
 ```
 
 ## Usage Notes

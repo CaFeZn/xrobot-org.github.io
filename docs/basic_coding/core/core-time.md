@@ -6,28 +6,28 @@ sidebar_position: 7
 
 # 时间戳与时间差
 
-本模块定义了微秒级和毫秒级的时间戳类型 `TimestampUS` 和 `TimestampMS`，用于表示系统时钟时间，并可计算两个时间点之间的时间差。适用于定时器、延迟控制、性能分析等场景。
+本模块定义了微秒级和毫秒级的时间戳类型 `MicrosecondTimestamp` 和 `MillisecondTimestamp`，用于表示系统时钟时间，并可计算两个时间点之间的时间差。适用于定时器、延迟控制、性能分析等场景。
 
-## TimestampUS
+## MicrosecondTimestamp
 
 ```cpp
-class TimestampUS {
+class MicrosecondTimestamp {
  public:
-  TimestampUS();
-  TimestampUS(uint64_t microsecond);
+  MicrosecondTimestamp();
+  MicrosecondTimestamp(uint64_t microsecond);
   operator uint64_t() const;
-  TimeDiffUS operator-(const TimestampUS &old) const;
+  Duration operator-(const MicrosecondTimestamp &old) const;
 };
 ```
 
 表示微秒级时间戳，支持隐式转换为 `uint64_t`，可计算时间差。
 
-### TimeDiffUS
+### Duration
 
 ```cpp
-class TimeDiffUS {
+class Duration {
  public:
-  TimeDiffUS(uint64_t diff);
+  Duration(uint64_t diff);
   operator uint64_t() const;
   double ToSecond() const;
   float ToSecondf() const;
@@ -36,37 +36,37 @@ class TimeDiffUS {
 };
 ```
 
-表示两个 `TimestampUS` 之间的差值，单位为微秒。支持以秒/毫秒返回差值。
+表示两个 `MicrosecondTimestamp` 之间的差值，单位为微秒。支持以秒/毫秒返回差值。
 
-## TimestampMS
+## MillisecondTimestamp
 
 ```cpp
-class TimestampMS {
+class MillisecondTimestamp {
  public:
-  TimestampMS();
-  TimestampMS(uint32_t millisecond);
+  MillisecondTimestamp();
+  MillisecondTimestamp(uint32_t millisecond);
   operator uint32_t() const;
-  TimeDiffMS operator-(TimestampMS &old);
+  Duration operator-(MillisecondTimestamp &old);
 };
 ```
 
 表示毫秒级时间戳，支持隐式转换为 `uint32_t`，可计算时间差。
 
-### TimeDiffMS
+### Duration
 
 ```cpp
-class TimeDiffMS {
+class Duration {
  public:
-  TimeDiffMS(uint32_t diff);
+  Duration(uint32_t diff);
   operator uint32_t() const;
-  double ToSecond();
-  float ToSecondf();
+  double ToSecond() const;
+  float ToSecondf() const;
   uint64_t ToMicrosecond() const;
   uint32_t ToMillisecond() const;
 };
 ```
 
-表示两个 `TimestampMS` 之间的差值，单位为毫秒。支持以秒/微秒返回差值。
+表示两个 `MillisecondTimestamp` 之间的差值，单位为毫秒。支持以秒/微秒返回差值。
 
 ## 溢出处理
 

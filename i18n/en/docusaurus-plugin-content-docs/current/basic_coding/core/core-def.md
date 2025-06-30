@@ -40,7 +40,7 @@ The `ErrorCode` enum defines a unified error code system used to represent vario
 | `CHECK_ERR`    | -6    | Validation failed        |
 | `NOT_SUPPORT`  | -7    | Feature not supported    |
 | `NOT_FOUND`    | -8    | Object not found         |
-| `NO_REPONSE`   | -9    | No response              |
+| `NO_RESPONSE`   | -9    | No response              |
 | `NO_MEM`       | -10   | Insufficient memory      |
 | `NO_BUFF`      | -11   | Insufficient buffer      |
 | `TIMEOUT`      | -12   | Operation timeout        |

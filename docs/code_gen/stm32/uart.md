@@ -64,13 +64,13 @@ terminal_source: usb
 
 # 终端相关配置（可选）
 Terminal:
-  READ_BUFF_SIZE: 32      # 终端读取缓冲区大小
-  MAX_LINE_SIZE: 32       # 每行最大字符数
-  MAX_ARG_NUMBER: 5       # 每行最大参数个数
-  MAX_HISTORY_NUMBER: 5   # 历史命令个数
-  RunAsThread: true       # 是否作为线程运行
-  ThreadStackDepth: 1024  # 线程栈深度（仅在线程下有效）
-  ThreadPriority: 3       # 线程优先级（仅在线程下有效）
+  read_buff_size: 32      # 终端读取缓冲区大小
+  max_line_size: 32       # 每行最大字符数
+  max_arg_number: 5       # 每行最大参数个数
+  max_history_number: 5   # 历史命令个数
+  run_as_thread: true       # 是否作为线程运行
+  thread_stack_depth: 1024  # 线程栈深度（仅在线程下有效）
+  thread_priority: 3       # 线程优先级（仅在线程下有效）
 
 # 硬件串口配置
 USART:

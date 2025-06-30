@@ -21,9 +21,17 @@ public:
   // 写入数据到指定偏移地址
   virtual ErrorCode Write(size_t offset, ConstRawData data) = 0;
 
-  size_t min_erase_size_;   // 最小可擦除块大小（字节）
-  size_t min_write_size_;   // 最小可写入块大小（字节）
-  RawData flash_area_;      // 映射的闪存内存区域
+  // 读取指定偏移地址的数据
+  virtual ErrorCode Read(size_t offset, RawData data) = 0;
+
+  // 获取最小可擦除块大小
+  size_t MinEraseSize() const { return min_erase_size_; }
+
+  // 获取最小可写入块大小
+  size_t MinWriteSize() const { return min_write_size_; }
+
+  // 获取flash大小
+  size_t Size() const { return flash_area_.size_; }
 };
 ```
 

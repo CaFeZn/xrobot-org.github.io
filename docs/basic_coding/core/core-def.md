@@ -40,7 +40,7 @@ sidebar_position: 1
 | `CHECK_ERR`  | -6   | 校验失败           |
 | `NOT_SUPPORT`| -7   | 功能不支持         |
 | `NOT_FOUND`  | -8   | 未找到对象         |
-| `NO_REPONSE` | -9   | 无响应             |
+| `NO_RESPONSE` | -9   | 无响应             |
 | `NO_MEM`     | -10  | 内存不足           |
 | `NO_BUFF`    | -11  | 缓冲区不足         |
 | `TIMEOUT`    | -12  | 操作超时           |

@@ -6,28 +6,28 @@ sidebar_position: 7
 
 # Timestamps and Time Differences
 
-This module defines microsecond- and millisecond-level timestamp types `TimestampUS` and `TimestampMS`, which represent system clock times and can be used to compute the time difference between two points. It is suitable for scenarios such as timers, delay control, and performance analysis.
+This module defines microsecond- and millisecond-level timestamp types `MicrosecondTimestamp` and `MillisecondTimestamp`, which represent system clock times and can be used to compute the time difference between two points. It is suitable for scenarios such as timers, delay control, and performance analysis.
 
-## TimestampUS
+## MicrosecondTimestamp
 
 ```cpp
-class TimestampUS {
+class MicrosecondTimestamp {
  public:
-  TimestampUS();
-  TimestampUS(uint64_t microsecond);
+  MicrosecondTimestamp();
+  MicrosecondTimestamp(uint64_t microsecond);
   operator uint64_t() const;
-  TimeDiffUS operator-(const TimestampUS &old) const;
+  Duration operator-(const MicrosecondTimestamp &old) const;
 };
 ```
 
 Represents a microsecond-level timestamp. Supports implicit conversion to `uint64_t` and can be used to compute time differences.
 
-### TimeDiffUS
+### Duration
 
 ```cpp
-class TimeDiffUS {
+class Duration {
  public:
-  TimeDiffUS(uint64_t diff);
+  Duration(uint64_t diff);
   operator uint64_t() const;
   double ToSecond() const;
   float ToSecondf() const;
@@ -36,37 +36,37 @@ class TimeDiffUS {
 };
 ```
 
-Represents the time difference between two `TimestampUS` instances, in microseconds. Supports conversion to seconds and milliseconds.
+Represents the time difference between two `MicrosecondTimestamp` instances, in microseconds. Supports conversion to seconds and milliseconds.
 
-## TimestampMS
+## MillisecondTimestamp
 
 ```cpp
-class TimestampMS {
+class MillisecondTimestamp {
  public:
-  TimestampMS();
-  TimestampMS(uint32_t millisecond);
+  MillisecondTimestamp();
+  MillisecondTimestamp(uint32_t millisecond);
   operator uint32_t() const;
-  TimeDiffMS operator-(TimestampMS &old);
+  Duration operator-(MillisecondTimestamp &old);
 };
 ```
 
 Represents a millisecond-level timestamp. Supports implicit conversion to `uint32_t` and can be used to compute time differences.
 
-### TimeDiffMS
+### Duration
 
 ```cpp
-class TimeDiffMS {
+class Duration {
  public:
-  TimeDiffMS(uint32_t diff);
+  Duration(uint32_t diff);
   operator uint32_t() const;
-  double ToSecond();
-  float ToSecondf();
+  double ToSecond() const;
+  float ToSecondf() const;
   uint64_t ToMicrosecond() const;
   uint32_t ToMillisecond() const;
 };
 ```
 
-Represents the time difference between two `TimestampMS` instances, in milliseconds. Supports conversion to seconds and microseconds.
+Represents the time difference between two `MillisecondTimestamp` instances, in milliseconds. Supports conversion to seconds and microseconds.
 
 ## Overflow Handling
 

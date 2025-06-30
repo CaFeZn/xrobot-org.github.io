@@ -40,14 +40,14 @@ Configure watchdog behavior via `.config.yaml`:
 IWDG:
   iwdg1:
     timeout_ms: 1000   # Timeout in milliseconds
-    feed_ms: 250       # Feed interval in milliseconds
+    feed_interval_ms: 250       # Feed interval in milliseconds
 
 # Global watchdog options
 Watchdog:
-  RunAsThread: true         # Whether to run as thread (otherwise uses timer)
-  ThreadStackDepth: 1024    # Stack size for thread (only effective if thread enabled)
-  ThreadPriority: 3         # Thread priority (only effective if thread enabled)
-  FeedInterval: 250         # Feed interval in ms for timer mode (default 250)
+  run_as_thread: true         # Whether to run as thread (otherwise uses timer)
+  feed_interval_ms: 1024    # Stack size for thread (only effective if thread enabled)
+  thread_stack_depth: 3         # Thread priority (only effective if thread enabled)
+  thread_priority: 250         # Feed interval in ms for timer mode (default 250)
 ```
 
 > * If `RunAsThread: true`, each enabled IWDG generates a thread; thread parameters are global.

@@ -42,14 +42,14 @@ iwdg1_thread.Create(reinterpret_cast<LibXR::Watchdog *>(&iwdg1), iwdg1.ThreadFun
 IWDG:
   iwdg1:
     timeout_ms: 1000   # 溢出超时时间（毫秒）
-    feed_ms: 250       # 喂狗周期（毫秒）
+    feed_interval_ms: 250       # 喂狗周期（毫秒）
 
 # Watchdog 相关全局配置
 Watchdog:
-  RunAsThread: true         # 是否作为线程运行（否则定时任务）
-  ThreadStackDepth: 1024    # 线程栈深度（仅在线程下有效）
-  ThreadPriority: 3         # 线程优先级（仅在线程下有效）
-  FeedInterval: 250         # 定时任务喂狗周期（毫秒，默认250）
+  run_as_thread: true         # 是否作为线程运行（否则定时任务）
+  feed_interval_ms: 1024    # 线程栈深度（仅在线程下有效）
+  thread_stack_depth: 3         # 线程优先级（仅在线程下有效）
+  thread_priority: 250         # 定时任务喂狗周期（毫秒，默认250）
 ```
 
 > * 若 `RunAsThread: true`，则每个启用的 IWDG 会自动生成线程，线程参数可全局配置。
