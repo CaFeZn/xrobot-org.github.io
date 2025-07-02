@@ -112,6 +112,12 @@ int main() {
 
 ---
 
+## 编译优化
+
+默认生成的 CMake 配置在 Debug 模式下会为 LibXR、HAL 库、FreeRTOS 和 USB 等库添加 `-O2` 优化选项，而对 User 目录下的代码以及 XRobot 的模块则使用 `-Og` 优化选项，以此减少 FLASH 占用。
+
+---
+
 ## 相关命令（由 `xr_cubemx_cfg` 内部调用，可单独执行）
 
 | 工具名              | 功能说明                             |

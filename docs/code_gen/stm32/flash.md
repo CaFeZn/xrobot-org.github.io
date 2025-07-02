@@ -37,12 +37,12 @@ constexpr size_t FLASH_SECTOR_NUMBER = sizeof(FLASH_SECTORS) / sizeof(LibXR::Fla
 
 ## 创建Flash对象
 
-第一个模板参数是flash的总扇区数，第二个是数据库的起始扇区编号。FLASH_SECTOR_NUMBER - 1意味着取最后两个扇区。此对象提供了擦除和读写flash的接口。
+第一个参数是Flash地址映射表，第二个参数是flash的总扇区数，第三个是数据库的起始扇区编号，第三个参数可以省略，默认取最后两个扇区。
 
 ```cpp
   // app_main.cpp
   /* User Code Begin 3 */
-  STM32Flash<FLASH_SECTOR_NUMBER, FLASH_SECTOR_NUMBER - 1> flash(FLASH_SECTORS);
+  STM32Flash flash(FLASH_SECTORS， FLASH_SECTOR_NUMBER);
 ```
 
 ## 创建数据库对象

@@ -112,6 +112,12 @@ Place `app_main()` in the entry function of the main thread.
 
 ---
 
+## Build Optimization
+
+By default, the generated CMake configuration applies the `-O2` optimization option to libraries such as LibXR, HAL, FreeRTOS, and USB in Debug mode, while using the `-Og` optimization option for code in the User directory and XRobot modules. This approach helps reduce FLASH usage.
+
+---
+
 ## Subcommands (Internally used by `xr_cubemx_cfg`, can also be run separately)
 
 | Tool                | Description                                      |

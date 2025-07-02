@@ -38,12 +38,12 @@ constexpr size_t FLASH_SECTOR_NUMBER = sizeof(FLASH_SECTORS) / sizeof(LibXR::Fla
 
 ## Creating a Flash Object
 
-The first template parameter specifies the total number of sectors; the second specifies the starting sector for use. `FLASH_SECTOR_NUMBER - 1` means using the last two sectors. This object provides interfaces for flash erasing and read/write operations.
+The first parameter is the Flash address mapping table, the second parameter is the total number of flash sectors, and the third parameter is the starting sector index for the database. The third parameter is optional and defaults to the last two sectors.
 
 ```cpp
-// app_main.cpp
-/* User Code Begin 3 */
-STM32Flash<FLASH_SECTOR_NUMBER, FLASH_SECTOR_NUMBER - 1> flash(FLASH_SECTORS);
+  // app_main.cpp
+  /* User Code Begin 3 */
+  STM32Flash flash(FLASH_SECTORS， FLASH_SECTOR_NUMBER);
 ```
 
 ---
