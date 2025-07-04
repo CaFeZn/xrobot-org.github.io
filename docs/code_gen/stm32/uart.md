@@ -1,7 +1,7 @@
 ---
 id: stm32-code-gen-uart
 title: 串口与终端
-sidebar_position: 10
+sidebar_position: 11
 ---
 
 # 串口与终端

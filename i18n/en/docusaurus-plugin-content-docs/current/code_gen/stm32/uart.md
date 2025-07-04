@@ -1,7 +1,7 @@
 ---
 id: stm32-code-gen-uart
 title: UART and Terminal
-sidebar_position: 10
+sidebar_position: 11
 ---
 
 # UART and Terminal

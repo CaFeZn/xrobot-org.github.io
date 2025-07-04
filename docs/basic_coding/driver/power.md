@@ -1,7 +1,7 @@
 ---
 id: power
 title: 电源管理
-sidebar_position: 9
+sidebar_position: 10
 ---
 
 # Power（电源管理）

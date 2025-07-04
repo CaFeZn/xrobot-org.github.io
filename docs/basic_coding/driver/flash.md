@@ -1,7 +1,7 @@
 ---
 id: flash
 title: 闪存接口
-sidebar_position: 8
+sidebar_position: 9
 ---
 
 # Flash（闪存接口）

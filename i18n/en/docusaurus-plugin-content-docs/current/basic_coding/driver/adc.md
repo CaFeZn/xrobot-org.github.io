@@ -22,11 +22,3 @@ public:
 
 - `Read()` is a pure virtual function, and must be implemented by subclasses to provide specific sampling logic;  
 - The return value is typically within the range of 0 to 3.3V, or other ranges supported by the chip;  
-- The interface is simple and clear, making it suitable for platform abstraction and analog signal reading.
-
-## Feature Summary
-
-- Provides a unified interface for reading analog voltage;  
-- Avoids platform differences, facilitating upper-layer logic reuse;  
-- Suitable for input from sensors such as temperature, voltage, and light;  
-- All platforms must implement the `Read()` method to perform sampling.

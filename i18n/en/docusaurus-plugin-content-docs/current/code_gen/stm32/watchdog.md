@@ -1,7 +1,7 @@
 ---
 id: stm32-code-gen-watchdog
 title: Watchdog
-sidebar_position: 11
+sidebar_position: 12
 ---
 
 # Watchdog

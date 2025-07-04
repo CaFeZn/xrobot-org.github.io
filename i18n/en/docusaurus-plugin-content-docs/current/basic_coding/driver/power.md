@@ -1,7 +1,7 @@
 ---
 id: power
 title: Power Management
-sidebar_position: 9
+sidebar_position: 10
 ---
 
 # Power (Power Management)

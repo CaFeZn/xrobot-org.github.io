@@ -1,7 +1,7 @@
 ---
 id: stm32-code-gen-spi
 title: SPI
-sidebar_position: 7
+sidebar_position: 8
 ---
 
 # SPI

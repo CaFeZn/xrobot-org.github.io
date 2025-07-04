@@ -1,7 +1,7 @@
 ---
 id: stm32-code-gen-i2c
 title: I2C
-sidebar_position: 8
+sidebar_position: 9
 ---
 
 # I2C

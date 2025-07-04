@@ -1,7 +1,7 @@
 ---
 id: stm32-code-gen-can
 title: CAN与CAN FD
-sidebar_position: 9
+sidebar_position: 10
 ---
 
 # CAN 与 CAN FD
