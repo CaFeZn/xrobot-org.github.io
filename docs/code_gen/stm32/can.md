@@ -8,6 +8,22 @@ sidebar_position: 10
 
 LibXR 支持标准 CAN 和 CAN FD。在 STM32CubeMX 中需要启用相应的外设和中断，并至少为标准帧和扩展帧分配一个过滤器。
 
+## 默认过滤器与FIFO配置
+
+LibXR会为每个CAN/CANFD的标准帧和扩展帧各配置一个默认过滤器，允许所有数据帧通过。
+
+对于不同CAN/CANFD数量的平台，FIFO的配置如下：
+
+| 经典CAN | CAN1 | CAN1+CAN2 | CAN1+CAN2+CAN3 |
+| ------- | ---- | --------- | -------------- |
+| FIFO0   | CAN1 | CAN1      | CAN1+CAN2      |
+| FIFO1   | N/A  | CAN2      | CAN3           |
+
+| CAN FD | CANFD1 | CANFD1+CANFD2 | CANFD1+CANFD2+CANFD3 |
+| ------ | ------ | ------------- | -------------------- |
+| FIFO0  | CANFD1 | CANFD1        | CANFD1               |
+| FIFO1  | N/A    | CANFD2        | CANFD2+CANFD3        |
+
 ## 示例
 
 第二个参数表示发送队列大小，用于缓冲待发送的数据帧。
