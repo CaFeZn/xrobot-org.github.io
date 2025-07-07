@@ -14,23 +14,29 @@ The answer is: **there's absolutely no need to worry**. While using LibXR instea
 
 The UART driver is one of the most complex parts of LibXR. The testing environment is as follows:
 
-* STM32F103, Cortex-M3 @ 72MHz, no FPU or Cache
-* TX and RX of USART1 are connected via jumper wires; 8 data bits, 1 stop bit, no flow control or parity
-* A 50kHz timer interrupt is used for FreeRTOS CPU load statistics
-* After receiving each data packet, a CRC8 check is performed, and the number of successful sends, failed sends, and CRC failures is counted every second
+* STM32F103C8, Cortex-M3 @ 72MHz  
+* CH32V307VC, RISC-V @ 144MHz  
+* STM32F407IG, Cortex-M4 @ 168MHz  
+* In Debug mode, only user code is compiled with `-Og` optimization; HAL, FreeRTOS, USB, and other libraries use `-O2`. In Release mode, all are optimized with `-O3`.
+* The TX and RX pins of USART1 are connected with jumper wires; data bits: 8, stop bit: 1, no flow control, no parity.
+* After receiving data, each entire packet is checked with CRC. Every second, the number of successful transmissions, failed transmissions, and total CRC errors is counted.
 
 ## Test Code
 
+Synchronous transmission and reception each use a separate thread. Although context switching introduces some performance overhead, the impact is minimal. For maximum performance, asynchronous transmission and reception can be used.
+
 ```cpp
-  STDIO::write_ = uart_cdc.write_port_;
-  static uint8_t read_buffer[8], write_buffer[8];
+  constexpr size_t BUFFER_SIZE = 32;
+  constexpr size_t BAUDRATE = 2000000;
+
+  static uint8_t read_buffer[BUFFER_SIZE], write_buffer[BUFFER_SIZE];
   static uint32_t count_read = 0, count_write = 0, count_error = 0;
 
   for (uint32_t i = 0; i < sizeof(write_buffer); i++) {
     write_buffer[i] = i;
   }
 
-  usart1.SetConfig({2000000, LibXR::UART::Parity::NO_PARITY, 8, 1});
+  STDIO::write_ = uart_cdc.write_port_;
 
   void (*fun)(void *) = [](void *) {
     LibXR::STDIO::Printf("read count: %d, write count: %d, error count: %d\r\n",
@@ -39,24 +45,6 @@ The UART driver is one of the most complex parts of LibXR. The testing environme
                          count_read * 10 * sizeof(write_buffer));
     count_read = 0;
     count_write = 0;
-    static uint8_t cpu_info[1000];
-
-    memset(cpu_info, 0, 400);
-
-    vTaskList((char *)&cpu_info);
-
-    LibXR::STDIO::Printf("---------------------------------------------\r\n");
-    LibXR::STDIO::Printf("Task Name       State   Prio    Stack   Num\r\n");
-    LibXR::STDIO::Printf("%s\r\n", cpu_info);
-    LibXR::STDIO::Printf("---------------------------------------------\r\n");
-
-    memset(cpu_info, 0, 400);
-
-    vTaskGetRunTimeStats((char *)&cpu_info);
-
-    LibXR::STDIO::Printf("Task Name       Run Count       CPU Usage\r\n");
-    LibXR::STDIO::Printf("%s\r\n", cpu_info);
-    LibXR::STDIO::Printf("---------------------------------------------\r\n\n");
   };
 
   auto print_task =
@@ -64,11 +52,11 @@ The UART driver is one of the most complex parts of LibXR. The testing environme
   LibXR::Timer::Add(print_task);
   LibXR::Timer::Start(print_task);
 
-  void (*thread_read)(void *) = [](void *) {
+  void (*thread_read)(LibXR::UART *) = [](LibXR::UART *uart) {
     LibXR::Semaphore sem(0);
     LibXR::ReadOperation op(sem);
     while (true) {
-      usart1.Read(read_buffer, op);
+      uart->Read(read_buffer, op);
       if (LibXR::CRC8::Verify(read_buffer, sizeof(read_buffer))) {
         count_read++;
       } else {
@@ -77,246 +65,130 @@ The UART driver is one of the most complex parts of LibXR. The testing environme
     }
   };
 
-  void (*thread_write)(void *) = [](void *) {
-    LibXR::Semaphore sem(2);
+  void (*thread_write)(LibXR::UART *) = [](LibXR::UART *uart) {
+    LibXR::Semaphore sem(1);
     LibXR::WriteOperation op(sem);
+
+    uart->SetConfig({BAUDRATE, LibXR::UART::Parity::NO_PARITY, 8, 1});
 
     while (true) {
       write_buffer[0]++;
       write_buffer[sizeof(write_buffer) - 1] = LibXR::CRC8::Calculate(
           write_buffer, sizeof(write_buffer) - sizeof(uint8_t));
 
-      usart1.Write(write_buffer, op);
+      uart->Write(write_buffer, op);
       count_write++;
     }
   };
 
   LibXR::Thread read_thread, write_thread;
 
-  read_thread.Create(reinterpret_cast<void *>(0), thread_read, "read_thread",
-                     2048, static_cast<LibXR::Thread::Priority>(3));
+  read_thread.Create(reinterpret_cast<LibXR::UART *>(&usart1), thread_read,
+                     "read_thread", 2048,
+                     static_cast<LibXR::Thread::Priority>(4));
 
-  write_thread.Create(reinterpret_cast<void *>(0), thread_write, "write_thread",
-                      2048, static_cast<LibXR::Thread::Priority>(3));
+  write_thread.Create(reinterpret_cast<LibXR::UART *>(&usart1), thread_write,
+                      "write_thread", 2048,
+                      static_cast<LibXR::Thread::Priority>(3));
 
   while (true) {
     LibXR::Thread::Sleep(UINT32_MAX);
   }
 ```
 
-## Test Results
+## Speed Test Results
 
-### No optimization, 32-byte packets, 2M baud, with CRC
+### STM32F1, -Og, 32-byte packets, 2M baud
 
-```bash
-read count: 5818, write count: 5819, error count: 0
-speed: 1861760 BAUD
----------------------------------------------
-Task Name       State   Prio    Stack   Num
-libxr_timer_tas X       20      366     4
-read_thread     R       3       462     5
-write_thread    R       3       458     6
-IDLE            R       0       110     2
-defaultTask     B       24      822     1
-Tmr Svc         B       2       228     3
-
----------------------------------------------
-Task Name       Run Count       CPU Usage
-libxr_timer_tas 15310           3%
-write_thread    141520          34%
-read_thread     112818          27%
-IDLE            137269          33%
-defaultTask     67              <1%
-Tmr Svc         1               <1%
-
----------------------------------------------
-```
-
-### No optimization, 512-byte packets, 2M baud, with CRC
+32 bytes is close to the actual size of a typical UART data packet. At a baud rate of 2 Mbps, this configuration can approach the theoretical maximum throughput of the serial port.
 
 ```bash
-read count: 389, write count: 389, error count: 0
-speed: 1991680 BAUD
----------------------------------------------
-Task Name       State   Prio    Stack   Num
-libxr_timer_tas X       20      366     4
-IDLE            R       0       110     2
-defaultTask     B       24      822     1
-write_thread    B       3       460     6
-Tmr Svc         B       2       228     3
-read_thread     B       3       464     5
-
----------------------------------------------
-Task Name       Run Count       CPU Usage
-libxr_timer_tas 20044           3%
-read_thread     28131           4%
-write_thread    52271           8%
-IDLE            490639          82%
-defaultTask     68              <1%
-Tmr Svc         0               <1%
-
----------------------------------------------
+read count: 6000, write count: 5999, error count: 0
+speed: 1920000 BAUD
+read count: 6000, write count: 6000, error count: 0
+speed: 1920000 BAUD
+read count: 5999, write count: 6000, error count: 0
+speed: 1919680 BAUD
+read count: 6000, write count: 5999, error count: 0
+speed: 1920000 BAUD
+read count: 6000, write count: 6000, error count: 0
+speed: 1920000 BAUD
+read count: 5999, write count: 6000, error count: 0
+speed: 1919680 BAUD
 ```
 
-### O3 optimization, 32-byte packets, 2M baud, with CRC
+### STM32F1, -O3, 32-byte packets, 2M baud
+
+There is no significant difference under O3 optimization.
 
 ```bash
-read count: 5818, write count: 5817, error count: 0
-speed: 1861760 BAUD
----------------------------------------------
-Task Name       State   Prio    Stack   Num
-libxr_timer_tas X       20      366     4
-write_thread    R       3       458     6
-read_thread     R       3       462     5
-IDLE            R       0       109     2
-defaultTask     B       24      824     1
-Tmr Svc         B       2       229     3
-
----------------------------------------------
-Task Name       Run Count       CPU Usage
-libxr_timer_tas 17612           3%
-read_thread     123076          25%
-write_thread    176136          36%
-IDLE            165183          34%
-defaultTask     66              <1%
-Tmr Svc         0               <1%
-
----------------------------------------------
+read count: 6000, write count: 5999, error count: 0
+speed: 1920000 BAUD
+read count: 5999, write count: 6000, error count: 0
+speed: 1919680 BAUD
+read count: 6000, write count: 6000, error count: 0
+speed: 1920000 BAUD
+read count: 6000, write count: 5999, error count: 0
+speed: 1920000 BAUD
+read count: 5999, write count: 6000, error count: 0
+speed: 1919680 BAUD
+read count: 6000, write count: 6000, error count: 0
+speed: 1920000 BAUD
 ```
 
-### O3 optimization, 512-byte packets, 2M baud, with CRC
+### STM32F1, -Og, 128-byte packets, 4M baud
+
+Larger data packets and higher baud rate.
 
 ```bash
-read count: 389, write count: 388, error count: 0
-speed: 1991680 BAUD
----------------------------------------------
-Task Name       State   Prio    Stack   Num
-libxr_timer_tas X       20      366     4
-write_thread    R       3       460     6
-read_thread     R       3       468     5
-IDLE            R       0       109     2
-defaultTask     B       24      824     1
-Tmr Svc         B       2       229     3
-
----------------------------------------------
-Task Name       Run Count       CPU Usage
-libxr_timer_tas 14161           3%
-read_thread     19070           4%
-write_thread    36588           8%
-IDLE            350612          83%
-defaultTask     92              <1%
-Tmr Svc         1               <1%
-
----------------------------------------------
+read count: 3061, write count: 3061, error count: 0
+speed: 3918080 BAUD
+read count: 3062, write count: 3062, error count: 0
+speed: 3919360 BAUD
+read count: 3062, write count: 3062, error count: 0
+speed: 3919360 BAUD
+read count: 3061, write count: 3061, error count: 0
+speed: 3918080 BAUD
+read count: 3062, write count: 3062, error count: 0
+speed: 3919360 BAUD
+read count: 3063, write count: 3062, error count: 0
+speed: 3920640 BAUD
 ```
 
-Because CRC verification consumes a lot of CPU resources, subsequent tests will be performed without CRC verification.
+### CH32V307, -Og, 128-byte packets, 9M baud
 
-### O3 optimization, 32-byte packets, 2M baud, no CRC
+At a baud rate of 9 Mbps, the theoretical maximum throughput can still be achieved.
 
 ```bash
-read count: 5818, write count: 5818, error count: 0
-speed: 1861760 BAUD
----------------------------------------------
-Task Name       State   Prio    Stack   Num
-libxr_timer_tas X       20      366     4
-write_thread    R       3       458     6
-read_thread     R       3       462     5
-IDLE            R       0       109     2
-defaultTask     B       24      824     1
-Tmr Svc         B       2       229     3
-
----------------------------------------------
-Task Name       Run Count       CPU Usage
-libxr_timer_tas 19798           3%
-read_thread     122126          23%
-write_thread    165716          32%
-IDLE            208417          40%
-defaultTask     90              <1%
-Tmr Svc         1               <1%
-
----------------------------------------------
+read count: 14000, write count: 14000, error count: 0
+speed: 8960000 BAUD
+read count: 14000, write count: 14000, error count: 0
+speed: 8960000 BAUD
+read count: 14000, write count: 14000, error count: 0
+speed: 8960000 BAUD
+read count: 14000, write count: 14000, error count: 0
+speed: 8960000 BAUD
+read count: 14000, write count: 14000, error count: 0
+speed: 8960000 BAUD
+read count: 14000, write count: 14000, error count: 0
+speed: 8960000 BAUD
 ```
 
-### O3 optimization, 512-byte packets, 2M baud, no CRC
+## System Call Analysis
 
-```bash
-read count: 389, write count: 389, error count: 0
-speed: 1991680 BAUD
----------------------------------------------
-Task Name       State   Prio    Stack   Num
-libxr_timer_tas X       20      366     4
-IDLE            R       0       109     2
-defaultTask     B       24      824     1
-write_thread    B       3       458     6
-Tmr Svc         B       2       229     3
-read_thread     B       3       462     5
+When the speed is already near the theoretical maximum, further benchmarking becomes meaningless. Here, STM32F4 and SystemView are used to visualize the system calls during transmission and reception. The transmission and reception processes themselves are completely lock-free; all system calls are related only to the semaphores required for thread wakeup and synchronization.
 
----------------------------------------------
-Task Name       Run Count       CPU Usage
-libxr_timer_tas 9337            3%
-read_thread     5015            1%
-write_thread    27477           9%
-IDLE            239340          85%
-defaultTask     67              <1%
-Tmr Svc         1               <1%
+### Lower Baud Rates
 
----------------------------------------------
-```
+At lower baud rates, multiple packets are concatenated together, making it impossible to trigger the IDLE interrupt. The write thread is periodically woken up, while the read thread is woken up only when the buffer is half or fully filled by an interrupt.
 
-Attach the following other cases
+![Low Speed](/img/perf_uart_low_speed.png)
 
-### O3 optimization, 8-byte packets, 1M baud, with CRC
+### Higher Baud Rates
 
-```bash
-read count: 10953, write count: 10955, error count: 0
-speed: 876240 BAUD
----------------------------------------------
-Task Name       State   Prio    Stack   Num
-libxr_timer_tas X       20      366     4
-write_thread    R       3       456     6
-read_thread     R       3       462     5
-IDLE            R       0       109     2
-defaultTask     B       24      824     1
-Tmr Svc         B       2       229     3
+At higher baud rates, the transmit and receive threads are alternately woken up.
 
----------------------------------------------
-Task Name       Run Count       CPU Usage
-libxr_timer_tas 23254           3%
-read_thread     265087          37%
-write_thread    317509          45%
-IDLE            91760           13%
-defaultTask     90              <1%
-Tmr Svc         1               <1%
-
----------------------------------------------
-```
-
-### O3 optimization, 512-byte packets, 4M baud, with CRC
-
-```bash
-read count: 776, write count: 776, error count: 0
-speed: 3973120 BAUD
----------------------------------------------
-Task Name       State   Prio    Stack   Num
-libxr_timer_tas X       20      366     4
-write_thread    R       3       456     6
-read_thread     R       3       462     5
-IDLE            R       0       109     2
-defaultTask     B       24      824     1
-Tmr Svc         B       2       229     3
-
----------------------------------------------
-Task Name       Run Count       CPU Usage
-libxr_timer_tas 19266           4%
-read_thread     116507          28%
-write_thread    106901          26%
-IDLE            159196          39%
-defaultTask     92              <1%
-Tmr Svc         1               <1%
-
----------------------------------------------
-```
+![High Speed](/img/perf_uart_high_speed.png)
 
 ## Summary
 

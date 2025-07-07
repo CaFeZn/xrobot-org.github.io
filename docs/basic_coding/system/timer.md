@@ -26,7 +26,6 @@ sidebar_position: 7
 | `static void Start(TimerHandle handle)`                                                            | 启动指定任务。                                     |
 | `static void Stop(TimerHandle handle)`                                                             | 停止指定任务。                                     |
 | `static void SetCycle(TimerHandle handle, uint32_t cycle)`                                         | 修改任务周期。                                     |
-| `static void Remove(TimerHandle handle)`                                                           | 删除指定任务。                                     |
 | `static void Add(TimerHandle handle)`                                                              | 将任务添加到调度列表（首次添加会自动启动管理线程）。                  |
 | `static void Refresh()`                                                                            | 主动刷新所有任务（轮询场景下调用，通常由定时线程自动执行）。              |
 | `static void RefreshTimerInIdle()`                                                                 | 在裸机下**由 Thread 延时/Mutex/信号量自动调用**，用户无需手动调用。 |

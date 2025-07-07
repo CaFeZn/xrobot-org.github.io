@@ -26,7 +26,6 @@ sidebar_position: 7
 | `static void Start(TimerHandle handle)`                                                                | Start specified task.                               |
 | `static void Stop(TimerHandle handle)`                                                                 | Stop specified task.                                |
 | `static void SetCycle(TimerHandle handle, uint32_t cycle)`                                             | Modify task cycle.                                  |
-| `static void Remove(TimerHandle handle)`                                                               | Remove specified task.                              |
 | `static void Add(TimerHandle handle)`                                                                  | Add task to scheduler (automatically starts thread).|
 | `static void Refresh()`                                                                                | Manually refresh tasks (usually auto-called).       |
 | `static void RefreshTimerInIdle()`                                                                     | In bare-metal: auto-called during Thread/Mutex/Semaphore waits. |

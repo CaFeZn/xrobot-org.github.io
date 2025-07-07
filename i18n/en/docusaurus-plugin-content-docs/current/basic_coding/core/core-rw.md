@@ -8,6 +8,8 @@ sidebar_position: 8
 
 This module defines the generic `ReadPort` and `WritePort` interface classes for cross-platform encapsulation of various I/O behaviors such as asynchronous, blocking, and polling. It binds completion feedback mechanisms via the `Operation` model. To adapt to different underlying drivers, simply implement the corresponding read/write functions and assign them to the port object to gain full asynchronous I/O capability.
 
+`ReadPort`, `WritePort`, and `WritePort::Stream` are implemented using atomic operations and lock-free data structures, enabling the entire read and write process to be performed without any system calls, while still ensuring thread safety. The "locks" mentioned below are purely logical abstractions and do not involve any actual mutex operations.
+
 ## Core Types
 
 ### ReadPort / WritePort
@@ -141,6 +143,52 @@ uart.Write("Hello", op_block);
 ReadOperation op_cb(callback);
 uart.Read(buffer, op_cb);
 ```
+
+---
+
+## WritePort::Stream Batch Write Interface
+
+`WritePort::Stream` provides a chained batch write capability similar to C++ standard streams, making it suitable for high-throughput, large-packet, or consecutive multi-block data writing scenarios. Its advantages include **locking the port resource only once, submitting data in batches, reducing queue pressure and fragmentation**, all while keeping usage simple and intuitive.
+
+### Key Features
+
+- **Stream-style Chained Writing**: Supports multiple `<<` operations to batch and concatenate multiple data segments, improving throughput efficiency.
+- **Automatic Batch Submission**: Unsubmitted data is automatically committed upon destruction, and you can also call `Commit()` manually at any time.
+
+### Example Usage
+
+```cpp
+WriteOperation op;
+// Typical batch write using stream interface
+{
+    WritePort::Stream s(&uart_port, op);
+    s << data1 << data2 << data3;
+    // s.Commit(); // Optional, auto-committed on destruction
+}
+```
+
+### Typical Scenarios
+
+- Batch output for UART/serial ports
+- Network packet fragmentation, batch logging
+- Sending multiple packets at once, greatly reducing write waits and queue contention
+
+### Interface Specification
+
+```cpp
+class WritePort::Stream {
+public:
+    Stream(WritePort* port, WriteOperation op);    // Locks the port and enters batch write mode
+    ~Stream();                                     // Destructor automatically commits and releases the lock
+    Stream& operator<<(const ConstRawData& data);  // Appends a data segment
+    ErrorCode Commit();                            // Manually commits the appended data (optional)
+};
+```
+
+- **Stream(WritePort*, WriteOperation)**: Attempts to acquire the lock during construction; if locking fails, falls back to normal write mode.
+- **~Stream()**: Automatically commits all data and releases the lock upon destruction.
+- **operator<<**: Chains the addition of data segments for writing.
+- **Commit()**: Immediately writes all currently appended data to the queue and (if needed) releases the lock. Can be used for segmented flushing.
 
 ---
 

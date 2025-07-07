@@ -14,23 +14,29 @@ sidebar_position: 3
 
 串口驱动是整个LibXR里面最复杂的部分，性能测试的环境如下：
 
-* STM32F103，Cortex-M3 @ 72Mhz，无FPU和Cache
+* STM32F103C8，Cortex-M3 @ 72Mhz
+* CH32V307VC, Risc-V @ 144Mhz
+* STM32F407IG，Cortex-M4 @ 168Mhz
+* Debug模式只有用户代码是-Og优化，HAL库，FreeRTOS，USB等库是-O2优化。Release模式都为-O3优化。
 * 使用杜邦线将USART1的TX RX连接起来，数据位为8，停止位为1，无流控，无奇偶校验
-* 开启一个频率50khz的定时器中断，用于FreeRTOS的占用率统计
-* 收到数据后对整包进行CRC8校验，每秒统计发送成功、发送失败和校验失败的次数
+* 收到数据后对整包进行CRC校验，每秒统计发送成功、发送失败和总共校验失败的次数
 
 ## 测试代码
 
+同步方式收发各使用一个线程，虽然上下文切换会带来一些性能损失，但是影响不大。追求极限性能可以使用异步方式收发。
+
 ```cpp
-  STDIO::write_ = uart_cdc.write_port_;
-  static uint8_t read_buffer[8], write_buffer[8];
+  constexpr size_t BUFFER_SIZE = 32;
+  constexpr size_t BAUDRATE = 2000000;
+
+  static uint8_t read_buffer[BUFFER_SIZE], write_buffer[BUFFER_SIZE];
   static uint32_t count_read = 0, count_write = 0, count_error = 0;
 
   for (uint32_t i = 0; i < sizeof(write_buffer); i++) {
     write_buffer[i] = i;
   }
 
-  usart1.SetConfig({2000000, LibXR::UART::Parity::NO_PARITY, 8, 1});
+  STDIO::write_ = uart_cdc.write_port_;
 
   void (*fun)(void *) = [](void *) {
     LibXR::STDIO::Printf("read count: %d, write count: %d, error count: %d\r\n",
@@ -39,24 +45,6 @@ sidebar_position: 3
                          count_read * 10 * sizeof(write_buffer));
     count_read = 0;
     count_write = 0;
-    static uint8_t cpu_info[1000];
-
-    memset(cpu_info, 0, 400);
-
-    vTaskList((char *)&cpu_info);
-
-    LibXR::STDIO::Printf("---------------------------------------------\r\n");
-    LibXR::STDIO::Printf("任务名          任务状态 优先级  剩余栈   任务序号\r\n");
-    LibXR::STDIO::Printf("%s\r\n", cpu_info);
-    LibXR::STDIO::Printf("---------------------------------------------\r\n");
-
-    memset(cpu_info, 0, 400);
-
-    vTaskGetRunTimeStats((char *)&cpu_info);
-
-    LibXR::STDIO::Printf("任务名           运行计数        利用率\r\n");
-    LibXR::STDIO::Printf("%s\r\n", cpu_info);
-    LibXR::STDIO::Printf("---------------------------------------------\r\n\n");
   };
 
   auto print_task =
@@ -64,11 +52,11 @@ sidebar_position: 3
   LibXR::Timer::Add(print_task);
   LibXR::Timer::Start(print_task);
 
-  void (*thread_read)(void *) = [](void *) {
+  void (*thread_read)(LibXR::UART *) = [](LibXR::UART *uart) {
     LibXR::Semaphore sem(0);
     LibXR::ReadOperation op(sem);
     while (true) {
-      usart1.Read(read_buffer, op);
+      uart->Read(read_buffer, op);
       if (LibXR::CRC8::Verify(read_buffer, sizeof(read_buffer))) {
         count_read++;
       } else {
@@ -77,246 +65,130 @@ sidebar_position: 3
     }
   };
 
-  void (*thread_write)(void *) = [](void *) {
-    LibXR::Semaphore sem(2);
+  void (*thread_write)(LibXR::UART *) = [](LibXR::UART *uart) {
+    LibXR::Semaphore sem(1);
     LibXR::WriteOperation op(sem);
+
+    uart->SetConfig({BAUDRATE, LibXR::UART::Parity::NO_PARITY, 8, 1});
 
     while (true) {
       write_buffer[0]++;
       write_buffer[sizeof(write_buffer) - 1] = LibXR::CRC8::Calculate(
           write_buffer, sizeof(write_buffer) - sizeof(uint8_t));
 
-      usart1.Write(write_buffer, op);
+      uart->Write(write_buffer, op);
       count_write++;
     }
   };
 
   LibXR::Thread read_thread, write_thread;
 
-  read_thread.Create(reinterpret_cast<void *>(0), thread_read, "read_thread",
-                     2048, static_cast<LibXR::Thread::Priority>(3));
+  read_thread.Create(reinterpret_cast<LibXR::UART *>(&usart1), thread_read,
+                     "read_thread", 2048,
+                     static_cast<LibXR::Thread::Priority>(4));
 
-  write_thread.Create(reinterpret_cast<void *>(0), thread_write, "write_thread",
-                      2048, static_cast<LibXR::Thread::Priority>(3));
+  write_thread.Create(reinterpret_cast<LibXR::UART *>(&usart1), thread_write,
+                      "write_thread", 2048,
+                      static_cast<LibXR::Thread::Priority>(3));
 
   while (true) {
     LibXR::Thread::Sleep(UINT32_MAX);
   }
 ```
 
-## 测试结果
+## 速率测试
 
-### 无优化，32字节每包，波特率2M，有校验
+### STM32F1 -0g 32字节 2M波特率
 
-```bash
-read count: 5818, write count: 5819, error count: 0
-speed: 1861760 BAUD
----------------------------------------------
-任务名          任务状态 优先级  剩余栈   任务序号
-libxr_timer_tas X       20      366     4
-read_thread     R       3       462     5
-write_thread    R       3       458     6
-IDLE            R       0       110     2
-defaultTask     B       24      822     1
-Tmr Svc         B       2       228     3
-
----------------------------------------------
-任务名           运行计数        利用率
-libxr_timer_tas 15310           3%
-write_thread    141520          34%
-read_thread     112818          27%
-IDLE            137269          33%
-defaultTask     67              <1%
-Tmr Svc         1               <1%
-
----------------------------------------------
-```
-
-### 无优化，512字节每包，波特率2M，有校验
+32字节接近实际的串口数据包大小，在2M波特率下能够逼近串口理论速率。
 
 ```bash
-read count: 389, write count: 389, error count: 0
-speed: 1991680 BAUD
----------------------------------------------
-任务名          任务状态 优先级  剩余栈   任务序号
-libxr_timer_tas X       20      366     4
-IDLE            R       0       110     2
-defaultTask     B       24      822     1
-write_thread    B       3       460     6
-Tmr Svc         B       2       228     3
-read_thread     B       3       464     5
-
----------------------------------------------
-任务名           运行计数        利用率
-libxr_timer_tas 20044           3%
-read_thread     28131           4%
-write_thread    52271           8%
-IDLE            490639          82%
-defaultTask     68              <1%
-Tmr Svc         0               <1%
-
----------------------------------------------
+read count: 6000, write count: 5999, error count: 0
+speed: 1920000 BAUD
+read count: 6000, write count: 6000, error count: 0
+speed: 1920000 BAUD
+read count: 5999, write count: 6000, error count: 0
+speed: 1919680 BAUD
+read count: 6000, write count: 5999, error count: 0
+speed: 1920000 BAUD
+read count: 6000, write count: 6000, error count: 0
+speed: 1920000 BAUD
+read count: 5999, write count: 6000, error count: 0
+speed: 1919680 BAUD
 ```
 
-### O3优化，32字节每包，波特率2M，有校验
+### STM32F1 -03 32字节 2M波特率
+
+O3优化下没有明显区别
 
 ```bash
-read count: 5818, write count: 5817, error count: 0
-speed: 1861760 BAUD
----------------------------------------------
-任务名          任务状态 优先级  剩余栈   任务序号
-libxr_timer_tas X       20      366     4
-write_thread    R       3       458     6
-read_thread     R       3       462     5
-IDLE            R       0       109     2
-defaultTask     B       24      824     1
-Tmr Svc         B       2       229     3
-
----------------------------------------------
-任务名           运行计数        利用率
-libxr_timer_tas 17612           3%
-read_thread     123076          25%
-write_thread    176136          36%
-IDLE            165183          34%
-defaultTask     66              <1%
-Tmr Svc         0               <1%
-
----------------------------------------------
+read count: 6000, write count: 5999, error count: 0
+speed: 1920000 BAUD
+read count: 5999, write count: 6000, error count: 0
+speed: 1919680 BAUD
+read count: 6000, write count: 6000, error count: 0
+speed: 1920000 BAUD
+read count: 6000, write count: 5999, error count: 0
+speed: 1920000 BAUD
+read count: 5999, write count: 6000, error count: 0
+speed: 1919680 BAUD
+read count: 6000, write count: 6000, error count: 0
+speed: 1920000 BAUD
 ```
 
-### O3优化，512字节每包，波特率2M，有校验
+### STM32F1 -0g 128字节 4M波特率
+
+更大的数据包，更高的波特率
 
 ```bash
-read count: 389, write count: 388, error count: 0
-speed: 1991680 BAUD
----------------------------------------------
-任务名          任务状态 优先级  剩余栈   任务序号
-libxr_timer_tas X       20      366     4
-write_thread    R       3       460     6
-read_thread     R       3       468     5
-IDLE            R       0       109     2
-defaultTask     B       24      824     1
-Tmr Svc         B       2       229     3
-
----------------------------------------------
-任务名           运行计数        利用率
-libxr_timer_tas 14161           3%
-read_thread     19070           4%
-write_thread    36588           8%
-IDLE            350612          83%
-defaultTask     92              <1%
-Tmr Svc         1               <1%
-
----------------------------------------------
+read count: 3061, write count: 3061, error count: 0
+speed: 3918080 BAUD
+read count: 3062, write count: 3062, error count: 0
+speed: 3919360 BAUD
+read count: 3062, write count: 3062, error count: 0
+speed: 3919360 BAUD
+read count: 3061, write count: 3061, error count: 0
+speed: 3918080 BAUD
+read count: 3062, write count: 3062, error count: 0
+speed: 3919360 BAUD
+read count: 3063, write count: 3062, error count: 0
+speed: 3920640 BAUD
 ```
 
-由于CRC校验消耗了大量CPU资源，后续测试将在无CRC校验的情况下进行。
+### CH32V307 -Og 128字节 9M波特率
 
-### O3优化，32字节每包，波特率2M，无校验
+9M波特率下一样能够达到理论速率
 
 ```bash
-read count: 5818, write count: 5818, error count: 0
-speed: 1861760 BAUD
----------------------------------------------
-任务名          任务状态 优先级  剩余栈   任务序号
-libxr_timer_tas X       20      366     4
-write_thread    R       3       458     6
-read_thread     R       3       462     5
-IDLE            R       0       109     2
-defaultTask     B       24      824     1
-Tmr Svc         B       2       229     3
-
----------------------------------------------
-任务名           运行计数        利用率
-libxr_timer_tas 19798           3%
-read_thread     122126          23%
-write_thread    165716          32%
-IDLE            208417          40%
-defaultTask     90              <1%
-Tmr Svc         1               <1%
-
----------------------------------------------
+read count: 14000, write count: 14000, error count: 0
+speed: 8960000 BAUD
+read count: 14000, write count: 14000, error count: 0
+speed: 8960000 BAUD
+read count: 14000, write count: 14000, error count: 0
+speed: 8960000 BAUD
+read count: 14000, write count: 14000, error count: 0
+speed: 8960000 BAUD
+read count: 14000, write count: 14000, error count: 0
+speed: 8960000 BAUD
+read count: 14000, write count: 14000, error count: 0
+speed: 8960000 BAUD
 ```
 
-### O3优化，512字节每包，波特率2M，无校验
+## 系统调用分析
 
-```bash
-read count: 389, write count: 389, error count: 0
-speed: 1991680 BAUD
----------------------------------------------
-任务名          任务状态 优先级  剩余栈   任务序号
-libxr_timer_tas X       20      366     4
-IDLE            R       0       109     2
-defaultTask     B       24      824     1
-write_thread    B       3       458     6
-Tmr Svc         B       2       229     3
-read_thread     B       3       462     5
+再测速率已经没有意义了，这里使用STM32F4+SystemView展示收发过程的系统调用情况。本身收发过程完全无锁，所有的系统调用都为线程本身的唤醒和同步操作所需的信号量。
 
----------------------------------------------
-任务名           运行计数        利用率
-libxr_timer_tas 9337            3%
-read_thread     5015            1%
-write_thread    27477           9%
-IDLE            239340          85%
-defaultTask     67              <1%
-Tmr Svc         1               <1%
+### 较低波特率
 
----------------------------------------------
-```
+低波特率下多个包被连起来，无法触发IDLE中断。写线程周期性被唤醒，读线程等到半满/全满中断时被唤醒。
 
-另外附上一些其他情况
+![Low Speed](/img/perf_uart_low_speed.png)
 
-### O3优化，8字节每包，波特率1M，有校验
+### 较高波特率
 
-```bash
-read count: 10953, write count: 10955, error count: 0
-speed: 876240 BAUD
----------------------------------------------
-任务名          任务状态 优先级  剩余栈   任务序号
-libxr_timer_tas X       20      366     4
-write_thread    R       3       456     6
-read_thread     R       3       462     5
-IDLE            R       0       109     2
-defaultTask     B       24      824     1
-Tmr Svc         B       2       229     3
+高波特率下，一收一发两个线程轮流唤醒。
 
----------------------------------------------
-任务名           运行计数        利用率
-libxr_timer_tas 23254           3%
-read_thread     265087          37%
-write_thread    317509          45%
-IDLE            91760           13%
-defaultTask     90              <1%
-Tmr Svc         1               <1%
-
----------------------------------------------
-```
-
-### O3优化，512字节每包，波特率4M，有校验
-
-```bash
-read count: 776, write count: 776, error count: 0
-speed: 3973120 BAUD
----------------------------------------------
-任务名          任务状态 优先级  剩余栈   任务序号
-libxr_timer_tas X       20      366     4
-write_thread    R       3       456     6
-read_thread     R       3       462     5
-IDLE            R       0       109     2
-defaultTask     B       24      824     1
-Tmr Svc         B       2       229     3
-
----------------------------------------------
-任务名           运行计数        利用率
-libxr_timer_tas 19266           4%
-read_thread     116507          28%
-write_thread    106901          26%
-IDLE            159196          39%
-defaultTask     92              <1%
-Tmr Svc         1               <1%
-
----------------------------------------------
-```
+![High Speed](/img/perf_uart_high_speed.png)
 
 ## 总结
 
