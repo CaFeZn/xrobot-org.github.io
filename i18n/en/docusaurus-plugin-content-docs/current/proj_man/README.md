@@ -17,6 +17,7 @@ This chapter introduces XRobot's installation, directory structure, main feature
 **Recommended:** Install via `pipx` (supports isolated environments):
 
 **Windows:**
+
 ```ps
 python -m pip install --user pipx
 python -m pipx ensurepath
@@ -25,6 +26,7 @@ pipx install xrobot
 ```
 
 **Linux:**
+
 ```bash
 sudo apt install pipx
 pipx install xrobot
@@ -33,16 +35,20 @@ pipx ensurepath
 ```
 
 **Or install with pip:**
+
 ```bash
 pip install xrobot
 ```
 
 **Source installation:**
+
 ```bash
 git clone https://github.com/xrobot-org/XRobot.git
 cd XRobot
 pip install .
 ```
+
+Please note that you should not use both pip and pipx to install the same package at the same time. If you do, your environment variables may become confused and cause version conflicts.
 
 ---
 

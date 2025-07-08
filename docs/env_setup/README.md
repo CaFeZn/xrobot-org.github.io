@@ -54,3 +54,5 @@ pipx install libxr xrobot
 pipx ensurepath
 # Restart your terminal
 ```
+
+注意不要同时用 pip 和 pipx 安装同一个包，否则你的环境变量可能会混乱，导致版本冲突。
