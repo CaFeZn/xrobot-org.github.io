@@ -35,7 +35,8 @@ explicit DoubleBuffer(const LibXR::RawData& raw_data);
 - `void EnablePending()`：手动标记备用区为有效（与 FillActive 配合使用）。
 - `bool HasPending() const`：是否存在准备切换的缓冲区。
 - `void Switch()`：切换 active/pending 缓冲。
-- `size_t PendingLength() const`：获取备用缓冲中的有效数据长度。
+- `size_t GetPendingLength() const`：获取备用缓冲中的有效数据长度。
+- `size_t SetPendingLength(size_t size)`：设置备用缓冲的有效数据长度。
 - `size_t Size() const`：每个缓冲区的容量。
 
 ## 使用示例
@@ -64,6 +65,6 @@ buf.EnablePending();  // 标记当前 active 将作为 pending 切换
 
 ## 应用场景
 
-- USB CDC / Audio 数据发送
+- USB CDC / UART 数据发送
 - DMA 数据流优化
 - 双缓存 ping-pong 通信机制

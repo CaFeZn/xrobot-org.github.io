@@ -35,7 +35,8 @@ explicit DoubleBuffer(const LibXR::RawData& raw_data);
 - `void EnablePending()`: Manually mark the pending buffer as valid (used with `FillActive`).
 - `bool HasPending() const`: Check if there is a pending buffer ready to be switched.
 - `void Switch()`: Switch between active and pending buffers.
-- `size_t PendingLength() const`: Get the valid data length in the pending buffer.
+- `size_t GetPendingLength() const`: Get the valid data length in the pending buffer.
+- `size_t SetPendingLength(size_t size)`: Set the valid data length in the pending buffer.
 - `size_t Size() const`: Get the capacity of each buffer.
 
 ## Usage Example
@@ -64,6 +65,6 @@ buf.EnablePending();  // Mark the current active as the next pending
 
 ## Application Scenarios
 
-- USB CDC / Audio data transmission
+- USB CDC / UART data transmission
 - Optimized DMA data streaming
 - Ping-pong buffering communication mechanism
