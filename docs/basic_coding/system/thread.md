@@ -47,7 +47,7 @@ void Blink(int* arg) {
 int main() {
     int arg = 0;
     LibXR::Thread t;
-    t.Create(&arg, Blink, "blink", 2048, LibXR::Thread::Priority::MEDIUM);
+    t.Create((void*)&arg, Blink, "blink", 2048, LibXR::Thread::Priority::MEDIUM);
     // 主线程继续执行其它任务 …
     for (;;) {
         LibXR::Thread::Yield();
