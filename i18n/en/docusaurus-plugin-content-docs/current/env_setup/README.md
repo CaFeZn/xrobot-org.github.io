@@ -54,3 +54,5 @@ pipx install libxr xrobot
 pipx ensurepath
 # Restart your terminal
 ```
+
+Please note that you should not use both pip and pipx to install the same package at the same time. If you do, your environment variables may become confused and cause version conflicts.

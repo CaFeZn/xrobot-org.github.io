@@ -37,6 +37,8 @@ sudo ln -s /opt/arm-gun-toolchain-xx.x/bin/* /usr/bin
 
 ## 使用Clang编译器(可选)
 
+clang编译器对clangd的支持更好，推荐使用。
+
 ### Windows
 
 下载[LLVM](https://github.com/llvm/llvm-project/tags)并安装，确保版本大于等于18.1。

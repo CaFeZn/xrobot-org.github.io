@@ -89,7 +89,7 @@ int main() {
 
 ### FreeRTOS 项目
 
-将 `app_main()` 放入主线程入口函数中调用。
+将 `app_main()` 放入主线程入口（StartDefaultTask）中调用。
 
 ---
 

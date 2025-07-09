@@ -40,6 +40,8 @@ sudo ln -s /opt/arm-gun-toolchain-xx.x/bin/* /usr/bin
 
 ## Using Clang Compiler (Optional)
 
+clang compiler has better support for clangd, so we recommend using it.
+
 ### Windows
 
 Download and install [LLVM](https://github.com/llvm/llvm-project/tags). Make sure the version is 18.1 or above.

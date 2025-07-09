@@ -17,6 +17,7 @@ XRobot 是一套面向嵌入式系统（如 STM32）的自动化代码生成工�
 推荐通过 pipx 安装（支持隔离环境）：
 
 **Windows：**
+
 ```ps
 python -m pip install --user pipx
 python -m pipx ensurepath
@@ -25,6 +26,7 @@ pipx install xrobot
 ```
 
 **Linux：**
+
 ```bash
 sudo apt install pipx
 pipx install xrobot
@@ -33,16 +35,20 @@ pipx ensurepath
 ```
 
 **或者使用 pip 安装：**
+
 ```bash
 pip install xrobot
 ```
 
 **源码安装：**
+
 ```bash
 git clone https://github.com/xrobot-org/XRobot.git
 cd XRobot
 pip install .
 ```
+
+注意不要同时用 pip 和 pipx 安装同一个包，否则你的环境变量可能会混乱，导致版本冲突。
 
 ---
 

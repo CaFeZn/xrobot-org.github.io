@@ -69,7 +69,8 @@ After execution, your project directory will contain the following generated or 
 
 ## How to Use
 
-Call `app_main()` at the appropriate entry point in your project:
+<!-- 将 `app_main()` 放入主线程入口（StartDefaultTask）中调用。 -->
+Call `app_main()` in the entry function (`StartDefaultTask`) of the main thread.
 
 ### Bare-metal Project
 
