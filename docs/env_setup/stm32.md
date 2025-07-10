@@ -39,6 +39,9 @@ sudo ln -s /opt/arm-gun-toolchain-xx.x/bin/* /usr/bin
 
 clang编译器对clangd的支持更好，推荐使用。
 
+2025-7-10：
+STM32CubeMX 15.0更新了对clang编译器的原生支持，不再需要下载llvm，直接使用VSCode插件即可。本节会在有能够独立安装的STARM-CLANG工具链后更新。
+
 ### Windows
 
 下载[LLVM](https://github.com/llvm/llvm-project/tags)并安装，确保版本大于等于18.1。
