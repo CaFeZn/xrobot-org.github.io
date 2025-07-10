@@ -33,6 +33,8 @@ sidebar_position: 3
 
 ## 典型用法
 
+线程函数的参数一定要与 `Create` 函数的 `arg` 参数类型一致，否则无法识别。
+
 ```cpp
 #include <thread.hpp>
 
@@ -47,7 +49,7 @@ void Blink(int* arg) {
 int main() {
     int arg = 0;
     LibXR::Thread t;
-    t.Create((void*)&arg, Blink, "blink", 2048, LibXR::Thread::Priority::MEDIUM);
+    t.Create(&arg, Blink, "blink", 2048, LibXR::Thread::Priority::MEDIUM);
     // 主线程继续执行其它任务 …
     for (;;) {
         LibXR::Thread::Yield();

@@ -33,6 +33,8 @@ sidebar_position: 3
 
 ## Typical Usage
 
+The parameter type of the thread function must be consistent with the arg parameter type of the Create function; otherwise, it will not be recognized.
+
 ```cpp
 #include <thread.hpp>
 

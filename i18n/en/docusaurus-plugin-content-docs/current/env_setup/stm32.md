@@ -42,6 +42,9 @@ sudo ln -s /opt/arm-gun-toolchain-xx.x/bin/* /usr/bin
 
 clang compiler has better support for clangd, so we recommend using it.
 
+2025-7-10:
+STM32CubeMX 15.0 has added native support for the Clang compiler. There is no need to download LLVM separately; you can use it directly through the VSCode plugin. This section will be updated once an independently installable STARM-CLANG toolchain becomes available.
+
 ### Windows
 
 Download and install [LLVM](https://github.com/llvm/llvm-project/tags). Make sure the version is 18.1 or above.

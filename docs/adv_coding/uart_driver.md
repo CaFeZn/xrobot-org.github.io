@@ -77,7 +77,7 @@ _以下所有驱动的接口都是一致的，以覆盖平台差异_
 
 1. 检查ID是否合法。
 2. uart_handle->Init.Mode分别判断读写是否开启，然后注册读写函数。
-3. 为接收开始DMA，配置为环形，开启空闲中断，直接开始接收。
+3. 将接收DMA配置为环形，开启空闲中断，直接开始接收。
 
 ```cpp
 STM32UART::STM32UART(UART_HandleTypeDef *uart_handle, RawData dma_buff_rx,
