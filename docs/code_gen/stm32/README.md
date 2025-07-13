@@ -196,4 +196,5 @@ int main() {
 
 ## 参考
 
+[LibXR STM32 代码生成工具测试项目 (Github Action)](https://github.com/Jiu-xiao/libxr_stm32_test)
 [LibXR 命令行工具以及文档](https://pypi.org/project/libxr/)

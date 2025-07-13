@@ -155,7 +155,7 @@ read count: 3063, write count: 3062, error count: 0
 speed: 3920640 BAUD
 ```
 
-### CH32V307, -Og, 128-byte packets, 9M baud
+### CH32V307, -Og, 64-byte packets, 9M baud
 
 At a baud rate of 9 Mbps, the theoretical maximum throughput can still be achieved.
 

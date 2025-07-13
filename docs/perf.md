@@ -155,7 +155,7 @@ read count: 3063, write count: 3062, error count: 0
 speed: 3920640 BAUD
 ```
 
-### CH32V307 -Og 128字节 9M波特率
+### CH32V307 -Og 64字节 9M波特率
 
 9M波特率下一样能够达到理论速率
 
