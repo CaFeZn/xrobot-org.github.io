@@ -49,9 +49,9 @@ sudo ln -s /opt/arm-gun-toolchain-xx.x/bin/* /usr/bin
 
 ## 基于GCC/Clang (新版STM32 VSCode 插件)
 
-在STM32CubeMX (>=15.0)中，已经集成了Clang 相关工具链的CMake配置。 在Project Manager中选择Default Compiler/Linker为gcc或者starm-clang即可，不需要额外配置。
+在STM32CubeMX (>=15.0)中，已经集成了Clang 相关工具链的CMake配置。 在`Project Manager`中选择`Default Compiler/Linker`为gcc或者starm-clang即可，不需要额外配置。
 
-Default Compiler/Linker的设置会写到工程根目录的`CMakePresets.json`中的toolchainFile，为`${sourceDir}/cmake/starm-clang.cmake`或者`${sourceDir}/cmake/gcc-arm-none-eabi.cmake`。
+`Default Compiler/Linker`的设置会写到工程根目录的`CMakePresets.json`中的`toolchainFile`，为`${sourceDir}/cmake/starm-clang.cmake`或者`${sourceDir}/cmake/gcc-arm-none-eabi.cmake`。
 
 然后安装使用插件`STMicroelectronics.stm32-vscode-extension`的预览版本即可，插件会自行下载工具链等。
 

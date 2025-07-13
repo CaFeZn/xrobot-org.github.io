@@ -52,7 +52,7 @@ sudo ln -s /opt/arm-gun-toolchain-xx.x/bin/* /usr/bin
 ## Based on GCC/Clang (New STM32 VSCode Extension)
 
 In STM32CubeMX (>=15.0), Clang-related toolchain CMake configurations are already integrated.  
-In the Project Manager, simply select the Default Compiler/Linker as either gcc or starm-clang—no additional setup required.
+In the Project Manager, simply select the `Default Compiler/Linker` as either gcc or starm-clang—no additional setup required.
 
 The Default Compiler/Linker setting is written to the project's root `CMakePresets.json` under `toolchainFile`, which will be `${sourceDir}/cmake/starm-clang.cmake` or `${sourceDir}/cmake/gcc-arm-none-eabi.cmake`.
 

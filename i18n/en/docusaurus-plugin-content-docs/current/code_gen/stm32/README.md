@@ -207,4 +207,5 @@ By default, the generated CMake configuration applies the `-O2` optimization opt
 ## References
 
 [LibXR STM32 Code Generation Tool Test Project (Github Action)](https://github.com/Jiu-xiao/libxr_stm32_test)
+
 [LibXR CLI tool and documentation (PyPI)](https://pypi.org/project/libxr/)
