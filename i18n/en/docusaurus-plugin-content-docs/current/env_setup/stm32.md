@@ -58,6 +58,32 @@ The Default Compiler/Linker setting is written to the project's root `CMakePrese
 
 Then install and use the preview version of the `STMicroelectronics.stm32-vscode-extension`. The extension will automatically download toolchains as needed.
 
+### clangd Usage
+
+The new ST extension’s clangd support is quite buggy. It’s recommended to **disable the `stmicroelectronics.stm32cube-ide-clangd` extension** and use the [official `llvm-vs-code-extensions.vscode-clangd` extension](https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd) instead. Then, manually add the following config:
+
+```json
+"clangd.arguments": [
+    "--query-driver=${env:CUBE_BUNDLE_PATH}/st-arm-clang/19.1.6+st.8/bin/starm-clang.exe,${env:CUBE_BUNDLE_PATH}/st-arm-clang/19.1.6+st.8/bin/starm-clang++.exe"
+]
+```
+
+For GCC, use:  
+`--query-driver=${env:CUBE_BUNDLE_PATH}/gnu-tools-for-stm32/10.3.1+st.3/bin/arm-none-eabi-gcc.exe,${env:CUBE_BUNDLE_PATH}/gnu-tools-for-stm32/10.3.1+st.3/bin/arm-none-eabi-g++.exe`
+
+#### Windows: clangd installation
+
+Download and install [LLVM](https://github.com/llvm/llvm-project/tags).
+
+#### Linux: clangd installation
+
+Just install via apt. (On Ubuntu versions earlier than 24.04, the apt-provided clangd may be too old; if you encounter issues, try upgrading.)
+
+#### stm32cube-clangd extension issues
+
+* Does **not** add the C++ compiler path to `--query-driver`, and manual additions are overwritten every time the project is opened.
+* Does **not** recognize the ST-ARM-CLANG `--multi-lib-config` build option.
+
 ### CLion / Command-Line Compilation
 
 On Windows, you need to configure the relevant path first:

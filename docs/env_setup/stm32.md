@@ -55,6 +55,41 @@ sudo ln -s /opt/arm-gun-toolchain-xx.x/bin/* /usr/bin
 
 然后安装使用插件`STMicroelectronics.stm32-vscode-extension`的预览版本即可，插件会自行下载工具链等。
 
+### clangd 使用建议
+
+ST 新版插件的 clangd 支持存在较多缺陷，建议直接**停用 `stmicroelectronics.stm32cube-ide-clangd` 插件**，转而使用 [官方 `llvm-vs-code-extensions.vscode-clangd` 插件](https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd)。并手动添加如下配置：
+
+```json
+"clangd.arguments": [
+    "--query-driver=${env:CUBE_BUNDLE_PATH}/st-arm-clang/19.1.6+st.8/bin/starm-clang.exe,${env:CUBE_BUNDLE_PATH}/st-arm-clang/19.1.6+st.8/bin/starm-clang++.exe"
+]
+```
+
+如使用 GCC 工具链，则需改为：
+
+```json
+"clangd.arguments": [
+    "--query-driver=${env:CUBE_BUNDLE_PATH}/gnu-tools-for-stm32/10.3.1+st.3/bin/arm-none-eabi-gcc.exe,${env:CUBE_BUNDLE_PATH}/gnu-tools-for-stm32/10.3.1+st.3/bin/arm-none-eabi-g++.exe"
+]
+```
+
+---
+
+#### Windows 下 clangd 安装
+
+可前往 [LLVM 官网](https://github.com/llvm/llvm-project/tags)下载安装包。
+
+#### Linux 下 clangd 安装
+
+可直接通过 apt 安装。注意 Ubuntu 24.04 之前系统自带的 clangd 版本较老，遇到问题建议升级。
+
+---
+
+#### stm32cube-clangd 插件主要问题
+
+* 不会为 `--query-driver` 自动添加 C++ 编译器路径，且手动添加后每次打开工程会被覆盖
+* 无法识别 ST-ARM-CLANG 的 `--multi-lib-config` 编译选项
+
 ### CLion / 命令行编译
 
 windows需要先配置相关path
