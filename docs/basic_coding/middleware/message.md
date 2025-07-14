@@ -30,7 +30,7 @@ LibXR 中的 `Message` 模块是一个基于 **发布-订阅（Publish-Subscribe
 
 ```cpp
 auto domain = LibXR::Topic::Domain("sensor_data");
-auto topic = LibXR::Topic::CreateTopic<float>("temperature", &domain, true);
+auto topic = LibXR::Topic::CreateTopic<float>("temperature", &domain);
 
 float temp = 23.5f;
 topic.Publish(temp);
@@ -79,6 +79,20 @@ auto cb = LibXR::Topic::Callback::Create(
     }, &latest_temp);
 
 topic.RegisterCallback(cb);
+```
+
+## 线程安全
+
+topic在构造时有`bool multi_publisher_ = false;`参数,默认为false,即只允许同时有一个线程/中断发布数据。当设置为true时,使用`mutex_`进行线程同步，允许多个线程同时发布数据，但无法在中断使用。
+
+```cpp
+Topic(const char *name, uint32_t max_length, Domain *domain = nullptr,
+        bool multi_publisher = false, bool cache = false, bool check_length = false);
+
+template <typename Data>
+Topic CreateTopic(const char *name, Domain *domain = nullptr,
+                           bool multi_publisher = false, bool cache = false,
+                           bool check_length = true);
 ```
 
 ---

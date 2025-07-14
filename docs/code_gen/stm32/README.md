@@ -162,12 +162,26 @@ int main() {
 
 ## 可选参数
 
-| 参数       | 说明                          |
-| ---------- | ----------------------------- |
-| `-d`       | 指定 STM32 工程根目录         |
-| `-t`       | 设置终端外设（如 `usart1`）   |
-| `-c`       | 启用 Clang 构建支持（已弃用） |
-| `--xrobot` | 生成 XRobot 模块 glue 代码    |
+| 参数       | 说明                        |
+| ---------- | --------------------------- |
+| `-d`       | 指定 STM32 工程根目录       |
+| `-t`       | 设置终端外设（如 `usart1`） |
+| `--xrobot` | 生成 XRobot 模块 glue 代码  |
+
+---
+
+## 工具链切换
+
+如需切换 GCC/Clang编译器 或更改 Clang 标准库，请使用如下命令：
+
+```bash
+xr_stm32_toolchain_switch gcc
+xr_stm32_toolchain_switch clang -g
+xr_stm32_toolchain_switch clang --newlib
+xr_stm32_toolchain_switch clang --picolibc
+```
+
+执行命令会自动修改 CMakePresets.json 和 cmake/starm-clang.cmake，重启 VSCode 即可生效。
 
 ---
 
@@ -187,12 +201,13 @@ int main() {
 
 ## 相关命令（由 `xr_cubemx_cfg` 内部调用，可单独执行）
 
-| 工具名              | 功能说明                             |
-| ------------------- | ------------------------------------ |
-| `xr_parse_ioc`      | 解析 `.ioc`，生成 `.config.yaml`     |
-| `xr_gen_code_stm32` | 根据 YAML 配置生成 `app_main.cpp`    |
-| `xr_stm32_it`       | 补丁中断文件，插入 UART/USB 回调支持 |
-| `xr_stm32_cmake`    | 修改 CMake 构建文件，集成 LibXR      |
+| 工具名                      | 功能说明                             |
+| --------------------------- | ------------------------------------ |
+| `xr_parse_ioc`              | 解析 `.ioc`，生成 `.config.yaml`     |
+| `xr_gen_code_stm32`         | 根据 YAML 配置生成 `app_main.cpp`    |
+| `xr_stm32_it`               | 补丁中断文件，插入 UART/USB 回调支持 |
+| `xr_stm32_cmake`            | 修改 CMake 构建文件，集成 LibXR      |
+| `xr_stm32_toolchain_switch` | 切换工具链和标准库                   |
 
 ## 参考
 

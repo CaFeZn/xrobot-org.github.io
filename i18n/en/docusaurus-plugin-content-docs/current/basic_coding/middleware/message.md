@@ -81,6 +81,21 @@ auto cb = LibXR::Topic::Callback::Create(
 topic.RegisterCallback(cb);
 ```
 
+## Thread Safety
+
+The `topic` class has a constructor parameter `bool multi_publisher_ = false;`, which is `false` by default. This means only one thread or interrupt is allowed to publish data at any given time.  
+When set to `true`, a `mutex_` is used for thread synchronization, allowing multiple threads to publish data concurrently. However, in this mode, publishing from interrupts is **not supported**.
+
+```cpp
+Topic(const char *name, uint32_t max_length, Domain *domain = nullptr,
+        bool multi_publisher = false, bool cache = false, bool check_length = false);
+
+template <typename Data>
+Topic CreateTopic(const char *name, Domain *domain = nullptr,
+                           bool multi_publisher = false, bool cache = false,
+                           bool check_length = true);
+```
+
 ---
 
 ## Interface Overview
