@@ -1,10 +1,10 @@
 ---
-id: perf
-title: 关于性能
-sidebar_position: 3
+id: perf-uart
+title: 串口收发性能测试
+sidebar_position: 1
 ---
 
-# 关于性能
+# 串口收发性能测试
 
 对于本框架来说，有一个问题经常会被问到：**"LibXR对底层驱动封装之后，性能是否会很差？"**
 

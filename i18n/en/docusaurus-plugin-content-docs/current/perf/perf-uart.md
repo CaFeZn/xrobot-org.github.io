@@ -1,10 +1,10 @@
 ---
-id: perf
-title: About Performance
-sidebar_position: 3
+id: perf-uart
+title: UART Performance Testing
+sidebar_position: 1
 ---
 
-# About Performance
+# UART Performance Testing
 
 One common question often asked about this framework is: **"Will LibXR's abstraction over low-level drivers cause significant performance loss?"**
 
