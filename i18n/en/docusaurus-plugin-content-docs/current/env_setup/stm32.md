@@ -6,7 +6,7 @@ sidebar_position: 1
 
 # STM32 Environment Setup
 
-This page will guide you on how to configure your STM32 development environment for use with LibXR, CodeGenerator, and XRobot.
+This page will guide you on how to configure your STM32 development environment for use with **LibXR**, **CodeGenerator**, and **XRobot**.
 
 ## Basic Environment
 
@@ -19,18 +19,94 @@ For Linux, install with apt:
 
 ```bash
 sudo apt update
-sudo apt install -y git python3 python3-pip cmake tar xz-utils wget pipx ninja-build
+sudo apt install -y git python3 python3-pip cmake tar xz-utils wget pipx
 ```
 
-## Based on GCC (Legacy STM32 VSCode Extension)
+---
+
+## Based on GCC/Clang (New STM32 VSCode Extension)
+
+Since **STM32CubeMX (>=15.0)**, CMake configurations for Clang toolchains are already integrated.  
+In the `Project Manager`, select `Default Compiler/Linker` as **gcc** or **starm-clang**. No extra setup is required.  
+`LibXR_CppCodeGenerator` provides the helper script `xr_stm32_toolchain_switch` for switching compilers and standard libraries.
+
+In VSCode, install the preview version of the extension `STMicroelectronics.stm32-vscode-extension`. The extension will automatically download toolchains and required resources.
+
+When setting up a new STM32Cube project, it is recommended to use the **hybrid mode (gcc + starm-clang)** for maximum compatibility.
+
+---
+
+### stm32cube-clangd Extension Issues
+
+* ~~Did not automatically add the C++ compiler path for `--query-driver`, and manual additions were overwritten each time the project was opened~~ → **Fixed in the latest version**.
+* Still does **not** recognize ST-ARM-CLANG’s `--multi-lib-config` option.  
+  → Avoid using **Hybrid (STARM_HYBRID)** mode with starm-clang.  
+  → `gcc`, `starm-clang+newlib` and `starm-clang+picolibc` modes work correctly. **Recommended: starm-clang + picolibc**.
+
+---
+
+### CLion / Command-Line Compilation
+
+On Windows, you need to add toolchains to your `PATH`. Installing **STM32CubeCLT** can simplify some of these settings.
+
+```bash
+# gcc
+set PATH=%PATH%;C:\Users\$env:USERNAME\AppData\Local\stm32cube\bundles\gnu-tools-for-stm32\${version}\bin
+
+# starm-clang
+set PATH=%PATH%;C:\Users\$env:USERNAME\AppData\Local\stm32cube\bundles\st-arm-clang\${version}\bin;
+```
+
+You also need to set environment variables:
+
+**Windows:**
+
+```powershell
+$env:GCC_TOOLCHAIN_ROOT = "C:\Users\$env:USERNAME\AppData\Local\stm32cube\bundles\gnu-tools-for-stm32\${version}\bin"
+$env:CLANG_GCC_CMSIS_COMPILER = "C:\Users\$env:USERNAME\AppData\Local\stm32cube\bundles\st-arm-clang\${version}"
+```
+
+**Linux:**
+
+```bash
+export GCC_TOOLCHAIN_ROOT=/opt/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi/bin
+export CLANG_GCC_CMSIS_COMPILER=/opt/st-arm-clang
+```
+
+During compilation, specify:
+
+```bash
+-DCMAKE_TOOLCHAIN_FILE="cmake/gcc-arm-none-eabi.cmake"
+```
+
+or
+
+```bash
+-DCMAKE_TOOLCHAIN_FILE="cmake/starm-clang.cmake"
+```
+
+---
+
+### Migrating Legacy CubeMX Projects (<15.0) to New Compilation
+
+If you encounter a link error with the `ob` library, add this to your root `CMakeLists.txt`:
+
+```cmake
+# Remove wrong libob.a library dependency when using cpp files
+list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)
+```
+
+---
+
+## Based on GCC (Legacy STM32 VSCode Extension) — *Not Recommended*
 
 ### Windows Environment Setup
 
-You need to install [STM32CubeCLT](https://www.st.com/en/development-tools/stm32cubeclt.html)
+Install [STM32CubeCLT](https://www.st.com/en/development-tools/stm32cubeclt.html)
 
 ### Linux Environment Setup
 
-Required packages:
+Install required packages:
 
 ```bash
 sudo apt update
@@ -38,88 +114,19 @@ sudo apt install -y git python3 python3-pip cmake tar xz-utils wget pipx ninja-b
 ```
 
 Download the appropriate compiler from the [ARM official website](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads).  
-For example, if you are using an x64 Linux system, download `AArch32 bare-metal target (arm-none-eabi)` under `x86_64 Linux hosted cross toolchains`, which is named `arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz`.
+For example, on x64 Linux, download the `AArch32 bare-metal target (arm-none-eabi)` under `x86_64 Linux hosted cross toolchains`:  
+`arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz`
 
-After extraction, move it to `/opt` and create a symbolic link `/usr/local/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi`.  
-Now you can use commands with the `arm-none-eabi-` prefix, such as `arm-none-eabi-gcc`.
+Extract and move it to `/opt`, then create a symlink:
 
-Then run the linking command:
+```bash
+sudo ln -s /opt/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi /usr/local/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi
+```
+
+You can now use commands like `arm-none-eabi-gcc`.
+
+For convenience, link binaries:
 
 ```bash
 sudo ln -s /opt/arm-gun-toolchain-xx.x/bin/* /usr/bin
-```
-
-## Based on GCC/Clang (New STM32 VSCode Extension)
-
-In STM32CubeMX (>=15.0), Clang-related toolchain CMake configurations are already integrated.  
-In the Project Manager, simply select the `Default Compiler/Linker` as either gcc or starm-clang—no additional setup required.
-
-The Default Compiler/Linker setting is written to the project's root `CMakePresets.json` under `toolchainFile`, which will be `${sourceDir}/cmake/starm-clang.cmake` or `${sourceDir}/cmake/gcc-arm-none-eabi.cmake`.
-
-Then install and use the preview version of the `STMicroelectronics.stm32-vscode-extension`. The extension will automatically download toolchains as needed.
-
-### clangd Usage
-
-The new ST extension’s clangd support is quite buggy. It’s recommended to **disable the `stmicroelectronics.stm32cube-ide-clangd` extension** and use the [official `llvm-vs-code-extensions.vscode-clangd` extension](https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd) instead. Then, manually add the following config:
-
-```json
-"clangd.arguments": [
-    "--query-driver=${env:CUBE_BUNDLE_PATH}/st-arm-clang/19.1.6+st.8/bin/starm-clang.exe,${env:CUBE_BUNDLE_PATH}/st-arm-clang/19.1.6+st.8/bin/starm-clang++.exe"
-]
-```
-
-For GCC, use:  
-`--query-driver=${env:CUBE_BUNDLE_PATH}/gnu-tools-for-stm32/10.3.1+st.3/bin/arm-none-eabi-gcc.exe,${env:CUBE_BUNDLE_PATH}/gnu-tools-for-stm32/10.3.1+st.3/bin/arm-none-eabi-g++.exe`
-
-#### Windows: clangd installation
-
-Download and install [LLVM](https://github.com/llvm/llvm-project/tags).
-
-#### Linux: clangd installation
-
-Just install via apt. (On Ubuntu versions earlier than 24.04, the apt-provided clangd may be too old; if you encounter issues, try upgrading.)
-
-#### stm32cube-clangd extension issues
-
-* Does **not** add the C++ compiler path to `--query-driver`, and manual additions are overwritten every time the project is opened.
-* Does **not** recognize the ST-ARM-CLANG `--multi-lib-config` build option.
-
-### CLion / Command-Line Compilation
-
-On Windows, you need to configure the relevant path first:
-
-```bash
-# gcc
-set PATH=%PATH%;C:\Users\%USERNAME%\AppData\Local\stm32cube\bundles\gnu-tools-for-stm32\${version}\bin
-
-# starm-clang
-set PATH=%PATH%;C:\Users\%USERNAME%\AppData\Local\stm32cube\bundles\st-arm-clang\${version}\bin;
-```
-
-You also need to set environment variables:
-
-On Windows:
-
-```powershell
-$env:GCC_TOOLCHAIN_ROOT = "C:\Users\$env:USERNAME\AppData\Local\stm32cube\bundles\gnu-tools-for-stm32\${version}\bin"
-$env:CLANG_GCC_CMSIS_COMPILER = "C:\Users\$env:USERNAME\AppData\Local\stm32cube\bundles\st-arm-clang\${version}"
-```
-
-On Linux:
-
-```bash
-export GCC_TOOLCHAIN_ROOT=/opt/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi/bin
-export CLANG_GCC_CMSIS_COMPILER=/opt/st-arm-clang
-```
-
-During compilation, specify `-DCMAKE_TOOLCHAIN_FILE="cmake/gcc-arm-none-eabi.cmake"` or `-DCMAKE_TOOLCHAIN_FILE="cmake/starm-clang.cmake"` to select the toolchain.  
-For `starm-clang.cmake`, you can also specify `-DSTARM_TOOLCHAIN_CONFIG` as one of `STARM_HYBRID`, `STARM_NEWLIB`, or `STARM_PICOLIBC` (default is `STARM_HYBRID`).
-
-### Migrating Legacy CubeMX Projects (<15.0) to New Compilation
-
-If you encounter an error about linking the library `ob`, add the following to the project's root `CMakeLists.txt`:
-
-```cmake
-# Remove wrong libob.a library dependency when using cpp files
-list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)
 ```

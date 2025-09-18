@@ -13,15 +13,12 @@ It is recommended to enable DMA transfer in STM32CubeMX, activate continuous con
 The code generator will read the enabled channels for each ADC peripheral and their order in continuous conversion mode to generate the following code:
 
 ```cpp
-// First, generate the sequence of ADC channels
-std::array<uint32_t, 1> adcX_channels = {ADC_CHANNEL_1, ADC_CHANNEL_2, ...};
+// Create the ADC object
+STM32ADC adcX(&hadcX, adcX_buf, {ADC_CHANNEL_1, ADC_CHANNEL_2, ...}, 3.3);
 
-// Then, create the ADC object
-STM32ADC adcX(&hadcX, adcX_buf, &adcX_channels[0], adcX_channels.size(), 3.3);
-
-// Finally, create individual ADC channel objects
-auto adcX_adc_channel_1 = adc3.GetChannel(0);
-auto adcX_adc_channel_2 = adc3.GetChannel(1);
+// Retrieve each ADC channel object
+auto adcX_adc_channel_1 = adcX.GetChannel(0);
+auto adcX_adc_channel_2 = adcX.GetChannel(1);
 ...
 ```
 

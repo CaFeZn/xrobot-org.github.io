@@ -195,19 +195,19 @@ xr_stm32_toolchain_switch clang --picolibc
 
 ## 编译优化
 
-默认生成的 CMake 配置在 Debug 模式下会为 LibXR、HAL 库、FreeRTOS 和 USB 等库添加 `-O2` 优化选项，而对 User 目录下的代码以及 XRobot 的模块则使用 `-Og` 优化选项，以此减少 FLASH 占用。
+默认生成的 CMake 配置在 Debug 模式下会为 LibXR、HAL 库和 FreeRTOS 等库添加 `-O2` 优化选项，而对 User 目录下的代码以及 XRobot 的模块则使用 `-Og` 优化选项，以此减少 FLASH 占用。
 
 ---
 
 ## 相关命令（由 `xr_cubemx_cfg` 内部调用，可单独执行）
 
-| 工具名                      | 功能说明                             |
-| --------------------------- | ------------------------------------ |
-| `xr_parse_ioc`              | 解析 `.ioc`，生成 `.config.yaml`     |
-| `xr_gen_code_stm32`         | 根据 YAML 配置生成 `app_main.cpp`    |
-| `xr_stm32_it`               | 补丁中断文件，插入 UART/USB 回调支持 |
-| `xr_stm32_cmake`            | 修改 CMake 构建文件，集成 LibXR      |
-| `xr_stm32_toolchain_switch` | 切换工具链和标准库                   |
+| 工具名                      | 功能说明                          |
+| --------------------------- | --------------------------------- |
+| `xr_parse_ioc`              | 解析 `.ioc`，生成 `.config.yaml`  |
+| `xr_gen_code_stm32`         | 根据 YAML 配置生成 `app_main.cpp` |
+| `xr_stm32_it`               | 补丁中断文件，插入 UART 回调支持  |
+| `xr_stm32_cmake`            | 修改 CMake 构建文件，集成 LibXR   |
+| `xr_stm32_toolchain_switch` | 切换工具链和标准库                |
 
 ## 参考
 

@@ -6,10 +6,10 @@ sidebar_position: 11
 
 # UART and Terminal
 
-LibXR supports two types of UARTs: **Hardware UART** and **USB CDC**. Both can be used for serial debugging and terminal interaction.
+LibXR supports two types of UART interfaces: **Hardware UART** and **USB CDC**. Both can be used for serial communication and terminal interaction.
 
-- **Hardware UART** requires interrupt and DMA enabled;
-- **USB CDC** requires interrupt enabled, and the appropriate USB support depending on the OS (e.g., FreeRTOS or ThreadX).
+- **Hardware UART** requires interrupt and DMA enabled;  
+- **USB CDC** requires enabling the USB peripheral and corresponding interrupts. Please disable other USB stacks (such as STM32 USB library, USBX, etc.) to avoid conflicts with XRUSB.
 
 ## UART Code Examples
 
@@ -17,14 +17,58 @@ LibXR supports two types of UARTs: **Hardware UART** and **USB CDC**. Both can b
 // Hardware UART
 STM32UART usart1(&huart1, usart1_rx_buf, usart1_tx_buf, 5);
 
-// USB CDC (FreeRTOS or bare-metal)
-STM32VirtualUART uart_cdc(hUsbDeviceFS, UserTxBufferFS, UserRxBufferFS, 5);
+// USB CDC Full-Speed (FS) OTG
+static constexpr auto USB_OTG_FS_LANG_PACK = LibXR::USB::DescriptorStrings::MakeLanguagePack(LibXR::USB::DescriptorStrings::Language::EN_US, "XRobot", "STM32 XRUSB USB_OTG_FS CDC Demo", "123456789");
+LibXR::USB::CDC usb_otg_fs_cdc(128, 128, 3);
+STM32USBDeviceOtgFS usb_fs(
+    &hpcd_USB_OTG_FS,
+    256,
+    {usb_otg_fs_ep0_out_buf, usb_otg_fs_ep1_out_buf},
+    {{usb_otg_fs_ep0_in_buf, 8}, {usb_otg_fs_ep1_in_buf, 128}, {usb_otg_fs_ep2_in_buf, 8}},
+    USB::DeviceDescriptor::PacketSize0::SIZE_8,
+    0x483, 0x5740, 0xF407,
+    {&USB_OTG_FS_LANG_PACK},
+    {{&usb_otg_fs_cdc}}
+);
+usb_fs.Init();
+usb_fs.Start();
 
-// USB CDC (ThreadX + USBX)
-STM32VirtualUART uart_cdc(&hpcd_USB_FS, 2048, 2, 2048, 2, 12, 256);
+// USB CDC High-Speed (HS) OTG
+static constexpr auto USB_OTG_HS_LANG_PACK = LibXR::USB::DescriptorStrings::MakeLanguagePack(LibXR::USB::DescriptorStrings::Language::EN_US, "XRobot", "STM32 XRUSB USB_OTG_HS CDC Demo", "123456789");
+LibXR::USB::CDC usb_otg_hs_cdc(128, 128, 3);
+
+STM32USBDeviceOtgHS usb_hs(
+    &hpcd_USB_OTG_HS,
+    256,
+    {usb_otg_hs_ep0_out_buf, usb_otg_hs_ep1_out_buf},
+    {{usb_otg_hs_ep0_in_buf, 8}, {usb_otg_hs_ep1_in_buf, 128}, {usb_otg_hs_ep2_in_buf, 8}},
+    USB::DeviceDescriptor::PacketSize0::SIZE_8,
+    0x483, 0x5740, 0xF407,
+    {&USB_OTG_HS_LANG_PACK},
+    {{&usb_otg_hs_cdc}}
+);
+usb_hs.Init();
+usb_hs.Start();
+
+// USB CDC Full-Speed (FS) Device
+static constexpr auto USB_FS_LANG_PACK = LibXR::USB::DescriptorStrings::MakeLanguagePack(LibXR::USB::DescriptorStrings::Language::EN_US, "XRobot", "STM32 XRUSB USB CDC Demo", "123456789");
+LibXR::USB::CDC usb_fs_cdc(128, 128, 3);
+
+STM32USBDeviceDevFs usb_fs_dev(
+    &hpcd_USB_FS,
+    {
+        {usb_fs_ep0_in_buf, usb_fs_ep0_out_buf, 8, 8},
+        {usb_fs_ep1_in_buf, usb_fs_ep1_out_buf, 128, 128},
+        {usb_fs_ep2_in_buf, 8, true}
+    },
+    USB::DeviceDescriptor::PacketSize0::SIZE_8,
+    0x483, 0x5740, 0xF407,
+    {&USB_FS_LANG_PACK},
+    {{&usb_fs_cdc}}
+);
+usb_fs_dev.Init();
+usb_fs_dev.Start();
 ```
-
-> Note: On **ThreadX**, USBX replaces the official ST USB library. The constructor parameters are different and require a USB PCD handle (e.g., `&hpcd_USB_FS`).
 
 ## Terminal Code Examples
 
@@ -34,8 +78,8 @@ STDIO::read_ = usart1.read_port_;
 STDIO::write_ = usart1.write_port_;
 
 // If using USB CDC
-STDIO::read_ = uart_cdc.read_port_;
-STDIO::write_ = uart_cdc.write_port_;
+STDIO::read_ = usb_otg_fs_cdc.read_port_;
+STDIO::write_ = usb_otg_fs_cdc.write_port_;
 
 // Create a virtual file system
 RamFS ramfs("XRobot");
@@ -59,19 +103,19 @@ terminal_thread.Create(&terminal, terminal.ThreadFun, "terminal", 512,
 You can control UART and terminal behavior through the configuration file:
 
 ```yaml
-# Select the default UART source for terminal binding (usb or usart1, etc.)
-# Leave empty to disable terminal
-terminal_source: usb
+# Select the default UART source for terminal binding (usb_otg_fs_cdc, usart1, etc.)
+# Leave empty ('') to disable terminal
+terminal_source: usb_otg_fs_cdc
 
 # Terminal-related settings (optional)
 Terminal:
-  read_buff_size: 32      # Terminal read buffer size
-  max_line_size: 32       # Maximum line size
-  max_arg_number: 5       # Maximum argument number
-  max_history_number: 5   # Maximum history number
+  read_buff_size: 32        # Terminal read buffer size
+  max_line_size: 32         # Maximum line size
+  max_arg_number: 5         # Maximum argument number
+  max_history_number: 5     # Maximum history number
   run_as_thread: true       # Run as a thread
   thread_stack_depth: 1024  # Thread stack depth (only effective under thread mode)
-  thread_priority: 3       # Thread priority (only effective under thread mode)
+  thread_priority: 3        # Thread priority (only effective under thread mode)
 
 # Hardware UART configuration
 USART:
@@ -83,10 +127,35 @@ USART:
 
 # USB CDC configuration (effective under FreeRTOS)
 USB:
-  tx_queue_size: 12
-```
+  USB_OTG_FS:
+    enable: true
+    # EP0 packet size (only 8/16/32/64 supported)
+    ep0_packet_size: 64
 
-> The `UserTxBufferFS` and `UserRxBufferFS` buffers are only used when the **official ST USB library** (under FreeRTOS) is used. These are not required in ThreadX + USBX mode.
+    # DMA buffer size (for EP1 IN/OUT user buffers)
+    tx_buffer_size: 256     # ep1_in_buf size
+    rx_buffer_size: 256     # ep1_out_buf size
+
+    # Hardware FIFO (PCD/USB peripheral internal FIFO configuration)
+    tx_fifo_size: 128
+    rx_fifo_size: 256
+
+    # CDC internal FIFO and queues
+    cdc_tx_fifo_size: 256
+    cdc_rx_fifo_size: 256
+    cdc_queue_size: 3
+
+    # Optional: put endpoint DMA buffers in a specific section
+    dma_section: ""
+
+    # Optional: USB device descriptors
+    vid: 0x0483
+    pid: 0x5740
+    bcd: 0x0200
+    manufacturer: "XRobot"
+    product: "STM32 XRUSB CDC"
+    serial: "123456789"
+```
 
 ---
 

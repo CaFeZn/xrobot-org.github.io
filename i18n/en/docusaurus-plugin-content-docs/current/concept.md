@@ -6,6 +6,10 @@ sidebar_position: 2
 
 # Design Concept
 
+## `Lock-free Data Structures and ISR-Driven Data Flow`
+
+In LibXR, all I/O is built on lock-free queues and ring buffers, with no reliance on mutexes or interrupt-masking critical sections during runtime. This ensures determinism and predictable latency across the transfer path. Device events are driven entirely by hardware interrupts, where the ISR is limited to tasks such as double-buffer switching and state machine transitions, without any additional logic. As a result, data flow is strictly paced by hardware rather than operating system scheduling. In this way, LibXR’s I/O forms a lock-free pipeline driven by interrupts, characterized by lightweight design and real-time responsiveness.
+
 ## `Runtime memory allocation in embedded systems is a design flaw`
 
 In embedded systems, runtime memory allocation should be regarded as a design flaw. All resources in the system should be allocated and configured as much as possible during the construction or initialization phase. This not only improves system predictability and stability, but also makes memory usage analysis and resource planning easier.
@@ -49,12 +53,12 @@ The key to I/O operations is not "issuing a request", but rather **how to know w
 
 LibXR models I/O behaviors using the `Operation` type, binding the response mechanism at the time the operation is initiated:
 
-| Mode       | Type       | Description                              |
-| ---------- | ---------- | ---------------------------------------- |
-| Callback   | `CALLBACK` | Callback function triggered upon finish  |
-| Blocking   | `BLOCK`    | Current task blocks until complete/timeout |
-| Polling    | `POLLING`  | User actively checks completion status   |
-| Ignore     | `NONE`     | Fire and forget, no feedback expected    |
+| Mode     | Type       | Description                                |
+| -------- | ---------- | ------------------------------------------ |
+| Callback | `CALLBACK` | Callback function triggered upon finish    |
+| Blocking | `BLOCK`    | Current task blocks until complete/timeout |
+| Polling  | `POLLING`  | User actively checks completion status     |
+| Ignore   | `NONE`     | Fire and forget, no feedback expected      |
 
 ```cpp
 WriteOperation op_cb(callback);     // Async callback

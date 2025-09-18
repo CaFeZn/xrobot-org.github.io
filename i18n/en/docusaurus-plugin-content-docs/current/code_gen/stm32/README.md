@@ -203,19 +203,19 @@ Command execution will automatically modify CMakePresets.json and cmake/starm-cl
 
 ## Build Optimization
 
-By default, the generated CMake configuration applies the `-O2` optimization option to libraries such as LibXR, HAL, FreeRTOS, and USB in Debug mode, while using the `-Og` optimization option for code in the User directory and XRobot modules. This approach helps reduce FLASH usage.
+By default, the generated CMake configuration applies the `-O2` optimization option to libraries such as LibXR, HAL and FreeRTOS in Debug mode, while using the `-Og` optimization option for code in the User directory and XRobot modules. This approach helps reduce FLASH usage.
 
 ---
 
 ## Subcommands (Internally used by `xr_cubemx_cfg`, can also be run separately)
 
-| Tool                        | Description                                      |
-| --------------------------- | ------------------------------------------------ |
-| `xr_parse_ioc`              | Parses `.ioc` and generates `.config.yaml`       |
-| `xr_gen_code_stm32`         | Generates `app_main.cpp` from the YAML config    |
-| `xr_stm32_it`               | Patches interrupt handlers with UART/USB support |
-| `xr_stm32_cmake`            | Integrates LibXR into the project build system   |
-| `xr_stm32_toolchain_switch` | Switch toolchain and standard library            |
+| Tool                        | Description                                    |
+| --------------------------- | ---------------------------------------------- |
+| `xr_parse_ioc`              | Parses `.ioc` and generates `.config.yaml`     |
+| `xr_gen_code_stm32`         | Generates `app_main.cpp` from the YAML config  |
+| `xr_stm32_it`               | Patches interrupt handlers with UART support   |
+| `xr_stm32_cmake`            | Integrates LibXR into the project build system |
+| `xr_stm32_toolchain_switch` | Switch toolchain and standard library          |
 
 ---
 

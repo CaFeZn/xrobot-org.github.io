@@ -13,15 +13,12 @@ sidebar_position: 5
 代码生成工具会读取每个ADC外设开启的通道和连续转换模式下的通道顺序，生成如下代码:
 
 ```cpp
-// 首先生成ADC的采集通道顺序
-std::array<uint32_t, 1> adcX_channels = {ADC_CHANNEL_1, ADC_CHANNEL_2, ...};
+// 生成ADC对象
+STM32ADC adcX(&hadcX, adcX_buf, {ADC_CHANNEL_1, ADC_CHANNEL_2, ...}, 3.3);
 
-// 然后生成ADC对象
-STM32ADC adcX(&hadcX, adcX_buf, &adcX_channels[0], adcX_channels.size(), 3.3);
-
-// 最后生成ADC通道对象
-auto adcX_adc_channel_1 = adc3.GetChannel(0);
-auto adcX_adc_channel_2 = adc3.GetChannel(1);
+// 获取每个ADC通道对象
+auto adcX_adc_channel_1 = adcX.GetChannel(0);
+auto adcX_adc_channel_2 = adcX.GetChannel(1);
 ...
 ```
 
