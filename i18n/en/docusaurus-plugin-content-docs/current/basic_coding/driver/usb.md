@@ -6,4 +6,4 @@ sidebar_position: 13
 
 # USB
 
-See [XRUSB](https://github.com/Jiu-xiao/XRUSB).
+See the XRUSB [repository](https://github.com/Jiu-xiao/XRUSB) and [documentation](../../xrusb).

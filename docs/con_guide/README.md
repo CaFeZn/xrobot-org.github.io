@@ -1,7 +1,7 @@
 ---
 id: adv-coding
 title: 贡献指南
-sidebar_position: 8
+sidebar_position: 10
 ---
 
 # 贡献指南

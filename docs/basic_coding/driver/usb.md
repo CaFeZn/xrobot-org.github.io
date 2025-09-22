@@ -6,4 +6,4 @@ sidebar_position: 13
 
 # USB
 
-查看[XRUSB](https://github.com/Jiu-xiao/XRUSB)。
+查看XRUSB[仓库](https://github.com/Jiu-xiao/XRUSB)和[文档](../../xrusb)。
