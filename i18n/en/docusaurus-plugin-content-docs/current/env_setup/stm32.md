@@ -13,7 +13,7 @@ This page will guide you on how to configure your STM32 development environment 
 Windows installation:
 
 * [git](https://git-scm.com/)
-* [python](https://apps.microsoft.com/detail/9ncvdn91xzqp)
+* [python](https://www.python.org/downloads/)
 
 For Linux, install with apt:
 

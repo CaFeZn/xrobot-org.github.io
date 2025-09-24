@@ -8,12 +8,14 @@ sidebar_position: 1
 
 本页面将指导你如何配置STM32的开发环境，以便使用LibXR，CodeGenerator，XRobot。
 
+推荐配合[视频教程](https://space.bilibili.com/339766655/lists/5028472)使用此文档。
+
 ## 基础环境
 
 Windows安装：
 
 * [git](https://git-scm.com/)
-* [python](https://apps.microsoft.com/detail/9ncvdn91xzqp)
+* [python](https://www.python.org/downloads/)
 
 linux使用apt安装：
 
