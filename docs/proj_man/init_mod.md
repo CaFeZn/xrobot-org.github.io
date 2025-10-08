@@ -95,11 +95,11 @@ sources:
 ## CMake 集成
 
 自动同步的所有模块会被下载到 `Modules/` 目录。  
-只需在你的工程 `CMakeLists.txt` 中加入如下代码即可自动包含所有模块：
+需通过设置 XROBOT_MODULES_DIR 变量，让 LibXR 自动发现并加载模块。
 
 ```cmake
 # 添加 XRobot Modules
-include(${CMAKE_CURRENT_LIST_DIR}/Modules/CMakeLists.txt)
+set(XROBOT_MODULES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Modules")
 ```
 
 别忘了把LibXR也包含进来！
@@ -109,8 +109,11 @@ include(${CMAKE_CURRENT_LIST_DIR}/Modules/CMakeLists.txt)
 project(xrobot_mod_test CXX)
 set(CMAKE_CXX_STANDARD 17)
 add_executable(xr_test main.cpp)
+
+# 在add_subdirectory之前
+set(XROBOT_MODULES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Modules/)
 add_subdirectory(libxr)
+
 target_include_directories(xr_test PUBLIC $<TARGET_PROPERTY:xr,INTERFACE_INCLUDE_DIRECTORIES> ${CMAKE_SOURCE_DIR}/User)
 target_link_libraries(xr_test PUBLIC xr)
-include(Modules/CMakeLists.txt)
 ```

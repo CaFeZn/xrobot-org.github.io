@@ -95,11 +95,11 @@ sources:
 ## CMake Integration
 
 All fetched modules are stored under the `Modules/` directory.  
-To include them in your CMake project, simply add:
+You need to set the XROBOT_MODULES_DIR variable so that LibXR can automatically discover and load the modules.
 
 ```cmake
-# Include XRobot Modules
-include(${CMAKE_CURRENT_LIST_DIR}/Modules/CMakeLists.txt)
+# Add XRobot Modules
+set(XROBOT_MODULES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Modules")
 ```
 
 Don't forget to include LibXR too!
@@ -109,8 +109,15 @@ Don't forget to include LibXR too!
 project(xrobot_mod_test CXX)
 set(CMAKE_CXX_STANDARD 17)
 add_executable(xr_test main.cpp)
+
+# Set before add_subdirectory
+set(XROBOT_MODULES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Modules/)
 add_subdirectory(libxr)
-target_include_directories(xr_test PUBLIC $<TARGET_PROPERTY:xr,INTERFACE_INCLUDE_DIRECTORIES> ${CMAKE_SOURCE_DIR}/User)
+
+target_include_directories(xr_test PUBLIC 
+    $<TARGET_PROPERTY:xr,INTERFACE_INCLUDE_DIRECTORIES> 
+    ${CMAKE_SOURCE_DIR}/User
+)
+
 target_link_libraries(xr_test PUBLIC xr)
-include(Modules/CMakeLists.txt)
 ```
