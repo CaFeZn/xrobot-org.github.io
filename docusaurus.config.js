@@ -1,3 +1,5 @@
+const { themes: prismThemes } = require('prism-react-renderer');
+
 module.exports = {
   title: 'XRobot Docs',
   tagline: 'Want to be the best embedded framework',
@@ -20,6 +22,10 @@ module.exports = {
     },
   ],
 
+  markdown: {
+    mermaid: true,
+  },
+
   i18n: {
     defaultLocale: 'zh',
     locales: ['en', 'zh'],
@@ -41,6 +47,8 @@ module.exports = {
       }),
     ],
   ],
+
+  themes: ['@docusaurus/theme-mermaid'],
 
   presets: [
     [
@@ -153,9 +161,13 @@ module.exports = {
       copyright: `Copyright © ${new Date().getFullYear()} XRobot`,
     },
 
+    mermaid: {
+      theme: { light: 'neutral', dark: 'forest' },
+    },
+
     prism: {
-      theme: require('prism-react-renderer/themes/github'),
-      darkTheme: require('prism-react-renderer/themes/dracula'),
+      theme: prismThemes.github,
+      darkTheme: prismThemes.dracula,
       additionalLanguages: ['cmake', 'bash'],
     },
   },

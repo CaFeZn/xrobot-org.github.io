@@ -185,10 +185,10 @@ public:
 };
 ```
 
-- **Stream(WritePort*, WriteOperation)**: Attempts to acquire the lock during construction; if locking fails, falls back to normal write mode.
-- **~Stream()**: Automatically commits all data and releases the lock upon destruction.
-- **operator<<**: Chains the addition of data segments for writing.
-- **Commit()**: Immediately writes all currently appended data to the queue and (if needed) releases the lock. Can be used for segmented flushing.
+- **`Stream(WritePort*, WriteOperation)`**: Attempts to acquire the lock during construction; if locking fails, falls back to normal write mode.
+- **`~Stream()`**: Automatically commits all data and releases the lock upon destruction.
+- **`operator<<`**: Chains the addition of data segments for writing.
+- **`Commit()`**: Immediately writes all currently appended data to the queue and (if needed) releases the lock. Can be used for segmented flushing.
 
 ---
 

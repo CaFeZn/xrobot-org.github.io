@@ -87,7 +87,7 @@ or
 
 ---
 
-### Migrating Legacy CubeMX Projects (<15.0) to New Compilation
+### `Migrating Legacy CubeMX Projects (<15.0) to New Compilation`
 
 If you encounter a link error with the `ob` library, add this to your root `CMakeLists.txt`:
 

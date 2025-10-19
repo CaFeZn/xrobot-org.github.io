@@ -69,7 +69,7 @@ export CLANG_GCC_CMSIS_COMPILER=/opt/st-arm-clang
 
 编译时还要指定`-DCMAKE_TOOLCHAIN_FILE="cmake/gcc-arm-none-eabi.cmake"`或者`-DCMAKE_TOOLCHAIN_FILE="cmake/starm-clang.cmake"`来选择工具链。
 
-### 旧版CubeMX工程(<15.0)迁移到新版本编译问题
+### `旧版CubeMX工程(<15.0)迁移到新版本编译问题`
 
 如果提示链接不到库`ob`，则在工程根目录的`CMakeLists.txt`中添加:
 
