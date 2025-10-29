@@ -6,7 +6,7 @@ sidebar_position: 5
 
 # ADC
 
-推荐在STM32CubeMX里面开启dma传输，使能连续转换并将dma通道配置为循环模式。
+强烈建议在STM32CubeMX里面开启dma传输，使能连续转换并将dma通道配置为循环模式。轮询模式下同一ADC的不同通道无法被多线程同时调用，可能会导致数据错误。
 
 ## 示例
 

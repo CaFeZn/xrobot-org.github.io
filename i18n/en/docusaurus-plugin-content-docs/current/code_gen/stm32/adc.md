@@ -6,7 +6,7 @@ sidebar_position: 5
 
 # ADC
 
-It is recommended to enable DMA transfer in STM32CubeMX, activate continuous conversion, and configure the DMA channel in circular mode.
+It’s strongly recommended to enable DMA transfers in STM32CubeMX, enable continuous conversion, and set the DMA channel to Circular mode. Using polling mode with multi-threaded API calls is unsafe and can lead to data errors.
 
 ## Example
 

@@ -6,7 +6,7 @@ sidebar_position: 1
 
 # STM32 Code Generation
 
-LibXR provides the `xr_cubemx_cfg` command to automatically generate C++ initialization code from an STM32CubeMX project. This command wraps several tools including configuration parsing, code generation, interrupt patching, and CMake integration.
+LibXR provides the `xr_cubemx_cfg` command to automatically generate C++ initialization code from an STM32CubeMX project. This command wraps several tools including configuration parsing, code generation, and CMake integration.
 
 ---
 
@@ -23,8 +23,7 @@ This command will perform the following steps automatically:
 1. Initialize or update the `libxr` submodule  
 2. Locate the `.ioc` file and convert it into `.config.yaml`  
 3. Generate `app_main.cpp` with initialization code  
-4. Patch interrupt handler files  
-5. Modify `CMakeLists.txt` to integrate LibXR
+4. Modify `CMakeLists.txt` to integrate LibXR
 
 ---
 
@@ -39,8 +38,6 @@ Parsing .ioc file...
 [INFO] [OK] xr_parse_ioc -d . -o ./.config.yaml
 Generating C++ code...
 [INFO] [OK] xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp
-Modifying STM32 interrupt files...
-[INFO] [OK] xr_stm32_it ./Core/Src
 [INFO] [OK] xr_stm32_cmake .
 [INFO] [Pass] All tasks completed successfully!
 ```
@@ -59,7 +56,6 @@ After execution, your project directory will contain the following generated or 
 │   ├── app_main.h                    # Header for app_main
 │   ├── libxr_config.yaml             # LibXR runtime configuration
 │   └── flash_map.hpp                 # Flash address mapping table
-├── Core/Src/stm32f1xx_it.c           # Patched interrupt handlers
 ├── cmake/LibXR.CMake                 # CMake build config for LibXR
 ├── CMakeLists.txt                    # Modified to include LibXR
 └── Middlewares/Third_Party/LibXR     # LibXR as a Git submodule
@@ -213,7 +209,6 @@ By default, the generated CMake configuration applies the `-O2` optimization opt
 | --------------------------- | ---------------------------------------------- |
 | `xr_parse_ioc`              | Parses `.ioc` and generates `.config.yaml`     |
 | `xr_gen_code_stm32`         | Generates `app_main.cpp` from the YAML config  |
-| `xr_stm32_it`               | Patches interrupt handlers with UART support   |
 | `xr_stm32_cmake`            | Integrates LibXR into the project build system |
 | `xr_stm32_toolchain_switch` | Switch toolchain and standard library          |
 
