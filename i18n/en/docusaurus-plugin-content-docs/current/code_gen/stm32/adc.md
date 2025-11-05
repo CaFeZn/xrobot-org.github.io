@@ -6,7 +6,18 @@ sidebar_position: 5
 
 # ADC
 
-It’s strongly recommended to enable DMA transfers in STM32CubeMX, enable continuous conversion, and set the DMA channel to Circular mode. Using polling mode with multi-threaded API calls is unsafe and can lead to data errors.
+It is strongly recommended to enable DMA transfers in STM32CubeMX. In polling mode, different channels of the same ADC cannot be called by multiple threads simultaneously, which may lead to incorrect data.
+
+## DMA Mode Configuration Requirements
+
+* Configure the ADC conversion sequence (Rank), ensuring each channel has exactly one corresponding Rank.
+* Enable Continuous Conversion Mode and DMA Continuous Requests.
+* Set DMA to Circular mode.
+
+## Polling Mode Configuration Requirements
+
+* The number of conversion channels must be 1 (i.e., only one Rank).
+* Disable Continuous Conversion Mode.
 
 ## Example
 
@@ -22,7 +33,9 @@ auto adcX_adc_channel_2 = adcX.GetChannel(1);
 ...
 ```
 
-Note: `STM32ADC` is not derived from the ADC base class. Instead, it contains multiple ADC channel objects that are derived from the base ADC class.
+In polling mode, all enabled channels are recognized; in DMA mode, only channels with a configured Rank are recognized.
+
+`STM32ADC` is not derived from the ADC base class. Instead, it contains multiple ADC channel objects that are derived from the base ADC class.
 
 ## Configuration File
 
@@ -31,7 +44,7 @@ After the code is generated, an ADC configuration section will appear in the `Us
 ```yaml
 ADC:
   adcX:
-    buffer_size: 128
+    buffer_size: 128 # Default size = number of channels/Ranks * 32
     dma_section: ''
     vref: 3.3
 ```

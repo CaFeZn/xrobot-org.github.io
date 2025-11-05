@@ -28,7 +28,7 @@ sudo apt install -y git python3 python3-pip cmake tar xz-utils wget pipx
 
 在STM32CubeMX (>=15.0)中，已经集成了Clang 相关工具链的CMake配置。 在`Project Manager`中选择`Default Compiler/Linker`为gcc或者starm-clang即可，不需要额外配置。LibXR_CppCodeGenerator提供的`xr_stm32_toolchain_switch`可以用于切换编译器与标准库。
 
-在VSCode中安装使用插件`STMicroelectronics.stm32-vscode-extension`的预览版本即可，插件会自行下载工具链等资源。
+在VSCode中安装使用插件`STMicroelectronics.stm32-vscode-extension`即可，插件会自行下载工具链等资源。
 
 Setup STM32Cube project的时候建议选择混合模式（gcc+starm-clang）以便适应所有情况。
 

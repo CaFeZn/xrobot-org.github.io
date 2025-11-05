@@ -12,7 +12,7 @@ There are five available Docker images:
 * `docker-image-esp32`: Docker image tailored for ESP32 development
 * `docker-image-ch32-riscv`: Docker image tailored for CH32 RISC-V Series
 * `docker-image-linux`: Docker image tailored for Linux development
-* `docker-image-webots`: Docker image tailored for Webots simulation
+* `docker-image-webots`: Docker image tailored for Webots simulation(also includes OpenCV)
 
 ## ghcr.io
 

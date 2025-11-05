@@ -30,7 +30,7 @@ Since **STM32CubeMX (>=15.0)**, CMake configurations for Clang toolchains are al
 In the `Project Manager`, select `Default Compiler/Linker` as **gcc** or **starm-clang**. No extra setup is required.  
 `LibXR_CppCodeGenerator` provides the helper script `xr_stm32_toolchain_switch` for switching compilers and standard libraries.
 
-In VSCode, install the preview version of the extension `STMicroelectronics.stm32-vscode-extension`. The extension will automatically download toolchains and required resources.
+In VSCode, install the  extension `STMicroelectronics.stm32-vscode-extension`. The extension will automatically download toolchains and required resources.
 
 When setting up a new STM32Cube project, it is recommended to use the **hybrid mode (gcc + starm-clang)** for maximum compatibility.
 

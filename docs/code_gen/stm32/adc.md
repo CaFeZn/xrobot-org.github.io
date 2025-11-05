@@ -6,7 +6,18 @@ sidebar_position: 5
 
 # ADC
 
-强烈建议在STM32CubeMX里面开启dma传输，使能连续转换并将dma通道配置为循环模式。轮询模式下同一ADC的不同通道无法被多线程同时调用，可能会导致数据错误。
+强烈建议在STM32CubeMX里面开启dma传输。轮询模式下同一ADC的不同通道无法被多线程同时调用，可能会导致数据错误。
+
+## DMA模式配置要求
+
+* 需要配置ADC的转换顺序（Rank），确保每个通道只有一个对应的Rank
+* 开启连续转换模式与DMA连续转换请求
+* DMA配置为循环模式
+
+## 轮询模式配置要求
+
+* 转换通道数量必须为1（即只能有一个Rank）
+* 连续转换模式关闭
 
 ## 示例
 
@@ -22,6 +33,8 @@ auto adcX_adc_channel_2 = adcX.GetChannel(1);
 ...
 ```
 
+轮询模式下会识别所有开启的通道，DMA模式下只会识别配置了Rank的通道。
+
 STM32ADC类并不是由ADC基类的派生，而是包含了多个由ADC基类派生的ADC通道对象。
 
 ## 配置文件
@@ -31,7 +44,7 @@ STM32ADC类并不是由ADC基类的派生，而是包含了多个由ADC基类派
 ```yaml
 ADC:
   adcX:
-    buffer_size: 128
+    buffer_size: 128 # 默认大小为通道/Rank数量*32
     dma_section: ''
     vref: 3.3
 ```

@@ -18,3 +18,7 @@ include(path_to_libxr/CMake/esp32.cmake)
 ```
 
 即可完成CMake配置，注意将path_to_libxr的路径替换为你的libxr路径。
+
+## 其他
+
+由于ESP-IDF的设计理念与LibXR几乎完全冲突，在ESP32上只能通过效率极低的兼容层实现部分驱动。所有相关型号的驱动适配工作已经无限期暂停。

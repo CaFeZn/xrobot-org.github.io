@@ -12,7 +12,7 @@ sidebar_position: 5
 * docker-image-esp32： 针对ESP32的docker镜像
 * docker-image-ch32-riscv: 针对CH32 RISC-V系列的docker镜像
 * docker-image-linux： 针对Linux的docker镜像
-* docker-image-webots： 针对Webots仿真的docker镜像
+* docker-image-webots： 针对Webots仿真的docker镜像（同时包含OpenCV）
 
 ## ghcr.io
 

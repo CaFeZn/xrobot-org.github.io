@@ -19,3 +19,7 @@ include(path_to_libxr/CMake/esp32.cmake)
 ```
 
 This completes the CMake setup. Be sure to replace `path_to_libxr` with the actual path to your `libxr` directory.
+
+## Other
+
+Due to fundamental conflicts between the design philosophy of ESP-IDF and LibXR, only a subset of drivers can be implemented on ESP32 via a highly inefficient compatibility layer. Driver adaptation work for all related models has been suspended indefinitely.

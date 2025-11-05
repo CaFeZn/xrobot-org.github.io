@@ -22,37 +22,70 @@ enum class ClockPhase : uint8_t {
   EDGE_1, // 第一个时钟边沿采样
   EDGE_2  // 第二个时钟边沿采样
 };
+
+enum class Prescaler : uint8_t {
+  DIV_1 = 0, DIV_2, DIV_4, DIV_8, DIV_16, DIV_32, DIV_64, DIV_128,
+  DIV_256, DIV_512, DIV_1024, DIV_2048, DIV_4096, DIV_8192,
+  DIV_16384, DIV_32768, DIV_65536,
+  UNKNOWN = 0xFF // 未知分频系数
+};
 ```
 
 ### 配置结构
 
 ```cpp
 struct Configuration {
-  ClockPolarity clock_polarity;
-  ClockPhase clock_phase;
+  ClockPolarity clock_polarity = ClockPolarity::LOW;
+  ClockPhase    clock_phase    = ClockPhase::EDGE_1;
+  Prescaler     prescaler      = Prescaler::UNKNOWN;
+  bool          double_buffer  = false;
 };
 ```
 
 ### 主要接口
 
 ```cpp
-// 配置 SPI 通信参数
+// 构造与配置
+SPI(RawData rx_buffer, RawData tx_buffer);
 virtual ErrorCode SetConfig(Configuration config) = 0;
+inline Configuration& GetConfig();
+inline bool IsDoubleBuffer() const;
 
-// 全双工读写
-virtual ErrorCode ReadAndWrite(RawData read_data, ConstRawData write_data, OperationRW& op) = 0;
+// 速率/分频能力
+virtual uint32_t GetMaxBusSpeed() const = 0;
+virtual Prescaler GetMaxPrescaler() const = 0;
+uint32_t GetBusSpeed() const;
+Prescaler CalcPrescaler(uint32_t target_max_bus_speed,
+                        uint32_t target_min_bus_speed,
+                        bool increase);
 
-// 读取数据（简化接口）
+// 缓冲管理（零拷贝 & 双缓冲）
+RawData GetRxBuffer();
+RawData GetTxBuffer();
+void SwitchBuffer();
+void SetActiveLength(size_t len);
+size_t GetActiveLength() const;
+
+// 传输接口
+virtual ErrorCode ReadAndWrite(RawData read_data,
+                               ConstRawData write_data,
+                               OperationRW& op) = 0;
+
 virtual ErrorCode Read(RawData read_data, OperationRW& op);
+virtual ErrorCode Write(ConstRawData write_data,
+                        OperationRW& op);
 
-// 写入数据（简化接口）
-virtual ErrorCode Write(ConstRawData write_data, OperationRW& op);
+virtual ErrorCode Transfer(size_t size,
+                           OperationRW& op) = 0;
 
-// 写寄存器
-virtual ErrorCode MemWrite(uint16_t reg, ConstRawData write_data, OperationRW& op) = 0;
+// 寄存器读写
+virtual ErrorCode MemWrite(uint16_t reg,
+                           ConstRawData write_data,
+                           OperationRW& op) = 0;
 
-// 读寄存器
-virtual ErrorCode MemRead(uint16_t reg, RawData read_data, OperationRW& op) = 0;
+virtual ErrorCode MemRead(uint16_t reg,
+                          RawData read_data,
+                          OperationRW& op) = 0;
 ```
 
 ### 操作结构体
@@ -68,7 +101,6 @@ struct ReadWriteInfo {
 ## 特性总结
 
 - 支持 SPI 的极性与相位配置；
-- 提供全双工传输接口，适配多种 SPI 外设；
-- 封装常用寄存器读写接口，简化驱动开发；
-- 通用操作模型，支持同步、回调、轮询等模式；
-- 独立于平台实现，便于跨平台适配。
+- **分频（Prescaler）**与**总线速率计算**，可按目标速率范围选择合适分频；
+- 提供全双工传输接口与**零拷贝 `Transfer`**，并支持**双缓冲**以降低抖动、提升吞吐；
+- 通用操作模型（`OperationRW = WriteOperation`），支持同步、回调、轮询等模式；
