@@ -6,7 +6,7 @@ sidebar_position: 2
 
 # Assertions and Error Handling
 
-This module provides runtime error checking, fatal error handling, and size validation during debugging. At its core are the `LibXR::Assert` class and the `ASSERT` / `ASSERT_ISR` macros, often used together with `libxr_def`.
+This module provides runtime error checking, fatal error handling, and size validation during debugging. At its core are the `LibXR::Assert` class and the `ASSERT` / `ASSERT_FROM_CALLBACK` macros, often used together with `libxr_def`.
 
 ## Fatal Error Handling Interface
 
@@ -14,7 +14,7 @@ This module provides runtime error checking, fatal error handling, and size vali
 void libxr_fatal_error(const char *file, uint32_t line, bool in_isr);
 ```
 
-This function is used to terminate program execution and can be called from both normal and interrupt contexts. It is automatically invoked on assertion failure and can be handled via callbacks registered with the `Assert` class.
+This function is used to terminate program execution and can be called from both normal and callback contexts. It is automatically invoked on assertion failure and can be handled via callbacks registered with the `Assert` class.
 
 ## `LibXR::Assert` Class
 
@@ -48,7 +48,7 @@ This function is a no-op in release builds.
 ## Macros: Assertion Checks
 
 - `ASSERT(expr)`: Regular context assertion; calls `libxr_fatal_error(...)` on failure  
-- `ASSERT_ISR(expr)`: ISR context assertion
+- `ASSERT_FROM_CALLBACK(expr, in_isr)`: ISR context assertion
 
 These macros are enabled or disabled by `LIBXR_DEBUG_BUILD` and are recommended for defensive programming during development.
 
@@ -64,7 +64,7 @@ auto err_cb = LibXR::Assert::Callback::Create(
 
 LibXR::Assert::RegisterFatalErrorCB(err_cb);
 ASSERT(buffer != nullptr);
-ASSERT_ISR(interrupt_flag == true);
+ASSERT_FROM_CALLBACK(buffer != nullptr, in_isr);
 ```
 
 ---

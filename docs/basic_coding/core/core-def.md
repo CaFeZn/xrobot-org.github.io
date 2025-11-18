@@ -64,7 +64,7 @@ sidebar_position: 1
 提供统一的运行时断言机制：
 
 - `ASSERT(x)`: 在调试模式下检查表达式是否为真，否则触发致命错误
-- `ASSERT_ISR(x)`: 用于中断上下文的断言检查
+- `ASSERT_FROM_CALLBACK(x, in_isr)`: 用于回调上下文的断言检查
 
 在 `LIBXR_DEBUG_BUILD` 编译宏启用时生效，触发时会调用：
 

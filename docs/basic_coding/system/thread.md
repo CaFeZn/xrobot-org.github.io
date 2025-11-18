@@ -39,7 +39,7 @@ sidebar_position: 3
 #include <thread.hpp>
 
 void Blink(int* arg) {
-    auto last = LibXR::Thread::GetTime();
+    auto last = LibXR::Timebase::GetMilliseconds();
     while (true) {
         ToggleLED();            // 用户自定义函数
         LibXR::Thread::SleepUntil(last, 500); // 500 ms 间隔

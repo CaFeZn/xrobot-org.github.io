@@ -64,7 +64,7 @@ Used for runtime checks to validate data size:
 Provides unified runtime assertions:
 
 - `ASSERT(x)`: Verifies the expression at runtime; triggers fatal error if false
-- `ASSERT_ISR(x)`: ISR-safe assertion check
+- `ASSERT_FROM_CALLBACK(x, in_isr)`: ISR-safe assertion check
 
 These are only active when `LIBXR_DEBUG_BUILD` is defined. When triggered, the following function is called:
 

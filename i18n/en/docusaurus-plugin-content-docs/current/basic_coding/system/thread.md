@@ -39,7 +39,7 @@ The parameter type of the thread function must be consistent with the arg parame
 #include <thread.hpp>
 
 void Blink(int* arg) {
-    auto last = LibXR::Thread::GetTime();
+    auto last = LibXR::Timebase::GetMilliseconds();
     while (true) {
         ToggleLED();                          // User-defined function
         LibXR::Thread::SleepUntil(last, 500); // 500 ms interval

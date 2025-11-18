@@ -6,7 +6,7 @@ sidebar_position: 2
 
 # 断言与错误处理
 
-本模块用于运行时错误检查、致命错误处理及调试期间的尺寸校验。其核心是 `LibXR::Assert` 类及 `ASSERT` / `ASSERT_ISR` 宏，常配合 `libxr_def` 使用。
+本模块用于运行时错误检查、致命错误处理及调试期间的尺寸校验。其核心是 `LibXR::Assert` 类及 `ASSERT` / `ASSERT_FROM_CALLBACK` 宏，常配合 `libxr_def` 使用。
 
 ## 致命错误处理接口
 
@@ -14,7 +14,7 @@ sidebar_position: 2
 void libxr_fatal_error(const char *file, uint32_t line, bool in_isr);
 ```
 
-该函数用于终止程序执行，可在正常或中断上下文中调用。发生断言失败时将自动调用，并可通过 `Assert` 类注册回调处理。
+该函数用于终止程序执行，可在正常或回调上下文中调用。发生断言失败时将自动调用，并可通过 `Assert` 类注册回调处理。
 
 ## `LibXR::Assert` 类
 
@@ -48,7 +48,7 @@ static void SizeLimitCheck(size_t limit, size_t size);
 ## 宏定义：断言检查
 
 - `ASSERT(expr)`: 普通上下文断言，失败时调用 `libxr_fatal_error(...)`
-- `ASSERT_ISR(expr)`: 中断上下文断言
+- `ASSERT_FROM_CALLBACK(expr, in_isr)`: 回调上下文断言
 
 这些宏由 `LIBXR_DEBUG_BUILD` 控制是否启用，建议用于调试、开发阶段的防御性编程。
 
@@ -65,7 +65,7 @@ auto err_cb = LibXR::Assert::Callback::Create(
 LibXR::Assert::RegisterFatalErrorCB(err_cb);
 
 ASSERT(buffer != nullptr);
-ASSERT_ISR(interrupt_flag == true);
+ASSERT_FROM_CALLBACK(buffer != nullptr, in_isr);
 ```
 
 ---
