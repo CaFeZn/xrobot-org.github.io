@@ -6,7 +6,8 @@ sidebar_position: 1
 
 # STM32 USB 实现
 
-STM32一共有四种USB设备，如下所示。可以参考代码生成工具自动生成的CDC代码，了解USB设备的端点配置。
+STM32一共有四种USB设备，如下所示。可以参考代码生成工具自动生成的CDC代码，了解USB设备的端点配置。  
+在 STM32 平台上，**设备序列号建议使用芯片内置 UID（Unique ID），在构造函数最后以十六进制数组形式传入。**
 
 | 名称          | 角色      | 端点是否为双向       | 双缓冲        | DMA支持 |
 | ------------- | --------- | -------------------- | ------------- | ------- |
@@ -42,8 +43,12 @@ STM32USBDeviceDevFs usb_fs(
     },
     USB::DeviceDescriptor::PacketSize0::SIZE_8,
     0x483, 0x5740, 0xF407,
+    /* 语言包（内部包含可读 Serial Number 字符串前缀） */
     {&USB_FS_LANG_PACK},
-    {{&usb_fs_cdc}}
+    /* Classes */
+    {{&usb_fs_cdc}},
+    /* Serial Number UID（从 STM32 UID 读取的十六进制字节数组） */
+    {reinterpret_cast<void *>(UID_BASE), 12}
 );
 ```
 
@@ -69,11 +74,15 @@ STM32USBDeviceOtgFS usb_fs(
     {{usb_otg_fs_ep0_in_buf, 8}, {usb_otg_fs_ep1_in_buf, 128}, {usb_otg_fs_ep2_in_buf, 16}},
     USB::DeviceDescriptor::PacketSize0::SIZE_8,
     0x483, 0x5740, 0xF407,
+    /* 语言包（内部包含可读 Serial Number 字符串前缀） */
     {&USB_OTG_FS_LANG_PACK},
-    {{&usb_otg_fs_cdc}}
-  );
-  usb_fs.Init();
-  usb_fs.Start();
+    /* Classes */
+    {{&usb_otg_fs_cdc}},
+    /* Serial Number UID（从 STM32 UID 读取的十六进制字节数组） */
+    {reinterpret_cast<void *>(UID_BASE), 12}
+);
+usb_fs.Init();
+usb_fs.Start();
 ```
 
 ## 运行
@@ -84,5 +93,3 @@ STM32USBDeviceOtgFS usb_fs(
 usb_fs.Init();
 usb_fs.Start();
 ```
-
-

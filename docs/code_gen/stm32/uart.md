@@ -9,7 +9,8 @@ sidebar_position: 11
 LibXR 支持两种串口类型：**硬件串口** 和 **USB CDC**。它们均可用于串口通信与终端交互。
 
 - **硬件串口** 需启用中断与 DMA；
-- **USB CDC** 需启用USB外设与对应中断。请关闭其他的USB协议栈（STM32 USB库，USBX等），防止与XRUSB冲突
+- **USB CDC** 需启用USB外设与对应中断。请关闭其他的USB协议栈（STM32 USB库，USBX等），防止与XRUSB冲突  
+- 在 STM32 平台上，**USB 设备序列号建议基于芯片唯一 ID（UID）生成，在构造函数最后以 `{reinterpret_cast<void*>(UID_BASE), 12}` 的形式传入**。
 
 ## 串口代码示例
 
@@ -18,7 +19,14 @@ LibXR 支持两种串口类型：**硬件串口** 和 **USB CDC**。它们均可
 STM32UART usart1(&huart1, usart1_rx_buf, usart1_tx_buf, 5);
 
 // USB CDC Full-Speed (FS) OTG
-static constexpr auto USB_OTG_FS_LANG_PACK = LibXR::USB::DescriptorStrings::MakeLanguagePack(LibXR::USB::DescriptorStrings::Language::EN_US, "XRobot", "STM32 XRUSB USB_OTG_FS CDC Demo", "123456789");
+static constexpr auto USB_OTG_FS_LANG_PACK =
+    LibXR::USB::DescriptorStrings::MakeLanguagePack(
+        LibXR::USB::DescriptorStrings::Language::EN_US,
+        "XRobot",
+        "STM32 XRUSB USB_OTG_FS CDC Demo",
+        /* 序列号字符串前缀（可读） */
+        "XRUSB-DEMO-");
+
 LibXR::USB::CDCUart usb_otg_fs_cdc(128, 128, 3);
 STM32USBDeviceOtgFS usb_fs(
     &hpcd_USB_OTG_FS,
@@ -28,13 +36,22 @@ STM32USBDeviceOtgFS usb_fs(
     USB::DeviceDescriptor::PacketSize0::SIZE_8,
     0x483, 0x5740, 0xF407,
     {&USB_OTG_FS_LANG_PACK},
-    {{&usb_otg_fs_cdc}}
-  );
-  usb_fs.Init();
-  usb_fs.Start();
+    {{&usb_otg_fs_cdc}},
+    /* Serial Number UID（从 STM32 UID 读取的 12 字节） */
+    {reinterpret_cast<void*>(UID_BASE), 12}
+);
+usb_fs.Init();
+usb_fs.Start();
 
 // USB CDC High-Speed (HS) OTG
-static constexpr auto USB_OTG_HS_LANG_PACK = LibXR::USB::DescriptorStrings::MakeLanguagePack(LibXR::USB::DescriptorStrings::Language::EN_US, "XRobot", "STM32 XRUSB USB_OTG_HS CDC Demo", "123456789");
+static constexpr auto USB_OTG_HS_LANG_PACK =
+    LibXR::USB::DescriptorStrings::MakeLanguagePack(
+        LibXR::USB::DescriptorStrings::Language::EN_US,
+        "XRobot",
+        "STM32 XRUSB USB_OTG_HS CDC Demo",
+        /* 序列号字符串前缀（可读） */
+        "XRUSB-DEMO-");
+
 LibXR::USB::CDCUart usb_otg_hs_cdc(128, 128, 3);
 
 STM32USBDeviceOtgHS usb_hs(
@@ -45,13 +62,22 @@ STM32USBDeviceOtgHS usb_hs(
     USB::DeviceDescriptor::PacketSize0::SIZE_8,
     0x483, 0x5740, 0xF407,
     {&USB_OTG_HS_LANG_PACK},
-    {{&usb_otg_hs_cdc}}
+    {{&usb_otg_hs_cdc}},
+    /* Serial Number UID（从 STM32 UID 读取的 12 字节） */
+    {reinterpret_cast<void*>(UID_BASE), 12}
 );
 usb_hs.Init();
 usb_hs.Start();
 
 // USB CDC Full-Speed (FS) DEVICE
-static constexpr auto USB_FS_LANG_PACK = LibXR::USB::DescriptorStrings::MakeLanguagePack(LibXR::USB::DescriptorStrings::Language::EN_US, "XRobot", "STM32 XRUSB USB CDC Demo", "123456789");
+static constexpr auto USB_FS_LANG_PACK =
+    LibXR::USB::DescriptorStrings::MakeLanguagePack(
+        LibXR::USB::DescriptorStrings::Language::EN_US,
+        "XRobot",
+        "STM32 XRUSB USB CDC Demo",
+        /* 序列号字符串前缀（可读） */
+        "XRUSB-DEMO-");
+
 LibXR::USB::CDCUart usb_fs_cdc(128, 128, 3);
 
 STM32USBDeviceDevFs usb_fs(
@@ -64,7 +90,9 @@ STM32USBDeviceDevFs usb_fs(
     USB::DeviceDescriptor::PacketSize0::SIZE_8,
     0x483, 0x5740, 0xF407,
     {&USB_FS_LANG_PACK},
-    {{&usb_fs_cdc}}
+    {{&usb_fs_cdc}},
+    /* Serial Number UID（从 STM32 UID 读取的 12 字节） */
+    {reinterpret_cast<void*>(UID_BASE), 12}
 );
 usb_fs.Init();
 usb_fs.Start();
@@ -153,7 +181,7 @@ USB:
     bcd: 0x0200
     manufacturer: "XRobot"
     product: "STM32 XRUSB CDC"
-    serial: "123456789"
+    serial: "XRUSB-DEMO-"
 ```
 
 ---

@@ -6,7 +6,8 @@ sidebar_position: 1
 
 # 平台相关实现
 
-本节介绍XRUSB在不同平台的实现原理与构造方式。对于使用不同的class，只需要在构造的最后传入指针即可。
+本节介绍XRUSB在不同平台的实现原理与构造方式。对于使用不同的class，只需要在构造的最后传入指针即可。  
+**设备序列号建议基于平台提供的芯片唯一ID（UID）生成。**
 
 例如：
 
@@ -23,8 +24,8 @@ static constexpr auto LANG_PACK =
         "XRobot",
         /* Product */
         "XRUSB USB CDC Demo", 
-        /* Serial Number */
-        "123456789");
+        /* Serial Number 字符串前缀（可读） */
+        "XRUSB-DEMO-");
 
 
 XXXUSBDevice usb(
@@ -41,7 +42,7 @@ XXXUSBDevice usb(
     /* Language Pack */
     LANG_PACK,
     /* Classes */
-    {{&cdc_uart, &hid_keyboard}});
+    {{&cdc_uart, &hid_keyboard}},
+    /* Serial Number UID（十六进制字节数组，可选） */
+    {addr, size});
 ```
-
-

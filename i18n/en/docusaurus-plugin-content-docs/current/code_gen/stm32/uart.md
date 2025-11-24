@@ -9,7 +9,8 @@ sidebar_position: 11
 LibXR supports two types of UART interfaces: **Hardware UART** and **USB CDC**. Both can be used for serial communication and terminal interaction.
 
 - **Hardware UART** requires interrupt and DMA enabled;  
-- **USB CDC** requires enabling the USB peripheral and corresponding interrupts. Please disable other USB stacks (such as STM32 USB library, USBX, etc.) to avoid conflicts with XRUSB.
+- **USB CDC** requires enabling the USB peripheral and corresponding interrupts. Please disable other USB stacks (such as STM32 USB library, USBX, etc.) to avoid conflicts with XRUSB.  
+- On STM32, it is **recommended to base the USB device serial number on the MCU Unique ID (UID)** and pass it as `{reinterpret_cast<void*>(UID_BASE), 12}` in the USB device constructor.
 
 ## UART Code Examples
 
@@ -18,7 +19,14 @@ LibXR supports two types of UART interfaces: **Hardware UART** and **USB CDC**. 
 STM32UART usart1(&huart1, usart1_rx_buf, usart1_tx_buf, 5);
 
 // USB CDC Full-Speed (FS) OTG
-static constexpr auto USB_OTG_FS_LANG_PACK = LibXR::USB::DescriptorStrings::MakeLanguagePack(LibXR::USB::DescriptorStrings::Language::EN_US, "XRobot", "STM32 XRUSB USB_OTG_FS CDC Demo", "123456789");
+static constexpr auto USB_OTG_FS_LANG_PACK =
+    LibXR::USB::DescriptorStrings::MakeLanguagePack(
+        LibXR::USB::DescriptorStrings::Language::EN_US,
+        "XRobot",
+        "STM32 XRUSB USB_OTG_FS CDC Demo",
+        /* Human-readable serial number prefix */
+        "XRUSB-DEMO-");
+
 LibXR::USB::CDCUart usb_otg_fs_cdc(128, 128, 3);
 STM32USBDeviceOtgFS usb_fs(
     &hpcd_USB_OTG_FS,
@@ -28,13 +36,22 @@ STM32USBDeviceOtgFS usb_fs(
     USB::DeviceDescriptor::PacketSize0::SIZE_8,
     0x483, 0x5740, 0xF407,
     {&USB_OTG_FS_LANG_PACK},
-    {{&usb_otg_fs_cdc}}
+    {{&usb_otg_fs_cdc}},
+    /* Serial Number UID (12 bytes read from STM32 UID) */
+    {reinterpret_cast<void*>(UID_BASE), 12}
 );
 usb_fs.Init();
 usb_fs.Start();
 
 // USB CDC High-Speed (HS) OTG
-static constexpr auto USB_OTG_HS_LANG_PACK = LibXR::USB::DescriptorStrings::MakeLanguagePack(LibXR::USB::DescriptorStrings::Language::EN_US, "XRobot", "STM32 XRUSB USB_OTG_HS CDC Demo", "123456789");
+static constexpr auto USB_OTG_HS_LANG_PACK =
+    LibXR::USB::DescriptorStrings::MakeLanguagePack(
+        LibXR::USB::DescriptorStrings::Language::EN_US,
+        "XRobot",
+        "STM32 XRUSB USB_OTG_HS CDC Demo",
+        /* Human-readable serial number prefix */
+        "XRUSB-DEMO-");
+
 LibXR::USB::CDCUart usb_otg_hs_cdc(128, 128, 3);
 
 STM32USBDeviceOtgHS usb_hs(
@@ -45,13 +62,22 @@ STM32USBDeviceOtgHS usb_hs(
     USB::DeviceDescriptor::PacketSize0::SIZE_8,
     0x483, 0x5740, 0xF407,
     {&USB_OTG_HS_LANG_PACK},
-    {{&usb_otg_hs_cdc}}
+    {{&usb_otg_hs_cdc}},
+    /* Serial Number UID (12 bytes read from STM32 UID) */
+    {reinterpret_cast<void*>(UID_BASE), 12}
 );
 usb_hs.Init();
 usb_hs.Start();
 
 // USB CDC Full-Speed (FS) Device
-static constexpr auto USB_FS_LANG_PACK = LibXR::USB::DescriptorStrings::MakeLanguagePack(LibXR::USB::DescriptorStrings::Language::EN_US, "XRobot", "STM32 XRUSB USB CDC Demo", "123456789");
+static constexpr auto USB_FS_LANG_PACK =
+    LibXR::USB::DescriptorStrings::MakeLanguagePack(
+        LibXR::USB::DescriptorStrings::Language::EN_US,
+        "XRobot",
+        "STM32 XRUSB USB CDC Demo",
+        /* Human-readable serial number prefix */
+        "XRUSB-DEMO-");
+
 LibXR::USB::CDCUart usb_fs_cdc(128, 128, 3);
 
 STM32USBDeviceDevFs usb_fs_dev(
@@ -64,7 +90,9 @@ STM32USBDeviceDevFs usb_fs_dev(
     USB::DeviceDescriptor::PacketSize0::SIZE_8,
     0x483, 0x5740, 0xF407,
     {&USB_FS_LANG_PACK},
-    {{&usb_fs_cdc}}
+    {{&usb_fs_cdc}},
+    /* Serial Number UID (12 bytes read from STM32 UID) */
+    {reinterpret_cast<void*>(UID_BASE), 12}
 );
 usb_fs_dev.Init();
 usb_fs_dev.Start();
@@ -154,7 +182,7 @@ USB:
     bcd: 0x0200
     manufacturer: "XRobot"
     product: "STM32 XRUSB CDC"
-    serial: "123456789"
+    serial: "XRUSB-DEMO-"
 ```
 
 ---

@@ -6,7 +6,8 @@ sidebar_position: 1
 
 # Platform-Specific Implementations
 
-This section describes XRUSB’s implementation principles and construction patterns across different platforms. To use different classes, simply pass pointers to them at the end of the constructor.
+This section describes XRUSB’s implementation principles and construction patterns across different platforms. To use different classes, simply pass pointers to them at the end of the constructor.  
+**It is recommended to derive the USB device serial number from the platform’s Unique ID (UID) and pass it as a byte array in the constructor.**
 
 Example:
 
@@ -23,8 +24,8 @@ static constexpr auto LANG_PACK =
         "XRobot",
         /* Product */
         "XRUSB USB CDC Demo", 
-        /* Serial Number */
-        "123456789");
+        /* Serial Number string prefix (human-readable) */
+        "XRUSB-DEMO-");
 
 
 XXXUSBDevice usb(
@@ -41,7 +42,7 @@ XXXUSBDevice usb(
     /* Language Pack */
     LANG_PACK,
     /* Classes */
-    {{&cdc_uart, &hid_keyboard}});
+    {{&cdc_uart, &hid_keyboard}},
+    /* Serial Number UID (hex byte array, e.g. from MCU UID) */
+    {addr, size});
 ```
-
-

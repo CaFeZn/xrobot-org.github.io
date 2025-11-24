@@ -6,13 +6,16 @@ sidebar_position: 2
 
 # CH32 USB 实现
 
-CH32一共有三种USB设备，如下所示。
+CH32一共有三种USB设备，如下所示。  
+对于带 UID 的芯片（如 CH32V2/V3 系列），**设备序列号建议使用芯片内置 UID，在构造函数最后以地址+长度的形式传入**。
 
 | 名称                  | 角色      | 端点是否为双向       | 双缓冲        | DMA支持 |
 | --------------------- | --------- | -------------------- | ------------- | ------- |
 | USB_DEVICE (尚未支持) | 从机      | 硬件双缓冲不支持双向 | 软件/硬件实现 | 不支持  |
 | USBHS                 | 主机/从机 | 硬件双缓冲不支持双向 | 硬件双缓冲    | 支持    |
 | USBFS                 | 主机/从机 | 双向                 | 硬件双缓冲    | 支持    |
+
+> 说明：对于常见 CH32V2/V3 系列，UID 为 96bit（12 字节），可以从 0x1FFFF7E8 连续读取 12 字节作为序列号来源。
 
 ## USBFS
 
@@ -35,17 +38,19 @@ LibXR::CH32USBDeviceFS usb_dev(
     /* language */
     {&LANG_PACK_EN_US},
     /* config */
-    {{&cdc1}});
+    {{&cdc1}},
+    /* Serial Number UID（从 CH32 UID 读取的十六进制字节数组） */
+    {reinterpret_cast<void*>(0x1FFFF7E8), 12});
 ```
 
 ## USBHS
 
 CH32 USBHS支持三种端点声明方式，非EP0端点的缓冲区大小推荐为1024字节，端点号自动递增：
 
-1. `{ep0_buffer_hs}`: 直接传入EP0端点的缓冲区
-1. `{ep1_buffer_tx_hs, true}`：传入缓冲区并开启双缓冲
-   - ep1_buffer_tx_hs: EP1 端点的缓冲区
-   - true: 是否配置为IN端点 
+1. `{ep0_buffer_hs}`: 直接传入EP0端点的缓冲区  
+1. `{ep1_buffer_tx_hs, true}`：传入缓冲区并开启双缓冲  
+   - ep1_buffer_tx_hs: EP1 端点的缓冲区  
+   - true: 是否配置为IN端点  
 1. `{ep2_buffer_rx_hs, ep2_buffer_tx_hs}`：传入双向端点的缓冲区，不开启双缓冲
 
 ```cpp
@@ -62,6 +67,7 @@ LibXR::CH32USBDeviceHS usb_dev_hs(
     /* language */
     {&LANG_PACK_EN_US},
     /* config */
-    {{&cdc2}});
+    {{&cdc2}},
+    /* Serial Number UID（从 CH32 UID 读取的十六进制字节数组） */
+    {reinterpret_cast<void*>(0x1FFFF7E8), 12});
 ```
-
