@@ -123,7 +123,7 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
 
 ---
 
-## 8. 典型工作流推荐
+## 7. 典型工作流推荐
 
 1. 确保每个模块头文件包含 `=== MODULE MANIFEST` 注释块
 2. 运行 `xrobot_gen_main` 自动生成配置和主函数

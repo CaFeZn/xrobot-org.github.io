@@ -123,7 +123,7 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
 
 ---
 
-## 8. Recommended Workflow
+## 7. Recommended Workflow
 
 1. Ensure each module header includes a `=== MODULE MANIFEST` comment block
 2. Run `xrobot_gen_main` to generate configuration and main function

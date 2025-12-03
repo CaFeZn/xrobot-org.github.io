@@ -25,9 +25,10 @@ Two endpoint declaration styles are supported; endpoint numbers for the buffers 
     - usb_fs_ep0_out_buf: EP0 OUT software buffer array
     - 8: EP0 IN hardware RAM size
     - 8: EP0 OUT hardware RAM size
-2. `{usb_fs_ep2_in_buf, 16, true}`: declares a unidirectional endpoint using hardware double buffering
+2. `{usb_fs_ep2_in_buf, 16, true}`: declares a unidirectional endpoint ~~using hardware double buffering~~
     - usb_fs_ep2_in_buf: EP2 IN software buffer array
     - 16: EP2 IN hardware RAM size
+    - bool: is in direction
 
 To ensure throughput, for Bulk endpoints the hardware RAM size should be no less than 64. The software buffer can be much larger than 64, and its size is proportional to transfer speed.
 

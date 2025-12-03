@@ -16,6 +16,8 @@ STM32一共有四种USB设备，如下所示。可以参考代码生成工具自
 | USB_OTG_FS    | 主机/从机 | 双向                 | 支持          | 不支持  |
 | USB_OTG_HS    | 主机/从机 | 双向                 | 支持          | 支持    |
 
+由于STM32的USB_DEVICE_FS不支持DMA，所以硬件双缓冲的加速作用并不高于LibXR的软件双缓冲区。而且会大量占用宝贵的PMA内存，不推荐使用硬件双缓冲。
+
 ## USB_DEVICE_FS/USB_DRV_FS
 
 支持两种端点的声明方式，缓冲区端点号自动递增：
@@ -25,9 +27,10 @@ STM32一共有四种USB设备，如下所示。可以参考代码生成工具自
     - usb_fs_ep0_out_buf: EP0 OUT软件缓冲区大小
     - 8: EP0 IN硬件RAM大小
     - 8: EP0 OUT硬件RAM大小
-2. `{usb_fs_ep2_in_buf, 16, true}`：声明一个单向端点，使用硬件双缓冲
+2. `{usb_fs_ep2_in_buf, 16, true}`：声明一个单向端点 ~~使用硬件双缓冲~~
     - usb_fs_ep2_in_buf: EP2 IN软件缓冲区数组
     - 16: EP2 IN硬件RAM大小
+    - bool: 是in方向
 
 为了确保传输速度，对于bulk端点，硬件RAM大小应当不小于64，软件缓冲区可以远大于64，大小与传输速度成正比。
 
