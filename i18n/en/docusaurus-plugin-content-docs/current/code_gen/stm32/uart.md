@@ -153,7 +153,7 @@ USART:
     dma_section: ''
     tx_queue_size: 5
 
-# USB CDC configuration (effective under FreeRTOS)
+# USB CDC configuration
 USB:
   USB_OTG_FS:
     enable: true

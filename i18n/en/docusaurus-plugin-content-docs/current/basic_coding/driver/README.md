@@ -26,10 +26,13 @@ All device interfaces in LibXR follow these design principles:
 - [SPI (SPI Interface)](./spi.md)  
 - [CAN / FDCAN (Controller Area Network)](./can.md)  
 - [ADC (Analog-to-Digital Conversion)](./adc.md)  
+- [DAC (Digital-to-Analog Conversion)](./dac.md)
 - [PWM (Pulse-Width Modulation)](./pwm.md)  
 - [Flash (Flash Interface)](./flash.md)  
 - [Power (Power Management)](./power.md)  
 - [Timebase (Time Base)](./timebase.md)  
+- [Watchdog (Watchdog Timer)](./watchdog.md)
+- [USB (Universal Serial Bus)](./usb.md)
 
 ---
 

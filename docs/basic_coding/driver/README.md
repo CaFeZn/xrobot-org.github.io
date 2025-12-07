@@ -26,10 +26,13 @@ LibXR 所有设备接口均遵循以下设计原则：
 - [SPI（SPI 接口）](./spi.md)
 - [CAN / FDCAN（控制器局域网）](./can.md)
 - [ADC（模数转换）](./adc.md)
+- [DAC（数字转模拟）](./dac.md)
 - [PWM（脉宽调制）](./pwm.md)
 - [Flash（闪存接口）](./flash.md)
 - [Power（电源管理）](./power.md)
 - [Timebase（时间基准）](./timebase.md)
+- [看门狗（Watchdog）](./watchdog.md)
+- [USB（USB 设备）](./usb.md)
 
 ---
 

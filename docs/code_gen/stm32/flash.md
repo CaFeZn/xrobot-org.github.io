@@ -70,5 +70,5 @@ Database::Key<uint32_t> key1(database, "key1", 0);
 ## 写入数据库
 
 ```cpp
-key1.set(key1.data_ + 1);
+key1.Set(key1.data_ + 1);
 ```
