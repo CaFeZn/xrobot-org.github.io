@@ -64,12 +64,19 @@ export default function Home(): JSX.Element {
               >
                 <Translate id="homepage.getStarted">开始阅读</Translate>
               </Link>
-              
+
               <Link
                 className="button button--secondary button--lg"
                 to="https://xrobot-org.github.io/libxr_web_demo/"
               >
                 <Translate id="homepage.onlineDemo">在线演示</Translate>
+              </Link>
+
+              <Link
+                className="button button--secondary button--lg"
+                to="https://xrobot-org.github.io/XRobot-Onboarding/"
+              >
+                <Translate id="homepage.onboarding">上手引导</Translate>
               </Link>
             </motion.div>
           </div>
