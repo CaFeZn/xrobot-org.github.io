@@ -18,4 +18,8 @@ sidebar_position: 1
 
 * [XRobot](../docs/proj_man): 软件包、软件源和依赖管理，模块参数管理与实例化，函数入口生成
 
+## 学习路线与任务引导
+
+[XRobot Onboarding](https://xrobot-org.github.io/XRobot-Onboarding/)
+
 ![XRobot Logo](/img/XRobot.png)
