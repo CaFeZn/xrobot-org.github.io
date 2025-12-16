@@ -6,7 +6,7 @@ sidebar_position: 2
 
 # VID/PID 与 Serial 使用约定
 
-XRUSB 通过 MCS 申请了一组 USB 设备 VID/PID（16D0:1492），用于示例代码与通用开发板固件。
+XRUSB 通过 OpenMoko 社区 USB PID Registry 登记并获得一组 USB VID/PID（1D50:6199），用于示例代码与通用开发板固件。
 
 在满足以下约定的前提下，任何基于 XRUSB 协议栈的固件，都可以复用这组 VID/PID，而不必另外购买 PID：
 

@@ -6,7 +6,7 @@ sidebar_position: 2
 
 # VID/PID and Serial Number Policy
 
-XRUSB has obtained a USB device VID/PID pair (16D0:1492) via MCS, used for example code and general-purpose development boards.
+XRUSB has been allocated PID 0x6199 under OpenMoko’s VID 0x1D50 via the community USB PID registry, and this VID/PID is used for example code and general-purpose development board firmware.
 
 Under the following conditions, any firmware based on the XRUSB stack may reuse this VID/PID **without** purchasing an additional PID:
 
