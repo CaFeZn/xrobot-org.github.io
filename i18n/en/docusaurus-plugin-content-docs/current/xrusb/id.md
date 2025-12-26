@@ -1,7 +1,7 @@
 ---
 id: xrusb-id
 title: VID/PID and Serial Number Policy
-sidebar_position: 2
+sidebar_position: 4
 ---
 
 # VID/PID and Serial Number Policy

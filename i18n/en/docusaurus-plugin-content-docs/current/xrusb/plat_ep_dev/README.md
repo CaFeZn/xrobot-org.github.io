@@ -1,7 +1,7 @@
 ---
 id: xrusb-plat-dev
 title: Platform-Specific Implementations
-sidebar_position: 1
+sidebar_position: 2
 ---
 
 # Platform-Specific Implementations

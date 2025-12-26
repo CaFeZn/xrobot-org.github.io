@@ -1,7 +1,7 @@
 ---
 id: xrusb-id
 title: VID/PID 与 Serial 使用约定
-sidebar_position: 2
+sidebar_position: 4
 ---
 
 # VID/PID 与 Serial 使用约定
