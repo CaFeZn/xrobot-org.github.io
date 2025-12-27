@@ -40,7 +40,7 @@ GsUsbClass(std::initializer_list<LibXR::CAN*> cans,
 ```
 
 - `cans`：Classic CAN 指针列表，数量必须等于 `CanChNum`
-- 默认 Bulk 端点号为 EP1(IN)/EP2(OUT)
+- 默认 Bulk 端点号为 EP1(IN)/EP2(OUT)，旧版内核（例如4.4.38）只支持此布局
 
 #### 构造：FDCAN（启用 FD 能力）
 

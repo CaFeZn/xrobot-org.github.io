@@ -39,6 +39,7 @@ fdcan2.Register(cb_can2, PACK_TYPE);
 LibXR::CAN::ClassicPack pack;
 pack.id = PACK_ID;
 pack.type = PACK_TYPE;
+pack.dlc = 8;
 
 for (uint32_t i = 0; i < PACK_NUM; i++)
 {
