@@ -41,6 +41,7 @@ GsUsbClass(std::initializer_list<LibXR::CAN*> cans,
 
 - `cans`：Classic CAN 指针列表，数量必须等于 `CanChNum`
 - 默认 Bulk 端点号为 EP1(IN)/EP2(OUT)，旧版内核（例如4.4.38）只支持此布局
+- Linux 主线 gs_usb 驱动通过 VID:PID 白名单匹配（例如 `1d50:606f`），并且要求匹配到 `bInterfaceNumber == 0` 的 USB interface。
 
 #### 构造：FDCAN（启用 FD 能力）
 

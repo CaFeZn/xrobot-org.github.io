@@ -41,6 +41,7 @@ GsUsbClass(std::initializer_list<LibXR::CAN*> cans,
 
 - `cans`: list of Classic CAN pointers; the list size must equal `CanChNum`.
 - Default bulk endpoint numbers are EP1(IN) / EP2(OUT), older kernel versions (such as 4.4.38) only support this layout.
+- The Linux mainline `gs_usb` driver matches devices via a VID:PID whitelist (e.g., `1d50:606f`) and requires the matched USB interface to have `bInterfaceNumber == 0`.
 
 #### Construct: FDCAN (enables FD capability)
 
