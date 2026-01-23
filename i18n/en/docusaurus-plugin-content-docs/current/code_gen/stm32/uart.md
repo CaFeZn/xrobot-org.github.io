@@ -189,7 +189,7 @@ USB:
 
 ## Code Generation Command
 
-After modifying `.config.yaml`, use one of the following commands to regenerate the code:
+After modifying `libxr_config.yaml`, use one of the following commands to regenerate the code:
 
 ```bash
 # Regenerate the entire project

@@ -60,7 +60,7 @@ sidebar_position: 2
 
 ### Endpoints（端点）
 
-基类在 `Init()` 中从 `EndpointPool` 申请并配置端点：
+基类在 `BindEndpoints()` 中从 `EndpointPool` 申请并配置端点：
 
 | 端点             | 方向 | 类型      | `wMaxPacketSize` | 用途                      |
 | ---------------- | ---- | --------- | ---------------: | ------------------------- |
@@ -78,7 +78,7 @@ sidebar_position: 2
 
 ## 初始化与资源释放
 
-### Init 行为（`HID::Init(endpoint_pool, start_itf_num)`）
+### Init 行为（`HID::BindEndpoints(endpoint_pool, start_itf_num)`）
 
 初始化的关键步骤：
 
@@ -97,7 +97,7 @@ sidebar_position: 2
 7. 若启用 OUT：启动首次 OUT 接收 `ep_out_->Transfer(RX_REPORT_LEN)`（随后每次完成会自动 re-arm）  
 8. 设置 `inited_ = true`
 
-### Deinit 行为（`HID::Deinit(endpoint_pool)`）
+### Deinit 行为（`HID::UnbindEndpoints(endpoint_pool)`）
 
 - `inited_ = false`
 - 关闭并归还 IN/OUT 端点给 `EndpointPool`
@@ -175,7 +175,7 @@ virtual ConstRawData GetReportDesc() = 0;
 
 若启用 OUT 端点，基类默认行为是：
 
-- 首次 `Init()` 后调用一次 `ep_out_->Transfer(RX_REPORT_LEN)`
+- 首次 `BindEndpoints()` 后调用一次 `ep_out_->Transfer(RX_REPORT_LEN)`
 - 每次 OUT 接收完成触发 `OnDataOutCompleteStatic()`：
   1. 调用虚函数 `OnDataOutComplete(in_isr, data)` 让派生类消费数据
   2. 立即 `ep_out_->Transfer(RX_REPORT_LEN)` 重新挂载接收（持续接收）

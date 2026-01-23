@@ -82,12 +82,12 @@ read_port(buffer, op_cb);
 ### Polling to check for completion
 
 ```cpp
-OperationPollingStatus status = OperationPollingStatus::READY;
+auto status = LibXR::ReadOperation::OperationPollingStatus::READY;
 ReadOperation op_poll(status);
 read_port(buffer, op_poll);
 
 // Later check if completed
-if (status == OperationPollingStatus::DONE) {
+if (status == LibXR::ReadOperation::OperationPollingStatus::DONE) {
   // Data read completed
 }
 ```

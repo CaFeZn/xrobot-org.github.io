@@ -33,7 +33,7 @@ iwdg1_thread.Create(reinterpret_cast<LibXR::Watchdog *>(&iwdg1), iwdg1.ThreadFun
 
 ## Configuration File
 
-Configure watchdog behavior via `.config.yaml`:
+Configure watchdog behavior via `libxr_config.yaml`:
 
 ```yaml
 # IWDG instance and parameters
@@ -55,7 +55,7 @@ Watchdog:
 
 ## Code Generation Command
 
-After editing `.config.yaml`, regenerate the code:
+After editing `libxr_config.yaml`, regenerate the code:
 
 ```bash
 xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp

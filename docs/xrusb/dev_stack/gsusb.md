@@ -130,9 +130,9 @@ FD DLC 表（实现内置）：
 
 ---
 
-## 4. 生命周期：Init / Deinit
+## 4. 生命周期：BindEndpoints / UnbindEndpoints
 
-### 4.1 `Init(endpoint_pool, start_itf_num)`
+### 4.1 `BindEndpoints(endpoint_pool, start_itf_num)`
 
 初始化流程要点：
 
@@ -150,7 +150,7 @@ FD DLC 表（实现内置）：
    - FD：订阅 STANDARD/EXTENDED（FD pack）
 6. `inited_ = true`，并调用 `MaybeArmOutTransfer()` 保持 OUT 端点处于挂起接收状态
 
-### 4.2 `Deinit(endpoint_pool)`
+### 4.2 `UnbindEndpoints(endpoint_pool)`
 
 - 关闭端点并归还到 `EndpointPool`
 - 清空关键状态并复位开关位

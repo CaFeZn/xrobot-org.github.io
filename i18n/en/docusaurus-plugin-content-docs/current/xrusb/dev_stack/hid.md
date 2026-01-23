@@ -71,7 +71,7 @@ The base class generates a 9-byte HID class descriptor with key fields:
 
 ### Endpoints
 
-During `Init()`, the base class acquires endpoints from `EndpointPool` and configures them:
+During `BindEndpoints()`, the base class acquires endpoints from `EndpointPool` and configures them:
 
 | Endpoint                | Direction | Type      | `wMaxPacketSize` | Purpose                     |
 | ----------------------- | --------- | --------- | ---------------: | --------------------------- |
@@ -90,7 +90,7 @@ Polling intervals:
 
 ## Initialization and Resource Release
 
-### Init (`HID::Init(endpoint_pool, start_itf_num)`)
+### Init (`HID::BindEndpoints(endpoint_pool, start_itf_num)`)
 
 Key steps:
 
@@ -109,7 +109,7 @@ Key steps:
 7. If OUT is enabled, start the first OUT receive: `ep_out_->Transfer(RX_REPORT_LEN)` (then re-armed automatically)
 8. Set `inited_ = true`
 
-### Deinit (`HID::Deinit(endpoint_pool)`)
+### Deinit (`HID::UnbindEndpoints(endpoint_pool)`)
 
 - Set `inited_ = false`
 - Close and release IN/OUT endpoints back to `EndpointPool`
@@ -187,7 +187,7 @@ Common return codes (subject to stack definitions):
 
 If the OUT endpoint is enabled, the default behavior is:
 
-- After `Init()`, `ep_out_->Transfer(RX_REPORT_LEN)` arms the OUT endpoint
+- After `BindEndpoints()`, `ep_out_->Transfer(RX_REPORT_LEN)` arms the OUT endpoint
 - Each OUT completion triggers `OnDataOutCompleteStatic()`:
   1. Calls the virtual `OnDataOutComplete(in_isr, data)`
   2. Immediately re-arms via `ep_out_->Transfer(RX_REPORT_LEN)` (continuous reception)

@@ -80,7 +80,7 @@ CDC ACM 设备以 **两接口（Communication + Data）** 的方式呈现，并�
 
 ### 端点（Endpoint）
 
-`CDCBase::Init()` 从 `EndpointPool` 申请并配置以下端点：
+`CDCBase::BindEndpoints()` 从 `EndpointPool` 申请并配置以下端点：
 
 | 端点     | 方向 | 类型      | 典型用途                    |
 | -------- | ---- | --------- | --------------------------- |
@@ -197,7 +197,7 @@ struct SerialStateNotification
 
 ### Init 行为
 
-`CDCBase::Init(endpoint_pool, start_itf_num)` 的关键行为：
+`CDCBase::BindEndpoints(endpoint_pool, start_itf_num)` 的关键行为：
 
 - 清零 `control_line_state_`
 - 通过 `EndpointPool` 申请三个端点并完成 `Configure`
@@ -214,7 +214,7 @@ struct SerialStateNotification
 
 ### Deinit 行为
 
-`CDCBase::Deinit(endpoint_pool)` 的关键行为：
+`CDCBase::UnbindEndpoints(endpoint_pool)` 的关键行为：
 
 - `inited_ = false`
 - 清零 `control_line_state_`
@@ -222,7 +222,7 @@ struct SerialStateNotification
 - 将端点归还给 `EndpointPool`
 - 置端点指针为空
 
-派生类或上层适配类在 `Deinit()` 时应确保：
+派生类或上层适配类在 `UnbindEndpoints()` 时应确保：
 
 - 终止所有依赖端点对象的异步操作
 - 对外完成或失败掉未完成的读写请求，避免上层永久等待

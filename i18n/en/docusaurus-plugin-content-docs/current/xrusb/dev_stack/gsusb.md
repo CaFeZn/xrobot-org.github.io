@@ -130,9 +130,9 @@ CAN FD DLC table (built into the implementation):
 
 ---
 
-## 4. Lifecycle: Init / Deinit
+## 4. Lifecycle: BindEndpoints / UnbindEndpoints
 
-### 4.1 `Init(endpoint_pool, start_itf_num)`
+### 4.1 `BindEndpoints(endpoint_pool, start_itf_num)`
 
 Key initialization steps:
 
@@ -150,7 +150,7 @@ Key initialization steps:
    - FD: subscribe to STANDARD / EXTENDED (FD packs)
 6. Set `inited_ = true`, then call `MaybeArmOutTransfer()` to keep the OUT endpoint armed for reception
 
-### 4.2 `Deinit(endpoint_pool)`
+### 4.2 `UnbindEndpoints(endpoint_pool)`
 
 - Close endpoints and release them back to `EndpointPool`
 - Clear key state and reset enable flags

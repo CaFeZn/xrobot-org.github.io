@@ -80,7 +80,7 @@ Notes:
 
 ### Endpoints
 
-`CDCBase::Init()` requests and configures the following endpoints from `EndpointPool`:
+`CDCBase::BindEndpoints()` requests and configures the following endpoints from `EndpointPool`:
 
 | Endpoint | Direction | Type      | Typical Use                           |
 | -------- | --------- | --------- | ------------------------------------- |
@@ -197,7 +197,7 @@ Their `Run(in_isr, ...)` is triggered from the control transfer handling path; `
 
 ### Init Behavior
 
-Key actions in `CDCBase::Init(endpoint_pool, start_itf_num)`:
+Key actions in `CDCBase::BindEndpoints(endpoint_pool, start_itf_num)`:
 
 - Clear `control_line_state_`
 - Request three endpoints from `EndpointPool` and `Configure` them
@@ -214,7 +214,7 @@ Notes:
 
 ### Deinit Behavior
 
-Key actions in `CDCBase::Deinit(endpoint_pool)`:
+Key actions in `CDCBase::UnbindEndpoints(endpoint_pool)`:
 
 - Set `inited_ = false`
 - Clear `control_line_state_`
@@ -222,7 +222,7 @@ Key actions in `CDCBase::Deinit(endpoint_pool)`:
 - Return endpoints to the `EndpointPool`
 - Set endpoint pointers to null
 
-Derived classes or upper-layer adapters should ensure in `Deinit()`:
+Derived classes or upper-layer adapters should ensure in `UnbindEndpoints()`:
 
 - Terminate all asynchronous operations that depend on endpoint objects
 - Complete or fail any pending read/write requests to avoid upper layers waiting indefinitely

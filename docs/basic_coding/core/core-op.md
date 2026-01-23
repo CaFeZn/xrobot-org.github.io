@@ -82,12 +82,12 @@ read_port(buffer, op_cb);
 ### 轮询方式查询完成状态
 
 ```cpp
-OperationPollingStatus status = OperationPollingStatus::READY;
+auto status = LibXR::ReadOperation::OperationPollingStatus::READY;
 ReadOperation op_poll(status);
 read_port(buffer, op_poll);
 
 // 后续通过 status 查询是否完成
-if (status == OperationPollingStatus::DONE) {
+if (status == LibXR::ReadOperation::OperationPollingStatus::DONE) {
   // 数据已读取完成
 }
 ```

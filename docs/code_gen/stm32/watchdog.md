@@ -57,7 +57,7 @@ Watchdog:
 
 ## 生成代码命令
 
-修改 `.config.yaml` 后，重新生成代码：
+修改 `libxr_config.yaml` 后，重新生成代码：
 
 ```bash
 xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp
