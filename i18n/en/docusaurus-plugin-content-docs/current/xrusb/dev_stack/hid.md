@@ -6,293 +6,207 @@ sidebar_position: 2
 
 # HID Device Stack
 
-This section documents XRUSB’s **USB HID (Human Interface Device)** device-class implementation and extension model, focusing on:
+This section describes XRUSB’s **USB HID (Human Interface Device)** device-class implementation and how to extend it. It covers:
 
-- The templated HID base class (`LibXR::USB::HID`) and automatic descriptor generation
-- Optional **Interrupt OUT endpoint** support (Output Report over Interrupt OUT)
-- Standard `GET_DESCRIPTOR` handling for HID / Report descriptors
-- HID class requests (`GET_REPORT/SET_REPORT/GET_IDLE/SET_IDLE/GET_PROTOCOL/SET_PROTOCOL`) and the control-transfer data stage
-- Input Report transmission (Interrupt IN) and transfer-complete callbacks
-- Reference derived classes: mouse (`HIDMouse`), keyboard (`HIDKeyboard`), and gamepad (`HIDGamepadT`)
+- The template HID base class `LibXR::USB::HID<REPORT_DESC_LEN, TX_REPORT_LEN, RX_REPORT_LEN>`
+- Automatic generation of the configuration-descriptor block (Interface + HID Descriptor + Endpoint Descriptors)
+- Optional **Interrupt OUT** (Output Report over Interrupt OUT)
+- Standard request `GET_DESCRIPTOR` (HID / Report Descriptor)
+- A handling framework for HID class requests (`GET_REPORT/SET_REPORT/GET_IDLE/SET_IDLE/GET_PROTOCOL/SET_PROTOCOL`)
+- Input Report transmission and IN/OUT completion callbacks
+- Typical derived classes: mouse, keyboard, gamepad
 
 ---
 
-## Component Overview
+## 1. Base Class Overview
 
-### `LibXR::USB::HID<REPORT_DESC_LEN, TX_REPORT_LEN, RX_REPORT_LEN>`
+### 1.1 `LibXR::USB::HID<REPORT_DESC_LEN, TX_REPORT_LEN, RX_REPORT_LEN>`
 
-`HID` is a templated HID base class (inherits from `DeviceClass`). It fixes report/descriptor sizing at compile time via template parameters, making it straightforward to implement keyboards, mice, gamepads, and similar devices:
+`HID` is a template HID base class (derived from `DeviceClass`). Template parameters fix report and descriptor sizes at compile time, making it convenient to implement devices such as keyboards, mice, and gamepads.
+
+Template parameters:
 
 - `REPORT_DESC_LEN`: Report Descriptor length (bytes)
-- `TX_REPORT_LEN`: maximum Input Report length (Interrupt IN `wMaxPacketSize`)
-- `RX_REPORT_LEN`: Output Report length (Interrupt OUT `wMaxPacketSize`), default `0` (unused)
+- `TX_REPORT_LEN`: Maximum Input Report length (Interrupt IN endpoint max packet size)
+- `RX_REPORT_LEN`: Maximum Output Report length (Interrupt OUT endpoint max packet size)
+  - Set to `0` to disable the Interrupt OUT endpoint
 
 The base class provides:
 
-- Endpoint allocation and configuration (Interrupt IN; optional Interrupt OUT)
-- Automatic generation of a configuration-descriptor block containing:
-  - Interface Descriptor
-  - HID Descriptor (0x21)
-  - Endpoint Descriptor(s)
-- Standard `GET_DESCRIPTOR` support for HID (0x21) and Report (0x22) descriptors
-- A framework for HID class requests and the control-transfer data stage (override in derived classes)
-- An Input Report helper `SendInputReport()` (copies into the endpoint buffer and starts the transfer)
-- Transfer-complete hooks for both directions (`OnDataInComplete` / `OnDataOutComplete`)
+- Endpoint allocation and configuration: Interrupt IN (required) + Interrupt OUT (optional)
+- Automatic configuration-descriptor block generation
+- `GET_DESCRIPTOR` (HID / Report) responses
+- A HID class-request handling framework (override/extend in derived classes)
+- Input Report send helper: `SendInputReport(...)`
+- IN/OUT transfer-completion hooks: `OnDataInComplete(...)` / `OnDataOutComplete(...)`
 
 ---
 
-## Descriptors and Endpoint Layout
+## 2. Descriptor and Endpoint Layout
 
-### Interface
+### 2.1 Interface
 
-`HID` is a single-interface device class:
+The HID base class contributes **one HID interface** and does not use an IAD:
 
-- `GetInterfaceNum()` returns `1`
-- `HasIAD()` returns `false`
 - `bInterfaceClass = 0x03` (HID)
 - `bNumEndpoints = 1` (IN only) or `2` (IN + OUT)
 
-> Note: The current base implementation fills `bInterfaceSubClass` and `bInterfaceProtocol` as `0`.  
-> For strict **HID Boot Keyboard/Mouse** behavior, the interface descriptor is typically set as:
->
-> - Boot Keyboard: `bInterfaceSubClass=1`, `bInterfaceProtocol=1`
-> - Boot Mouse: `bInterfaceSubClass=1`, `bInterfaceProtocol=2`
->
-> You can customize this either by adjusting the base class descriptor population or by providing an upper-layer wrapper that modifies the interface descriptor fields.
+### 2.2 HID Descriptor (0x21)
 
-### HID Descriptor (0x21)
-
-The base class generates a 9-byte HID class descriptor with key fields:
+The configuration descriptor includes a HID class descriptor (9 bytes). Key fields:
 
 - `bcdHID = 0x0111` (HID v1.11)
 - `bNumDescriptors = 1`
 - `bReportDescriptorType = 0x22`
 - `wReportDescriptorLength = REPORT_DESC_LEN`
 
-### Endpoints
+### 2.3 Endpoints
 
-During `BindEndpoints()`, the base class acquires endpoints from `EndpointPool` and configures them:
+| Endpoint            | Dir | Type      | Max Packet Size   | Purpose                          |
+| ------------------- | --- | --------- | ----------------: | -------------------------------- |
+| IN endpoint         | IN  | INTERRUPT | `TX_REPORT_LEN`   | Device → Host Input Report       |
+| OUT endpoint (opt.) | OUT | INTERRUPT | `RX_REPORT_LEN`   | Host → Device Output Report      |
 
-| Endpoint                | Direction | Type      | `wMaxPacketSize` | Purpose                     |
-| ----------------------- | --------- | --------- | ---------------: | --------------------------- |
-| IN endpoint             | IN        | INTERRUPT |  `TX_REPORT_LEN` | Device → host Input Report  |
-| OUT endpoint (optional) | OUT       | INTERRUPT |  `RX_REPORT_LEN` | Host → device Output Report |
+Polling interval:
 
-Polling intervals:
+- `in_ep_interval_` / `out_ep_interval_` are written into endpoint descriptors as `bInterval`
 
-- `in_ep_interval_`: written into IN endpoint descriptor `bInterval`
-- `out_ep_interval_`: written into OUT endpoint descriptor `bInterval`
-
-> Note: `bInterval` semantics vary by speed (FS frame-based vs HS microframe encoding).  
-> This stack treats the parameter as “milliseconds”, and the final behavior depends on the underlying controller/stack interpretation.
+Note: `bInterval` semantics differ by speed (FS is typically 1 ms frames; HS uses microframe encoding). This implementation organizes parameters in “millisecond” terms; the final interpretation depends on the underlying USB controller/stack.
 
 ---
 
-## Initialization and Resource Release
+## 3. Lifecycle: Bind / Unbind
 
-### Init (`HID::BindEndpoints(endpoint_pool, start_itf_num)`)
+### 3.1 Bind (Initialization)
 
-Key steps:
+During initialization, the class typically:
 
-1. Record `itf_num_ = start_itf_num`, clear endpoint pointers, and reset `inited_`
-2. Acquire Interrupt IN endpoint from `EndpointPool` and `Configure({IN, INTERRUPT, TX_REPORT_LEN})`
-3. If enabled, acquire Interrupt OUT endpoint and `Configure({OUT, INTERRUPT, RX_REPORT_LEN})`
-4. Populate the configuration-descriptor block:
-   - Interface Descriptor
-   - HID Descriptor (0x21)
-   - Endpoint IN Descriptor
-   - (optional) Endpoint OUT Descriptor
-5. Publish the descriptor block via `SetData(RawData{...})` for the device framework to stitch into the Configuration Descriptor
-6. Register transfer-complete callbacks:
-   - `ep_in_->SetOnTransferCompleteCallback(on_data_in_complete_cb_)`
-   - (optional) `ep_out_->SetOnTransferCompleteCallback(on_data_out_complete_cb_)`
-7. If OUT is enabled, start the first OUT receive: `ep_out_->Transfer(RX_REPORT_LEN)` (then re-armed automatically)
-8. Set `inited_ = true`
+1. Records the interface number and clears runtime flags
+2. Allocates Interrupt IN from `EndpointPool` and configures it with `TX_REPORT_LEN`
+3. If `RX_REPORT_LEN > 0`: allocates Interrupt OUT and configures it with `RX_REPORT_LEN`
+4. Generates and submits the configuration-descriptor block (Interface + HID Descriptor + Endpoint Descriptors)
+5. Registers endpoint completion callbacks (IN required; OUT optional)
+6. If OUT is enabled: starts the first OUT receive (subsequent receives are re-armed automatically)
+7. Sets `inited_ = true`
 
-### Deinit (`HID::UnbindEndpoints(endpoint_pool)`)
+### 3.2 Unbind (Release)
 
-- Set `inited_ = false`
-- Close and release IN/OUT endpoints back to `EndpointPool`
-- Null out endpoint pointers
+During unbind, the class typically:
+
+- Clears `inited_`, closes and returns IN/OUT endpoints to `EndpointPool`
+- Sets endpoint pointers to null
 
 ---
 
-## Standard Request: GET_DESCRIPTOR (HID / Report)
+## 4. Standard Request: `GET_DESCRIPTOR` (HID / Report)
 
-`HID` overrides `OnGetDescriptor()` to handle standard `GET_DESCRIPTOR`:
+The base class handles the standard request `GET_DESCRIPTOR`:
 
-- If `(wValue >> 8) == 0x21`: return HID Descriptor (`GetHIDDesc()`)
-- If `(wValue >> 8) == 0x22`: return Report Descriptor (`GetReportDesc()`)
-- Other types (e.g., Physical 0x23): return `ErrorCode::NOT_SUPPORT`
+- `DescriptorType = 0x21`: returns the HID Descriptor
+- `DescriptorType = 0x22`: returns the Report Descriptor
+- Other types (e.g., Physical 0x23): not supported
 
-Returned data is truncated to `wLength`.
+Returned data is truncated to `wLength` to avoid exceeding the host-requested length.
 
-Derived classes must implement:
+Derived classes must provide the Report Descriptor (called by the base class):
 
 ```cpp
 virtual ConstRawData GetReportDesc() = 0;
 ```
 
-to provide the Report Descriptor pointer and length.
+---
+
+## 5. HID Class Requests and Data Stage
+
+The base class supports common HID Class-Specific Requests:
+
+- `GET_REPORT`
+  - Uses the high byte of `wValue` to distinguish `INPUT/OUTPUT/FEATURE`, then calls derived hooks to produce response data
+- `SET_REPORT`
+  - Performs basic validation in the Setup stage and prepares to receive data
+  - When the Data stage arrives, invokes a derived hook to process the payload
+- `GET_IDLE / SET_IDLE`
+  - Maintains `idle_rate_` (units of 4 ms; many implementations only support `report_id = 0`)
+- `GET_PROTOCOL / SET_PROTOCOL`
+  - Maintains `protocol_` (BOOT / REPORT)
+
+Recommended hooks to override as needed:
+
+- Report retrieval: `OnGetInputReport(...)` / `OnGetLastOutputReport(...)` / `OnGetFeatureReport(...)`
+- Report setting: `OnSetReport(...)` (Setup stage) and `OnSetReportData(...)` (Data stage)
+- Custom extensions: `OnCustomClassRequest(...)` / `OnCustomClassData(...)`
 
 ---
 
-## HID Class Requests and Control-Transfer Data Stage
+## 6. Data Path: Interrupt IN/OUT
 
-The base class implements common HID class requests in `OnClassRequest()`:
+### 6.1 Sending an Input Report: `SendInputReport(...)`
 
-- `GET_REPORT`: uses the high byte of `wValue` to select `INPUT/OUTPUT/FEATURE`, then calls:
-  - `OnGetInputReport(report_id, result)`
-  - `OnGetLastOutputReport(report_id, result)`
-  - `OnGetFeatureReport(report_id, result)`
-- `SET_REPORT`: checks `wLength != 0`, then delegates to:
-  - `OnSetReport(report_id, result)` (typically sets `result.read_data` to accept data in the control transfer)
-  - the actual payload is delivered in `OnClassData()` and finalized by `OnSetReportData(in_isr, data)`
-- `GET_IDLE / SET_IDLE`: maintains a single `idle_rate_` (units of 4 ms); current implementation only supports `report_id=0`
-- `GET_PROTOCOL / SET_PROTOCOL`: maintains `protocol_` (BOOT / REPORT)
+Typical behavior:
 
-Override points for device-specific logic:
+1. Validates initialization and endpoint availability
+2. Validates `0 < report_len <= TX_REPORT_LEN`
+3. Validates the IN endpoint is idle; otherwise returns `BUSY`
+4. Copies the report into the IN endpoint buffer and starts the transfer
 
-- Report retrieval:
-  - `OnGetInputReport()` / `OnGetLastOutputReport()` / `OnGetFeatureReport()`
-- Report setting:
-  - `OnSetReport()` (setup stage)
-  - `OnSetReportData()` (data stage)
-- Custom extensions:
-  - `OnCustomClassRequest()` / `OnCustomClassData()`
-
----
-
-## Data Path: IN/OUT Endpoints and Completion Callbacks
-
-### Sending an Input Report: `SendInputReport()`
-
-`SendInputReport(ConstRawData report)` sends an Interrupt IN report to the host:
-
-1. Validate initialized state and IN endpoint presence
-2. Validate `report.addr_` and `0 < report.size_ <= TX_REPORT_LEN`
-3. Ensure the IN endpoint state is `IDLE`; otherwise return `ErrorCode::BUSY`
-4. Copy `report` into the endpoint buffer (`ep_in_->GetBuffer()`)
-5. Start the transfer via `ep_in_->Transfer(report.size_)`
-
-Common return codes (subject to stack definitions):
+Common return-code semantics (subject to stack definitions):
 
 - `OK`: transfer started successfully
-- `BUSY`: endpoint is still transmitting
-- `ARG_ERR`: invalid report size
-- `NO_BUFF`: endpoint buffer insufficient
-- `FAILED`: not initialized or endpoint invalid
+- `BUSY`: endpoint is still transferring
+- `ARG_ERR`: invalid report length
+- `FAILED/NO_BUFF`: endpoint/buffer unavailable
 
-### Receiving Output Reports (optional): automatic re-arm
+### 6.2 Receiving an Output Report (Interrupt OUT, optional)
 
-If the OUT endpoint is enabled, the default behavior is:
+If the OUT endpoint is enabled, the base class continuously receives:
 
-- After `BindEndpoints()`, `ep_out_->Transfer(RX_REPORT_LEN)` arms the OUT endpoint
-- Each OUT completion triggers `OnDataOutCompleteStatic()`:
-  1. Calls the virtual `OnDataOutComplete(in_isr, data)`
-  2. Immediately re-arms via `ep_out_->Transfer(RX_REPORT_LEN)` (continuous reception)
+- Starts one OUT receive after Bind
+- After each OUT completion:
+  - Calls `OnDataOutComplete(in_isr, data)` so the derived class can consume the data
+  - Automatically re-arms to receive the next packet
 
-Override:
+This path is suitable for “asynchronous Output Reports” such as keyboard LED states or gamepad vibration commands.
 
-```cpp
-virtual void OnDataOutComplete(bool in_isr, LibXR::ConstRawData& data);
-```
+### 6.3 IN Completion Callback
 
-to process Output Reports (e.g., keyboard LEDs).
+After an IN transfer completes, `OnDataInComplete(in_isr, data)` is called. Typical uses:
 
-### IN transfer-complete hook
-
-When an IN transfer completes, the stack calls:
-
-```cpp
-virtual void OnDataInComplete(bool in_isr, LibXR::ConstRawData& data);
-```
-
-Typical uses:
-
-- Dequeue/dispatch the next report in a software TX queue
-- Throughput accounting and link monitoring
+- Advancing a send queue (send the next report)
+- Statistics/monitoring (throughput, link state, etc.)
 
 ---
 
-## Reference Derived Classes
+## 7. Typical Derived Classes (Overview)
 
-### `HIDMouse`: Standard Boot Mouse
+### 7.1 `HIDMouse`
 
-- Report Descriptor: standard Boot Mouse
-- Input Report length: 4 bytes (Buttons + X + Y + Wheel)
-- IN-only, default `bInterval=1 ms`
+- Standard Boot mouse
+- Input Report: commonly 4 bytes (Buttons + X + Y + Wheel)
+- IN endpoint only
 
-Key APIs:
+### 7.2 `HIDKeyboard`
 
-```cpp
-void Move(uint8_t buttons, int8_t x, int8_t y, int8_t wheel = 0);
-void Release();
-```
+- Standard Boot keyboard
+- Input Report: commonly 8 bytes (Modifier + Reserved + 6 KeyCodes)
+- Optional OUT endpoint (e.g., 1-byte LED)
+- Can also support host LED updates via control endpoint (`SET_REPORT`)
 
-`Move()` builds a report and calls `SendInputReport()`.
+### 7.3 `HIDGamepadT`
 
-### `HIDKeyboard`: Standard Boot Keyboard (with LEDs)
-
-- Report Descriptor: standard Boot Keyboard
-- Input Report length: 8 bytes (Modifier + Reserved + 6 KeyCodes)
-- Optional OUT endpoint (`RX_REPORT_LEN=1`) for LED state
-- Implements the `SET_REPORT` control-transfer path (compatible with hosts that deliver LEDs via control endpoint)
-
-Key APIs:
-
-- Send keys:
-
-```cpp
-void PressKey(std::initializer_list<KeyCode> keys, uint8_t mods = Modifier::NONE);
-void ReleaseAll();
-```
-
-- Read LED state (bitwise):
-
-```cpp
-bool GetNumLock();
-bool GetCapsLock();
-bool GetScrollLock();
-```
-
-- LED change callback:
-
-```cpp
-void SetOnLedChangeCallback(LibXR::Callback<bool, bool, bool> cb);
-```
-
-Callback parameters are `(NumLock, CapsLock, ScrollLock)` and may be triggered by either OUT endpoint reception or the `SET_REPORT` data stage.
-
-### `HIDGamepadT`: Templated 4-Axis + 8-Button Gamepad
-
-- Input Report is fixed to 9 bytes: `4 × int16 axis + 1 × uint8 buttons`
-- Report Descriptor is a compile-time constant of 50 bytes
-- Logical range is templated:
-  - `LOG_MIN` / `LOG_MAX` (default `0..2047`)
-- Convenience sending APIs:
-
-```cpp
-ErrorCode Send(int x, int y, int z, int rx, uint8_t buttons);
-ErrorCode SendButtons(uint8_t buttons);
-ErrorCode SendAxes(int x, int y, int z, int rx);
-```
-
-Provided aliases:
-
-- `HIDGamepad`: `0..2047`
-- `HIDGamepadBipolar`: `-2048..2047`
+- Template gamepad (e.g., 4 axes + 8 buttons)
+- Input Report and Report Descriptor are fixed at compile time
+- Typically provides convenience send APIs to update axes and button bitmap
 
 ---
 
-## Usage Examples
+## 8. Usage Examples (Conceptual)
 
-> Note: The exact mechanism to register class instances depends on your upper-layer `usb_dev` implementation. The examples below show construction and typical APIs.
+Note: How the USB device framework registers the class list depends on the upper-layer `usb_dev` implementation. The examples below illustrate typical usage only.
 
-### Mouse
+### 8.1 Mouse
 
 ```cpp
-#include "hid_mouse.hpp"  // adjust to your actual header
+#include "hid_mouse.hpp"
 
 LibXR::USB::HIDMouse hid_mouse;
 
@@ -300,25 +214,17 @@ LibXR::USB::HIDMouse hid_mouse;
 // usb_dev.Init();
 // usb_dev.Start();
 
-hid_mouse.Move(LibXR::USB::HIDMouse::LEFT, 10, 0);  // move right
+hid_mouse.Move(LibXR::USB::HIDMouse::LEFT, 10, 0);
 hid_mouse.Release();
 ```
 
-### Keyboard (with LED callback)
+### 8.2 Keyboard (with LED callback)
 
 ```cpp
-#include "hid_keyboard.hpp"  // adjust to your actual header
+#include "hid_keyboard.hpp"
 
-LibXR::USB::HIDKeyboard hid_kbd(true);  // enable_out_endpoint=true
-
-hid_kbd.SetOnLedChangeCallback(
-  LibXR::Callback<bool, bool, bool>(
-    [](bool in_isr, bool num, bool caps, bool scroll) {
-      (void)in_isr;
-      // Update on-board LEDs based on num/caps/scroll
-    }
-  )
-);
+// enable_out_endpoint=true enables the optional Interrupt OUT endpoint for LED reports
+LibXR::USB::HIDKeyboard hid_kbd(true);
 
 // Send: Shift + A
 hid_kbd.PressKey({LibXR::USB::HIDKeyboard::KeyCode::A},
@@ -326,26 +232,25 @@ hid_kbd.PressKey({LibXR::USB::HIDKeyboard::KeyCode::A},
 hid_kbd.ReleaseAll();
 ```
 
-### Gamepad
+### 8.3 Gamepad
 
 ```cpp
-#include "hid_gamepad.hpp"  // adjust to your actual header
+#include "hid_gamepad.hpp"
 
 LibXR::USB::HIDGamepad gamepad;
-
 gamepad.Send(1024, 1024, 1024, 1024, LibXR::USB::HIDGamepad::BTN1);
 ```
 
 ---
 
-## Extension Guidelines (Derived-Class Checklist)
+## 9. Extension Guidance (Derived-Class Implementation)
 
-When implementing a new HID device, you typically do the following:
+Implementing a new HID derived class typically requires:
 
-1. **Provide a Report Descriptor** by overriding `GetReportDesc()`
-2. **Define your Input Report** so it does not exceed `TX_REPORT_LEN`
-3. (Optional) Implement Output/Feature handling:
-   - If using **control transfers**: override `OnSetReport()` / `OnSetReportData()`
-   - If using an **Interrupt OUT endpoint**: construct with `enable_out_endpoint=true` and override `OnDataOutComplete()`
+1. Provide the Report Descriptor (implement `GetReportDesc()`)
+2. Define and manage the Input Report data structure (length must not exceed `TX_REPORT_LEN`)
+3. If Output/Feature is needed:
+   - Control transfer: override `OnSetReport(...) / OnSetReportData(...)`
+   - Interrupt OUT endpoint: enable `RX_REPORT_LEN > 0` and override `OnDataOutComplete(...)`
 
-If you need continuous transmission (TX queue), implement “send next report” scheduling in `OnDataInComplete()`.
+If continuous sending or queueing is needed, implement “send next report” scheduling in `OnDataInComplete(...)`.

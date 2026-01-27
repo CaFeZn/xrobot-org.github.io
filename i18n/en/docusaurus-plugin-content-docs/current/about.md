@@ -1,7 +1,7 @@
 ---
 id: about
 title: About
-sidebar_position: 11
+sidebar_position: 12
 ---
 
 # About This Project

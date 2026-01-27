@@ -6,277 +6,204 @@ sidebar_position: 2
 
 # HID 设备协议栈
 
-本节介绍 XRUSB 的 **USB HID（Human Interface Device）** 设备类实现与扩展方式，重点覆盖：
+本节介绍 XRUSB 的 **USB HID（Human Interface Device）** 设备类实现与扩展方式，覆盖：
 
-- HID 设备类的模板化基类（`LibXR::USB::HID`）与自动描述符生成
-- 可选 **OUT 中断端点**（Output Report over Interrupt OUT）
-- 标准请求 `GET_DESCRIPTOR`（HID / Report 描述符）的处理路径
-- HID 类请求（`GET_REPORT/SET_REPORT/GET_IDLE/SET_IDLE/GET_PROTOCOL/SET_PROTOCOL`）与数据阶段回调
-- 输入报告发送（Input Report over Interrupt IN）与传输完成回调
-- 典型派生类：鼠标（`HIDMouse`）、键盘（`HIDKeyboard`）、手柄（`HIDGamepadT`）
+- HID 模板化基类 `LibXR::USB::HID<REPORT_DESC_LEN, TX_REPORT_LEN, RX_REPORT_LEN>`
+- 自动生成配置描述符块（Interface + HID Descriptor + Endpoint Descriptors）
+- 可选 **Interrupt OUT**（Output Report over Interrupt OUT）
+- 标准请求 `GET_DESCRIPTOR`（HID / Report Descriptor）
+- HID 类请求（`GET_REPORT/SET_REPORT/GET_IDLE/SET_IDLE/GET_PROTOCOL/SET_PROTOCOL`）处理框架
+- Input Report 发送与 IN/OUT 完成回调
+- 典型派生类：鼠标、键盘、手柄
 
 ---
 
-## 组件概览
+## 1. 基类概览
 
-### `LibXR::USB::HID<REPORT_DESC_LEN, TX_REPORT_LEN, RX_REPORT_LEN>`
+### 1.1 `LibXR::USB::HID<REPORT_DESC_LEN, TX_REPORT_LEN, RX_REPORT_LEN>`
 
-`HID` 是一个模板化 HID 基类（继承自 `DeviceClass`），通过模板参数在编译期固化报告与描述符尺寸，便于实现键盘、鼠标、手柄等设备：
+`HID` 为模板化 HID 基类（继承自 `DeviceClass`），通过模板参数在编译期固化报告与描述符尺寸，方便派生实现键盘、鼠标、手柄等设备。
+
+模板参数：
 
 - `REPORT_DESC_LEN`：Report Descriptor 长度（字节）
-- `TX_REPORT_LEN`：Input Report 最大长度（Interrupt IN 端点 `wMaxPacketSize`）
-- `RX_REPORT_LEN`：Output Report 长度（Interrupt OUT 端点 `wMaxPacketSize`，默认 0 表示不使用）
+- `TX_REPORT_LEN`：Input Report 最大长度（Interrupt IN 端点最大包长）
+- `RX_REPORT_LEN`：Output Report 最大长度（Interrupt OUT 端点最大包长）
+  - 取 `0` 表示不启用 OUT 中断端点
 
-它实现并封装了：
+基类提供：
 
-- 端点资源申请与配置（Interrupt IN；可选 Interrupt OUT）
-- **Interface + HID Descriptor(0x21) + Endpoint Descriptor** 的配置描述符块自动生成
-- 标准请求 `GET_DESCRIPTOR`：返回 HID 描述符（0x21）或 Report 描述符（0x22）
-- HID 类请求与数据阶段处理框架（可在派生类中覆盖）
-- 输入报告发送辅助函数 `SendInputReport()`（拷贝到端点缓冲区并启动传输）
-- IN/OUT 传输完成回调钩子（`OnDataInComplete` / `OnDataOutComplete`）
+- 端点申请与配置：Interrupt IN（必选）+ Interrupt OUT（可选）
+- 配置描述符块自动生成
+- `GET_DESCRIPTOR`（HID / Report）响应
+- HID 类请求处理框架（可在派生类中覆盖/扩展）
+- Input Report 发送辅助：`SendInputReport(...)`
+- IN/OUT 传输完成回调钩子：`OnDataInComplete(...)` / `OnDataOutComplete(...)`
 
 ---
 
-## 描述符与端点布局
+## 2. 描述符与端点布局
 
-### Interface（接口）
+### 2.1 Interface
 
-`HID` 作为单接口设备类：
+HID 基类贡献 **1 个 HID 接口**，不使用 IAD：
 
-- `GetInterfaceNum()` 固定返回 `1`
-- `HasIAD()` 固定返回 `false`
 - `bInterfaceClass = 0x03`（HID）
 - `bNumEndpoints = 1`（仅 IN）或 `2`（IN + OUT）
 
-### HID Descriptor（0x21）
+### 2.2 HID Descriptor（0x21）
 
-基类在配置描述符中生成 HID 类描述符（9 字节），关键字段如下：
+配置描述符中包含 HID 类描述符（9 字节），关键字段：
 
 - `bcdHID = 0x0111`（HID v1.11）
 - `bNumDescriptors = 1`
 - `bReportDescriptorType = 0x22`
 - `wReportDescriptorLength = REPORT_DESC_LEN`
 
-### Endpoints（端点）
+### 2.3 Endpoints
 
-基类在 `BindEndpoints()` 中从 `EndpointPool` 申请并配置端点：
+| 端点             | 方向 | 类型      |        最大包长 | 用途                      |
+| ---------------- | ---- | --------- | --------------: | ------------------------- |
+| IN 端点          | IN   | INTERRUPT | `TX_REPORT_LEN` | 设备 → 主机 Input Report  |
+| OUT 端点（可选） | OUT  | INTERRUPT | `RX_REPORT_LEN` | 主机 → 设备 Output Report |
 
-| 端点             | 方向 | 类型      | `wMaxPacketSize` | 用途                      |
-| ---------------- | ---- | --------- | ---------------: | ------------------------- |
-| IN 端点          | IN   | INTERRUPT |  `TX_REPORT_LEN` | 设备 → 主机 Input Report  |
-| OUT 端点（可选） | OUT  | INTERRUPT |  `RX_REPORT_LEN` | 主机 → 设备 Output Report |
+轮询间隔：
 
-端点轮询间隔：
+- `in_ep_interval_` / `out_ep_interval_` 会写入端点描述符的 `bInterval`
 
-- `in_ep_interval_`：写入 IN 端点描述符的 `bInterval`
-- `out_ep_interval_`：写入 OUT 端点描述符的 `bInterval`
-
-> 注意：不同速度下 `bInterval` 的语义不同（FS 通常按帧 1ms，HS 以 microframe 编码）。本实现以“毫秒”语义组织参数，最终解释取决于底层 USB 控制器/栈对 `bInterval` 的处理方式。
+说明：不同速率下 `bInterval` 语义不同（FS 常按 1ms 帧；HS 为 microframe 编码）。本实现以“毫秒”语义组织参数，最终解释取决于底层 USB 控制器/栈。
 
 ---
 
-## 初始化与资源释放
+## 3. 生命周期：Bind / Unbind
 
-### Init 行为（`HID::BindEndpoints(endpoint_pool, start_itf_num)`）
+### 3.1 Bind（初始化）
 
-初始化的关键步骤：
+初始化阶段通常完成：
 
-1. 记录接口号 `itf_num_ = start_itf_num`，清理端点指针与 `inited_` 标志  
-2. 从 `EndpointPool` 获取 Interrupt IN 端点，并 `Configure({IN, INTERRUPT, TX_REPORT_LEN})`  
-3. 若启用 OUT：获取 Interrupt OUT 端点，并 `Configure({OUT, INTERRUPT, RX_REPORT_LEN})`  
-4. 填充配置描述符块：
-   - Interface Descriptor
-   - HID Descriptor (0x21)
-   - Endpoint IN Descriptor
-   -（可选）Endpoint OUT Descriptor
-5. 通过 `SetData(RawData{...})` 将描述符块交给设备框架拼入 Configuration Descriptor  
-6. 注册端点完成回调：
-   - `ep_in_->SetOnTransferCompleteCallback(on_data_in_complete_cb_)`
-   -（可选）`ep_out_->SetOnTransferCompleteCallback(on_data_out_complete_cb_)`
-7. 若启用 OUT：启动首次 OUT 接收 `ep_out_->Transfer(RX_REPORT_LEN)`（随后每次完成会自动 re-arm）  
-8. 设置 `inited_ = true`
+1. 记录接口号，并清理运行态标志
+2. 从 `EndpointPool` 申请 Interrupt IN，按 `TX_REPORT_LEN` 配置
+3. 若 `RX_REPORT_LEN > 0`：申请 Interrupt OUT，按 `RX_REPORT_LEN` 配置
+4. 生成并提交配置描述符块（Interface + HID Descriptor + Endpoint Descriptors）
+5. 注册端点完成回调（IN 必选；OUT 可选）
+6. 若启用 OUT：启动首次 OUT 接收（之后每次完成会自动 re-arm）
+7. 置 `inited_ = true`
 
-### Deinit 行为（`HID::UnbindEndpoints(endpoint_pool)`）
+### 3.2 Unbind（释放）
 
-- `inited_ = false`
-- 关闭并归还 IN/OUT 端点给 `EndpointPool`
+解绑阶段通常完成：
+
+- 清 `inited_`，关闭并归还 IN/OUT 端点到 `EndpointPool`
 - 端点指针置空
 
 ---
 
-## 标准请求：GET_DESCRIPTOR（HID / Report）
+## 4. 标准请求：GET_DESCRIPTOR（HID / Report）
 
-`HID` 覆盖 `OnGetDescriptor()`，用于处理标准请求 `GET_DESCRIPTOR`：
+基类处理标准请求 `GET_DESCRIPTOR`：
 
-- 当 `wValue >> 8` 为 `0x21`：返回 HID Descriptor（`GetHIDDesc()`）
-- 当 `wValue >> 8` 为 `0x22`：返回 Report Descriptor（`GetReportDesc()`）
-- 其他类型（如 Physical 0x23）：返回 `ErrorCode::NOT_SUPPORT`
+- `DescriptorType = 0x21`：返回 HID Descriptor
+- `DescriptorType = 0x22`：返回 Report Descriptor
+- 其他类型（如 Physical 0x23）：返回不支持
 
 返回数据会按 `wLength` 截断，避免超出主机请求长度。
 
-派生类必须实现：
+派生类需要提供 Report Descriptor（基类会调用）：
 
 ```cpp
 virtual ConstRawData GetReportDesc() = 0;
 ```
 
-用于提供 Report Descriptor 的数据指针与长度。
+---
+
+## 5. HID 类请求与数据阶段
+
+基类支持常见 HID Class-Specific Requests：
+
+- `GET_REPORT`
+  - 根据 `wValue` 高字节区分 `INPUT/OUTPUT/FEATURE`，并调用派生钩子生成返回数据
+- `SET_REPORT`
+  - Setup 阶段完成基本校验，并准备接收数据
+  - Data 阶段到来时回调派生钩子处理具体内容
+- `GET_IDLE / SET_IDLE`
+  - 维护 `idle_rate_`（单位 4ms，常见实现仅支持 `report_id = 0`）
+- `GET_PROTOCOL / SET_PROTOCOL`
+  - 维护 `protocol_`（BOOT / REPORT）
+
+建议派生类覆写的钩子（按需）：
+
+- 获取报告：`OnGetInputReport(...)` / `OnGetLastOutputReport(...)` / `OnGetFeatureReport(...)`
+- 设置报告：`OnSetReport(...)`（Setup 阶段）与 `OnSetReportData(...)`（Data 阶段）
+- 自定义扩展：`OnCustomClassRequest(...)` / `OnCustomClassData(...)`
 
 ---
 
-## HID 类请求与数据阶段
+## 6. 数据通路：Interrupt IN/OUT
 
-基类在 `OnClassRequest()` 中处理 HID 常见类请求（Class-Specific Requests）：
+### 6.1 发送 Input Report：`SendInputReport(...)`
 
-- `GET_REPORT`：按 `wValue` 高字节区分 `INPUT/OUTPUT/FEATURE`，分别调用：
-  - `OnGetInputReport(report_id, result)`
-  - `OnGetLastOutputReport(report_id, result)`
-  - `OnGetFeatureReport(report_id, result)`
-- `SET_REPORT`：仅校验 `wLength != 0`，并交由：
-  - `OnSetReport(report_id, result)`（此处通常设置 `result.read_data` 让控制传输数据阶段写入）
-  - 数据阶段由 `OnClassData()` 接收，最终回调 `OnSetReportData(in_isr, data)`
-- `GET_IDLE / SET_IDLE`：维护一个 `idle_rate_`（单位 4ms），当前实现仅支持 `report_id=0`
-- `GET_PROTOCOL / SET_PROTOCOL`：维护 `protocol_`（BOOT / REPORT）
+典型行为：
 
-你可以覆盖以下虚函数来实现具体逻辑：
+1. 校验初始化与端点存在
+2. 校验 `0 < report_len <= TX_REPORT_LEN`
+3. 校验 IN 端点空闲，否则返回 `BUSY`
+4. 复制 report 到 IN 端点缓冲并启动传输
 
-- 报告获取：
-  - `OnGetInputReport()` / `OnGetLastOutputReport()` / `OnGetFeatureReport()`
-- 报告设置：
-  - `OnSetReport()`：在控制传输 Setup 阶段准备接收缓冲等
-  - `OnSetReportData()`：在控制传输 Data 阶段处理主机发来的数据
-- 自定义扩展：
-  - `OnCustomClassRequest()` / `OnCustomClassData()`
-
----
-
-## 数据通路：IN/OUT 端点与完成回调
-
-### 发送 Input Report：`SendInputReport()`
-
-`SendInputReport(ConstRawData report)` 用于向主机发送 Interrupt IN 报告，流程如下：
-
-1. 校验已初始化、端点存在
-2. 校验 `report.addr_` 非空、长度 `0 < size_ <= TX_REPORT_LEN`
-3. 校验 IN 端点处于 `IDLE`，否则返回 `ErrorCode::BUSY`
-4. 将 `report` 拷贝到 IN 端点缓冲区（`ep_in_->GetBuffer()`）
-5. 调用 `ep_in_->Transfer(report.size_)` 启动传输
-
-常见返回码语义（依栈定义为准）：
+常见返回码语义（以栈定义为准）：
 
 - `OK`：成功启动传输
 - `BUSY`：端点仍在传输
 - `ARG_ERR`：报告长度非法
-- `NO_BUFF`：端点缓冲区不足
-- `FAILED`：未初始化或端点无效
+- `FAILED/NO_BUFF`：端点/缓冲不可用
 
-### OUT Report 接收（可选）：自动 re-arm
+### 6.2 接收 Output Report（Interrupt OUT，可选）
 
-若启用 OUT 端点，基类默认行为是：
+若启用 OUT 端点，基类默认会持续接收：
 
-- 首次 `BindEndpoints()` 后调用一次 `ep_out_->Transfer(RX_REPORT_LEN)`
-- 每次 OUT 接收完成触发 `OnDataOutCompleteStatic()`：
-  1. 调用虚函数 `OnDataOutComplete(in_isr, data)` 让派生类消费数据
-  2. 立即 `ep_out_->Transfer(RX_REPORT_LEN)` 重新挂载接收（持续接收）
+- Bind 后启动一次 OUT 接收
+- 每次 OUT 完成后：
+  - 先回调 `OnDataOutComplete(in_isr, data)` 让派生类消费
+  - 再自动 re-arm 继续接收下一帧
 
-派生类可覆盖：
+该路径适合处理“异步 Output Report”（例如键盘 LED 状态、手柄震动等）。
 
-```cpp
-virtual void OnDataOutComplete(bool in_isr, LibXR::ConstRawData& data);
-```
+### 6.3 IN 完成回调
 
-用于处理 Output Report（例如键盘 LED 状态）。
+IN 发送完成后会触发 `OnDataInComplete(in_isr, data)`，典型用途：
 
-### IN 发送完成回调
-
-IN 端点传输完成后会触发：
-
-```cpp
-virtual void OnDataInComplete(bool in_isr, LibXR::ConstRawData& data);
-```
-
-典型用途：
-
-- 发送队列出队、继续发送下一帧
-- 统计吞吐、链路监测等
+- 发送队列推进（发送下一帧）
+- 统计/监测（吞吐、链路状态等）
 
 ---
 
-## 示例派生类
+## 7. 典型派生类（概述）
 
-### `HIDMouse`：标准 Boot 鼠标
+### 7.1 `HIDMouse`
 
-- Report Descriptor：标准 Boot Mouse
-- Input Report 长度：4 字节（Buttons + X + Y + Wheel）
-- 仅启用 IN 端点，默认 `bInterval=1ms`
+- 标准 Boot 鼠标
+- Input Report：常见为 4 字节（Buttons + X + Y + Wheel）
+- 仅启用 IN 端点
 
-核心接口：
+### 7.2 `HIDKeyboard`
 
-```cpp
-void Move(uint8_t buttons, int8_t x, int8_t y, int8_t wheel = 0);
-void Release();
-```
+- 标准 Boot 键盘
+- Input Report：常见为 8 字节（Modifier + Reserved + 6 KeyCodes）
+- 可选启用 OUT 端点（例如 1 字节 LED）
+- 也可兼容主机通过控制端点下发 LED（`SET_REPORT`）
 
-`Move()` 内部组包并调用 `SendInputReport()`。
+### 7.3 `HIDGamepadT`
 
-### `HIDKeyboard`：标准 Boot 键盘（含 LED）
-
-- Report Descriptor：标准 Boot Keyboard
-- Input Report 长度：8 字节（Modifier + Reserved + 6 KeyCodes）
-- 可选启用 OUT 端点（`RX_REPORT_LEN=1`）用于接收 LED 状态
-- 同时实现 `SET_REPORT` 控制传输路径（兼容主机通过控制端点下发 LED）
-
-核心接口：
-
-- 发送按键：
-
-```cpp
-void PressKey(std::initializer_list<KeyCode> keys, uint8_t mods = Modifier::NONE);
-void ReleaseAll();
-```
-
-- LED 状态读取（按位）：
-
-```cpp
-bool GetNumLock();
-bool GetCapsLock();
-bool GetScrollLock();
-```
-
-- LED 变化回调：
-
-```cpp
-void SetOnLedChangeCallback(LibXR::Callback<bool, bool, bool> cb);
-```
-
-回调参数依次为 `(NumLock, CapsLock, ScrollLock)`，会在 OUT 端点接收完成或 `SET_REPORT` 数据阶段被触发。
-
-### `HIDGamepadT`：模板化 4 轴 + 8 按钮手柄
-
-- Input Report 固定 9 字节：`4 × int16 axis + 1 × uint8 buttons`
-- Report Descriptor 固定 50 字节（编译期常量），Logical Range 由模板参数决定：
-  - `LOG_MIN` / `LOG_MAX`（默认 `0..2047`）
-- 提供便捷发送接口：
-
-```cpp
-ErrorCode Send(int x, int y, int z, int rx, uint8_t buttons);
-ErrorCode SendButtons(uint8_t buttons);
-ErrorCode SendAxes(int x, int y, int z, int rx);
-```
-
-并提供别名：
-
-- `HIDGamepad`：`0..2047`
-- `HIDGamepadBipolar`：`-2048..2047`
+- 模板化手柄（例如 4 轴 + 8 按钮）
+- Input Report 与 Report Descriptor 在编译期固化
+- 通常提供便捷发送接口用于更新轴值与按键位图
 
 ---
 
-## 使用示例
+## 8. 使用示例（概念性）
 
-> 说明：具体 USB Device 框架如何注册 class 列表取决于你的上层 `usb_dev` 实现；以下示例展示 HID 对象的构造与典型调用。
+说明：具体 USB Device 框架如何注册 class 列表取决于上层 `usb_dev` 实现；以下示例仅展示典型调用方式。
 
-### 鼠标
+### 8.1 鼠标
 
 ```cpp
 #include "hid_mouse.hpp"
@@ -287,11 +214,11 @@ LibXR::USB::HIDMouse hid_mouse;
 // usb_dev.Init();
 // usb_dev.Start();
 
-hid_mouse.Move(LibXR::USB::HIDMouse::LEFT, 10, 0);  // 向右移动
+hid_mouse.Move(LibXR::USB::HIDMouse::LEFT, 10, 0);
 hid_mouse.Release();
 ```
 
-### 键盘（含 LED 回调）
+### 8.2 键盘（含 LED 回调）
 
 ```cpp
 #include "hid_keyboard.hpp"
@@ -299,42 +226,31 @@ hid_mouse.Release();
 // enable_out_endpoint=true 可启用 OUT 中断端点接收 LED（可选）
 LibXR::USB::HIDKeyboard hid_kbd(true);
 
-hid_kbd.SetOnLedChangeCallback(
-  LibXR::Callback<bool, bool, bool>(
-    [](bool in_isr, bool num, bool caps, bool scroll) {
-      (void)in_isr;
-      // 根据 num/caps/scroll 更新板端指示灯
-    }
-  )
-);
-
 // 发送：Shift + A
 hid_kbd.PressKey({LibXR::USB::HIDKeyboard::KeyCode::A},
                  LibXR::USB::HIDKeyboard::Modifier::LEFT_SHIFT);
 hid_kbd.ReleaseAll();
 ```
 
-### 手柄
+### 8.3 手柄
 
 ```cpp
 #include "hid_gamepad.hpp"
 
 LibXR::USB::HIDGamepad gamepad;
-
-// 发送一帧：轴值 + 按钮
 gamepad.Send(1024, 1024, 1024, 1024, LibXR::USB::HIDGamepad::BTN1);
 ```
 
 ---
 
-## 扩展建议（派生类实现要点）
+## 9. 扩展建议（派生类实现要点）
 
-当你实现新的 HID 设备时，通常需要做三件事：
+实现一个新的 HID 派生类通常需要：
 
-1. **提供 Report Descriptor**：覆盖 `GetReportDesc()`  
-2. **定义 Input Report 结构**：长度不超过 `TX_REPORT_LEN`  
-3. （可选）处理 Output/Feature：
-   - 若采用 **控制传输**：覆盖 `OnSetReport()` / `OnSetReportData()`
-   - 若采用 **OUT 中断端点**：构造时启用 `enable_out_endpoint=true` 并覆盖 `OnDataOutComplete()`
+1. 提供 Report Descriptor（实现 `GetReportDesc()`）
+2. 定义并管理 Input Report 数据结构（长度不超过 `TX_REPORT_LEN`）
+3. 如需 Output/Feature：
+   - 控制传输：覆写 `OnSetReport(...) / OnSetReportData(...)`
+   - OUT 中断端点：启用 `RX_REPORT_LEN > 0` 并覆写 `OnDataOutComplete(...)`
 
-如果需要发送队列/连续发送，可在 `OnDataInComplete()` 中实现“发送下一帧”的调度逻辑。
+如需连续发送/队列化，可在 `OnDataInComplete(...)` 中实现“发送下一帧”的调度。

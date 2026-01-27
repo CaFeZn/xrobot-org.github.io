@@ -1,7 +1,7 @@
 ---
-id: adv-coding
+id: con-guide
 title: 贡献指南
-sidebar_position: 10
+sidebar_position: 11
 ---
 
 # 贡献指南
