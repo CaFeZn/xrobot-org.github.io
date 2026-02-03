@@ -16,7 +16,19 @@ class MicrosecondTimestamp {
   MicrosecondTimestamp();
   MicrosecondTimestamp(uint64_t microsecond);
   operator uint64_t() const;
-  Duration operator-(const MicrosecondTimestamp &old) const;
+
+  class Duration {
+   public:
+    Duration(uint64_t diff);
+    operator uint64_t() const;
+    double ToSecond() const;
+    float ToSecondf() const;
+    uint64_t ToMicrosecond() const;
+    uint32_t ToMillisecond() const;
+  };
+
+  Duration operator-(const MicrosecondTimestamp& old) const;
+  MicrosecondTimestamp& operator=(const MicrosecondTimestamp& other);
 };
 ```
 
@@ -24,19 +36,7 @@ Represents a microsecond-level timestamp. Supports implicit conversion to `uint6
 
 ### Duration
 
-```cpp
-class Duration {
- public:
-  Duration(uint64_t diff);
-  operator uint64_t() const;
-  double ToSecond() const;
-  float ToSecondf() const;
-  uint64_t ToMicrosecond() const;
-  uint32_t ToMillisecond() const;
-};
-```
-
-Represents the time difference between two `MicrosecondTimestamp` instances, in microseconds. Supports conversion to seconds and milliseconds.
+`MicrosecondTimestamp::Duration` represents the time difference between two `MicrosecondTimestamp` instances, in microseconds. Supports conversion to seconds and milliseconds.
 
 ## MillisecondTimestamp
 
@@ -46,7 +46,18 @@ class MillisecondTimestamp {
   MillisecondTimestamp();
   MillisecondTimestamp(uint32_t millisecond);
   operator uint32_t() const;
-  Duration operator-(MillisecondTimestamp &old);
+
+  class Duration {
+   public:
+    Duration(uint32_t diff);
+    operator uint32_t() const;
+    double ToSecond() const;
+    float ToSecondf() const;
+    uint32_t ToMillisecond() const;
+    uint64_t ToMicrosecond() const;
+  };
+
+  Duration operator-(const MillisecondTimestamp& old) const;
 };
 ```
 
@@ -54,23 +65,20 @@ Represents a millisecond-level timestamp. Supports implicit conversion to `uint3
 
 ### Duration
 
-```cpp
-class Duration {
- public:
-  Duration(uint32_t diff);
-  operator uint32_t() const;
-  double ToSecond() const;
-  float ToSecondf() const;
-  uint64_t ToMicrosecond() const;
-  uint32_t ToMillisecond() const;
-};
-```
-
-Represents the time difference between two `MillisecondTimestamp` instances, in milliseconds. Supports conversion to seconds and microseconds.
+`MillisecondTimestamp::Duration` represents the time difference between two `MillisecondTimestamp` instances, in milliseconds. Supports conversion to seconds and microseconds.
 
 ## Overflow Handling
 
 Time difference computations handle timestamp wrap-around (e.g., overflow), making it suitable for system clock management on embedded platforms.
+
+To adapt to different platforms/timebases, this module also exposes two timebase configuration values (used by the implementation layer):
+
+```cpp
+extern uint64_t libxr_timebase_max_valid_us;
+extern uint32_t libxr_timebase_max_valid_ms;
+```
+
+They specify the "maximum valid timebase value" (microseconds/milliseconds), so wrap-around difference calculations and validity checks can be performed correctly.
 
 ---
 

@@ -30,18 +30,30 @@ struct Configuration {
 ### Core Methods
 
 ```cpp
-virtual ErrorCode Read(uint16_t slave_addr, RawData read_data, ReadOperation& op) = 0;
-virtual ErrorCode Write(uint16_t slave_addr, ConstRawData write_data, WriteOperation& op) = 0;
+virtual ErrorCode Read(uint16_t slave_addr,
+                       RawData read_data,
+                       ReadOperation& op,
+                       bool in_isr = false) = 0;
+
+virtual ErrorCode Write(uint16_t slave_addr,
+                        ConstRawData write_data,
+                        WriteOperation& op,
+                        bool in_isr = false) = 0;
 virtual ErrorCode SetConfig(Configuration config) = 0;
 
 virtual ErrorCode MemRead(uint16_t slave_addr, uint16_t mem_addr,
                           RawData read_data, ReadOperation& op,
-                          MemAddrLength mem_addr_size = MemAddrLength::BYTE_8) = 0;
+                          MemAddrLength mem_addr_size = MemAddrLength::BYTE_8,
+                          bool in_isr = false) = 0;
 
 virtual ErrorCode MemWrite(uint16_t slave_addr, uint16_t mem_addr,
                            ConstRawData write_data, WriteOperation& op,
-                           MemAddrLength mem_addr_size = MemAddrLength::BYTE_8) = 0;
+                           MemAddrLength mem_addr_size = MemAddrLength::BYTE_8,
+                           bool in_isr = false) = 0;
 ```
+
+- `slave_addr`: I2C slave **8-bit address**.
+- `in_isr`: whether this I2C operation is initiated/progressed in ISR context (default `false`).
 
 ## Feature Summary
 

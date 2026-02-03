@@ -40,8 +40,8 @@ STM32USBDeviceOtgFS usb_fs(
     /* Serial Number UID (12 bytes read from STM32 UID) */
     {reinterpret_cast<void*>(UID_BASE), 12}
 );
-usb_fs.Init();
-usb_fs.Start();
+usb_fs.Init(false);
+usb_fs.Start(false);
 
 // USB CDC High-Speed (HS) OTG
 static constexpr auto USB_OTG_HS_LANG_PACK =
@@ -66,8 +66,8 @@ STM32USBDeviceOtgHS usb_hs(
     /* Serial Number UID (12 bytes read from STM32 UID) */
     {reinterpret_cast<void*>(UID_BASE), 12}
 );
-usb_hs.Init();
-usb_hs.Start();
+usb_hs.Init(false);
+usb_hs.Start(false);
 
 // USB CDC Full-Speed (FS) Device
 static constexpr auto USB_FS_LANG_PACK =
@@ -94,8 +94,8 @@ STM32USBDeviceDevFs usb_fs_dev(
     /* Serial Number UID (12 bytes read from STM32 UID) */
     {reinterpret_cast<void*>(UID_BASE), 12}
 );
-usb_fs_dev.Init();
-usb_fs_dev.Start();
+usb_fs_dev.Init(false);
+usb_fs_dev.Start(false);
 ```
 
 ## Terminal Code Examples

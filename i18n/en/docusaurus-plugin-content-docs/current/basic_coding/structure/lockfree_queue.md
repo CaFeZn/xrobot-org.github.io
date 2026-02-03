@@ -17,20 +17,20 @@ sidebar_position: 2
 
 ## Feature Overview
 
-| Feature | Supported |
-|---------|-----------|
-| Single Producer | ✅ |
-| Multiple Consumers | ✅ |
-| Batch Operations | ✅ |
-| Separate Peek/Pop | ✅ |
-| Dynamic Capacity | ❌ (fixed size) |
+| Feature             | Supported        |
+| ------------------- | ---------------- |
+| Single Producer     | ✅                |
+| Multiple Consumers  | ✅                |
+| Batch Operations    | ✅                |
+| Separate Peek/Pop   | ✅                |
+| Dynamic Capacity    | ❌ (fixed size)   |
 | Lock-Free Guarantee | ✅ (C++11 atomic) |
 
 ## Interface Functions
 
 ### Constructor and Destructor
 
-- `LockFreeQueue(size_t length)`
+- `LockFreeQueue(size_t length)` (includes dynamic memory allocation; `length` is aligned to `LIBXR_ALIGN_SIZE`, and the effective logical capacity is `MaxSize()`)
 - `~LockFreeQueue()`
 
 ### Data Operations
@@ -39,6 +39,7 @@ sidebar_position: 2
 - `ErrorCode Pop(T&)`
 - `ErrorCode Pop()` (discard head element)
 - `ErrorCode Peek(T&)`
+- `T* operator[](uint32_t index)`
 
 ### Batch Operations
 
@@ -50,6 +51,7 @@ sidebar_position: 2
 
 - `Size()`: Number of elements currently in the queue
 - `EmptySize()`: Remaining space
+- `MaxSize()`: Maximum capacity (number of elements)
 - `Reset()`: Clear the queue
 
 ## Usage Example
@@ -68,7 +70,9 @@ if (q.Pop(value) == LibXR::ErrorCode::OK) {
 
 - Only applicable to **single-producer** scenarios. Use external synchronization or another queue if you need multiple producers.
 - Fixed capacity: required size must be specified during construction.
-- Data structure is cache line aligned to reduce performance loss from false sharing.
+- The queue object and `head_ / tail_` are cache-line aligned (`alignas(LIBXR_CACHE_LINE_SIZE)`) to reduce performance loss from false sharing.
+- `operator[]` returns the address of the underlying array slot, mainly for debugging or special cases.
+- Due to alignment and implementation requirements, the actually allocated capacity may be **larger** than the constructor argument `length`; the usable logical capacity is `MaxSize()`.
 
 ## Application Scenarios
 

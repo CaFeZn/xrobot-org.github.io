@@ -30,7 +30,7 @@ sidebar_position: 2
 
 ### 构造与销毁
 
-- `LockFreeQueue(size_t length)`
+- `LockFreeQueue(size_t length)`（包含动态内存分配；`length` 会按 `LIBXR_ALIGN_SIZE` 做对齐修正，最终逻辑容量以 `MaxSize()` 为准）
 - `~LockFreeQueue()`
 
 ### 数据操作
@@ -39,6 +39,7 @@ sidebar_position: 2
 - `ErrorCode Pop(T&)`
 - `ErrorCode Pop()`（丢弃头部元素）
 - `ErrorCode Peek(T&)`
+- `T* operator[](uint32_t index)`
 
 ### 批量操作
 
@@ -50,6 +51,7 @@ sidebar_position: 2
 
 - `Size()`：当前元素数量
 - `EmptySize()`：剩余空间
+- `MaxSize()`：最大容量（元素个数）
 - `Reset()`：重置队列为空
 
 ## 使用示例
@@ -68,7 +70,9 @@ if (q.Pop(value) == LibXR::ErrorCode::OK) {
 
 - 仅适用于 **单生产者** 场景，多生产者需使用外部同步或其他队列方案。
 - 容量固定，构造时需明确所需大小。
-- 数据结构对齐至 cache line，可减少伪共享带来的性能损失。
+- 队列对象与 `head_ / tail_` 使用 cache line 对齐（`alignas(LIBXR_CACHE_LINE_SIZE)`），可减少伪共享带来的性能损失。
+- `operator[]` 返回的是底层数组槽位地址，主要用于调试或特殊用途。
+- 为满足对齐与实现需要，实际分配的队列容量可能**大于**构造入参 `length`；最终可用的逻辑容量以 `MaxSize()` 为准。
 
 ## 适用场景
 

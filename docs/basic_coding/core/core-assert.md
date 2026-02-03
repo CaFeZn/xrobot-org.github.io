@@ -11,7 +11,7 @@ sidebar_position: 2
 ## 致命错误处理接口
 
 ```cpp
-void libxr_fatal_error(const char *file, uint32_t line, bool in_isr);
+extern "C" void libxr_fatal_error(const char *file, uint32_t line, bool in_isr);
 ```
 
 该函数用于终止程序执行，可在正常或回调上下文中调用。发生断言失败时将自动调用，并可通过 `Assert` 类注册回调处理。

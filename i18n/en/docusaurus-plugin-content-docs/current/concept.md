@@ -8,7 +8,9 @@ sidebar_position: 2
 
 ## `Lock-free Data Structures and ISR-Driven Data Flow`
 
-In LibXR, all I/O is built on lock-free queues and ring buffers, with no reliance on mutexes or interrupt-masking critical sections during runtime. This ensures determinism and predictable latency across the transfer path. Device events are driven entirely by hardware interrupts, where the ISR is limited to tasks such as double-buffer switching and state machine transitions, without any additional logic. As a result, data flow is strictly paced by hardware rather than operating system scheduling. In this way, LibXR’s I/O forms a lock-free pipeline driven by interrupts, characterized by lightweight design and real-time responsiveness.
+In LibXR, all I/O is built on lock-free queues and ring buffers, with no reliance on mutexes or interrupt-masking critical sections during runtime, thereby ensuring deterministic transfer paths and controllable latency. Device events are driven entirely by hardware interrupts; the ISR is limited to necessary tasks such as double-buffer switching and state machine transitions, without additional logic. As a result, data flow is strictly paced by hardware rather than operating system scheduling. In this way, I/O can be viewed as an interrupt-driven lock-free pipeline: lightweight and real-time.
+
+To prevent callbacks from recursively re-entering and growing the stack when events trigger each other and form a loop (for example A → B → C → A), the callback mechanism includes a reentrancy guard: if the same callback is already executing, re-triggering it does not create a new nested stack frame, but is instead merged/deferred so the call depth stays bounded. This keeps stack usage stable and makes worst-case latency analysis easier.
 
 ## `Runtime memory allocation in embedded systems is a design flaw`
 

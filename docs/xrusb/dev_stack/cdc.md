@@ -12,12 +12,13 @@ sidebar_position: 1
 - 端点资源申请、配置与回调分发
 - CDC ACM 标准类请求处理（Line Coding / Control Line State）
 - Serial State 通知的格式与发送策略
-- 上层适配（`CDCUart`）与吞吐测试类（`CDCWriteTest` / `CDCReadTest`）
+- 上层适配（`CDCUart` / `CDCToUart`）与吞吐测试类（`CDCWriteTest` / `CDCReadTest`）
 
 当前 CDC 协议栈由以下头文件构成（源码随仓库提供）：
 
 - `cdc_base.hpp`：CDC ACM 通用基类（描述符 / 类请求 / 端点管理 / 回调分发）
 - `cdc_uart.hpp`：CDC ↔ UART 语义适配（对上提供 `LibXR::UART` 的 Read/Write）
+- `cdc_to_uart.hpp`：CDC ↔ UART 双向桥接（`CDCToUart`，CDC到外部 UART 持续搬运）
 - `cdc_test.hpp`：吞吐测试用类（持续写出 / 持续读入）
 
 ---
@@ -51,13 +52,28 @@ virtual void OnDataInComplete(bool in_isr, ConstRawData& data) = 0;
 - `Write()`：向主机发送 IN 数据
 - `SetConfig()`：把 UART 配置映射到 CDC Line Coding，并发送一次 Serial State 通知
 
-它内部使用 `LibXR::ReadPort` / `LibXR::WritePort` 做软件缓冲与写队列管理，并在端点回调中完成数据入队/出队。
+它内部使用 `LibXR::ReadPort` / `LibXR::WritePort` 做软件缓冲与写队列管理，并在端点回调中完成数据入队/出队；同时包含背压与 pending 缓存机制，在 RX 队列空间不足时暂停 OUT rearm，待上层消费后恢复。
+
+### `LibXR::USB::CDCToUart`
+
+`CDCToUart` 继承自 `CDCUart`，用于把 **USB CDC 虚拟串口** 与一个“外部 `LibXR::UART` 实例”做双向桥接：
+
+- CDC RX → UART TX：CDC 收到的 OUT 数据写入 UART
+- UART RX → CDC TX：UART 收到的数据写入 CDC
+
+实现方式为“回调链泵送（pump）”：每次一侧写完成后触发对侧下一次读/写，从而持续搬运。
+
+注意事项：
+
+- 构造函数会进行动态内存分配（为 RX/TX 临时缓存申请堆内存）。
+- 被桥接 UART 的写队列容量需要满足 `rx_buffer_size`（代码内有 `ASSERT(uart_.write_port_->queue_data_->MaxSize() >= rx_buffer_size)`）。
+- 该类在构造结束时会各自挂起一次 CDC 读与 UART 读（`Read({nullptr,0}, ...)`）以进入回调链。
 
 ### `LibXR::USB::CDCWriteTest` / `LibXR::USB::CDCReadTest`
 
 两者均派生自 `CDCBase`，用于验证链路吞吐与驱动稳定性：
 
-- `CDCWriteTest`：当主机发送任意数据时，持续通过 Data IN 回传数据（测试设备 → 主机通路）
+- `CDCWriteTest`：忽略主机发来的 OUT 数据；当 DTR 已置位时，持续通过 Data IN 回传数据（测试设备 → 主机通路）
 - `CDCReadTest`：持续预装 OUT 端点接收并在完成后立即重启（测试主机 → 设备通路）
 
 ---
@@ -71,12 +87,13 @@ CDC ACM 设备以 **两接口（Communication + Data）** 的方式呈现，并�
 - 通信接口（Communication Interface）：包含 1 个 Interrupt IN 端点（Notification Endpoint）
 - 数据接口（Data Interface）：包含 1 个 Bulk OUT + 1 个 Bulk IN（数据收发）
 
-`CDCBase::GetInterfaceNum()` 固定返回 `2`，`HasIAD()` 固定返回 `true`。
+`CDCBase::GetInterfaceCount()` 固定返回 `2`，`HasIAD()` 固定返回 `true`。
 
 说明：
 
 - IAD 的 `bFirstInterface` 由 `start_itf_num` 偏移得到
 - Communication Interface 通常是 class request 的目标接口（`wIndex` 指向该接口号）
+- `CDCBase` 内部记录通信接口号 `itf_comm_in_num_ = start_itf_num`，用于 Serial State 通知的 `wIndex`
 
 ### 端点（Endpoint）
 
@@ -90,7 +107,7 @@ CDC ACM 设备以 **两接口（Communication + Data）** 的方式呈现，并�
 
 Comm IN 端点最大包大小固定为 16 字节；Serial State 通知本身为 10 字节结构（见下文）。
 
-端点号可在构造 `CDCBase` / `CDCUart` / 测试类时指定；默认使用 `Endpoint::EPNumber::EP_AUTO` 由端点池自动分配。
+端点号可在构造 `CDCBase` / `CDCUart` / `CDCToUart` / 测试类时指定；默认使用 `Endpoint::EPNumber::EP_AUTO` 由端点池自动分配。
 
 ### 速度与最大包大小
 
@@ -153,9 +170,11 @@ CDC ACM 的 Line Coding 通过类请求 `SET_LINE_CODING` / `GET_LINE_CODING` �
 提示：
 
 - USB CDC 的 Line Coding 在多数桌面 OS 上更多是“协商/提示”，是否真正影响主机侧串口参数取决于驱动策略
-- 如果用于桥接真实 UART 外设，请以回调参数为准并在外设侧做合法性校验
+- 若用于桥接真实 UART 外设，请以回调参数为准并在外设侧做合法性校验
 
-### Serial State 通知
+---
+
+## Serial State 通知
 
 `SendSerialState()` 通过 Comm IN（Interrupt IN）端点向主机发送 Serial State 通知。
 
@@ -189,8 +208,6 @@ struct SerialStateNotification
 - `SetOnSetControlLineStateCallback(LibXR::Callback<bool, bool> cb)`
 - `SetOnSetLineCodingCallback(LibXR::Callback<LibXR::UART::Configuration> cb)`
 
-这些回调的 `Run(in_isr, ...)` 由控制传输处理路径触发；`in_isr` 用于提示调用上下文。
-
 ---
 
 ## 初始化与资源释放行为
@@ -205,11 +222,11 @@ struct SerialStateNotification
 - 将描述符块通过 `SetData(RawData{...})` 交给设备框架拼入配置描述符
 - 注册 Data OUT / Data IN 端点传输完成回调
 - 设置 `inited_ = true`
-- 启动 Data OUT 预接收：`ep_data_out_->Transfer(ep_data_out_->MaxTransferSize())`
+- 启动 Data OUT 预接收：`ep_data_out_->Transfer(ep_data_out_->MaxPacketSize())`
 
 提示：
 
-- OUT 端点预接收的长度取决于端点实现的 `MaxTransferSize()`，用于持续接收主机数据
+- OUT 端点预接收长度此处使用 `MaxPacketSize()` 作为首包接收长度，用于尽快进入持续接收循环
 - `CDCBase` 不对收到的数据做缓存；派生类需在 `OnDataOutComplete` 中消费并重启 OUT 传输（或按自身策略重启）
 
 ### Deinit 行为
@@ -226,6 +243,12 @@ struct SerialStateNotification
 
 - 终止所有依赖端点对象的异步操作
 - 对外完成或失败掉未完成的读写请求，避免上层永久等待
+
+`CDCUart` 在 `UnbindEndpoints()` 中额外做了队列清理与失败回收：
+
+- 清空 TX data 队列、重置 dequeue helper
+- 逐个 pop TX info，并以 `ErrorCode::INIT_ERR` 调用 `Finish()`，避免上层卡死
+- 清除 ZLP 状态与 RX 背压（`recv_pause_`/`pending_data_`），重置 write port 状态
 
 ---
 
@@ -264,6 +287,25 @@ cdc_uart.SetOnSetControlLineStateCallback(
     }
   )
 );
+```
+
+### CDC ↔ 外部 UART 双向桥接（`CDCToUart`）
+
+```cpp
+#include "cdc_to_uart.hpp"
+
+extern LibXR::UART& uart1;  // 你的硬件/外设 UART 实例
+
+LibXR::USB::CDCToUart cdc_to_uart(
+  uart1,
+  /*rx_buffer_size*/ 128,
+  /*tx_buffer_size*/ 128,
+  /*tx_queue_size*/  5
+);
+
+// 设备构造时把 &cdc_to_uart 放入 class 列表：{{&cdc_to_uart}}
+// usb_dev.Init();
+// usb_dev.Start();
 ```
 
 ### 吞吐测试

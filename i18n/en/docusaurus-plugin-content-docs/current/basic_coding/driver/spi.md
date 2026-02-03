@@ -54,6 +54,7 @@ inline bool IsDoubleBuffer() const;
 // Rate / prescaler capabilities
 virtual uint32_t GetMaxBusSpeed() const = 0;
 virtual Prescaler GetMaxPrescaler() const = 0;
+static constexpr uint32_t PrescalerToDiv(Prescaler prescaler);
 uint32_t GetBusSpeed() const;
 Prescaler CalcPrescaler(uint32_t target_max_bus_speed,
                         uint32_t target_min_bus_speed,
@@ -69,24 +70,34 @@ size_t GetActiveLength() const;
 // Transfer interface
 virtual ErrorCode ReadAndWrite(RawData read_data,
                                ConstRawData write_data,
-                               OperationRW& op) = 0;
+                               OperationRW& op,
+                               bool in_isr = false) = 0;
 
-virtual ErrorCode Read(RawData read_data, OperationRW& op);
+virtual ErrorCode Read(RawData read_data,
+                       OperationRW& op,
+                       bool in_isr = false);
 virtual ErrorCode Write(ConstRawData write_data,
-                        OperationRW& op);
+                        OperationRW& op,
+                        bool in_isr = false);
 
 virtual ErrorCode Transfer(size_t size,
-                           OperationRW& op) = 0;
+                           OperationRW& op,
+                           bool in_isr = false) = 0;
 
 // Register read/write
 virtual ErrorCode MemWrite(uint16_t reg,
                            ConstRawData write_data,
-                           OperationRW& op) = 0;
+                           OperationRW& op,
+                           bool in_isr = false) = 0;
 
 virtual ErrorCode MemRead(uint16_t reg,
                           RawData read_data,
-                          OperationRW& op) = 0;
+                          OperationRW& op,
+                          bool in_isr = false) = 0;
 ```
+
+- `OperationRW` is an alias of `WriteOperation` (SPI read/write completion reports `ErrorCode` uniformly).
+- `in_isr` indicates whether this SPI operation is initiated/progressed in ISR context (forwarded to the underlying implementation).
 
 ### Operation Struct
 

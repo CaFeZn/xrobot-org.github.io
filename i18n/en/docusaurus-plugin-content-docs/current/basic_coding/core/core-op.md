@@ -6,7 +6,9 @@ sidebar_position: 9
 
 # Operation Model
 
-This module defines the generic template class `Operation<Args...>` to describe asynchronous operations with completion feedback mechanisms. It supports three modes: Callback, Blocking, and Polling, and is designed to unify completion handling in embedded I/O operations.
+This module defines the generic template class `Operation<T>` to describe asynchronous operations with completion feedback mechanisms. It supports three modes: Callback, Blocking, and Polling, and is designed to unify completion handling in embedded I/O operations.
+
+`ReadOperation` / `WriteOperation` are aliases of `Operation<ErrorCode>` and are commonly used by I/O ports to report completion status via `ErrorCode`.
 
 ## Operation Modes
 
@@ -16,7 +18,7 @@ This module defines the generic template class `Operation<Args...>` to describe 
 enum class OperationType : uint8_t {
   CALLBACK,  // Uses a callback function to handle completion
   BLOCK,     // Waits using a semaphore (blocking)
-  POLLING,   // Uses a polling flag
+  POLLING,   // Uses a polling status variable
   NONE       // No completion handling
 };
 ```
@@ -27,7 +29,8 @@ enum class OperationType : uint8_t {
 enum class OperationPollingStatus : uint8_t {
   READY,
   RUNNING,
-  DONE
+  DONE,
+  ERROR
 };
 ```
 
@@ -40,23 +43,31 @@ Operation();
 // Construct a blocking operation
 Operation(Semaphore &sem, uint32_t timeout = UINT32_MAX);
 
-// Construct a callback-based operation
-Operation(Callback<Args...> &cb);
+// Construct a callback-based operation (T is the callback parameter type)
+Operation(Callback<T> &cb);
 
 // Construct a polling-based operation
 Operation(OperationPollingStatus &status);
 ```
 
+`Operation` can also be initialized from another `Operation` instance (copy/move semantics are equivalent to assignment).
+
 ## Status Updates
 
 ```cpp
-void UpdateStatus(bool in_isr, Args&&... args);
+template <typename Status>
+void UpdateStatus(bool in_isr, Status&& status);
+
 void MarkAsRunning();
 ```
 
-- `UpdateStatus(...)` triggers a callback, releases a semaphore, or sets polling state depending on the operation type.
-- `MarkAsRunning()` sets the polling status to RUNNING if the type is POLLING.
-- These functions are typically called by the driver; the user usually does not need to handle them directly.
+- `UpdateStatus(...)` triggers a callback, unblocks a waiter, or updates polling state depending on the operation type:
+  - CALLBACK: calls `cb.Run(in_isr, status)`, passing `status` as the completion value of type `T`.
+  - BLOCK: calls `Semaphore::PostFromCallback(in_isr)` to unblock; the completion value is not part of the wake-up semantics.
+  - POLLING: updates the `OperationPollingStatus` variable to `DONE` on success, otherwise `ERROR`. This rule is uniform for any `T`: by convention, a value of `0` means success (for example `ErrorCode::OK == 0`).
+- `MarkAsRunning()` sets the polling status to `RUNNING` if the type is `POLLING`.
+- If `in_isr == true` and the operation type is `BLOCK`, an assertion failure is triggered.
+- These functions are typically called by drivers/ports; users only need to select an `OperationType` and pass an `Operation` instance in.
 
 ## Usage Examples
 
@@ -68,7 +79,7 @@ WriteOperation op_block(sem, 100);
 write_port(data, op_block);
 ```
 
-### Asynchronous read with callback
+### Callback-based completion feedback
 
 ```cpp
 auto cb = Callback<ErrorCode>::Create([](bool in_isr, int context, ErrorCode ec) {
@@ -88,7 +99,9 @@ read_port(buffer, op_poll);
 
 // Later check if completed
 if (status == LibXR::ReadOperation::OperationPollingStatus::DONE) {
-  // Data read completed
+  // Completed successfully
+} else if (status == LibXR::ReadOperation::OperationPollingStatus::ERROR) {
+  // Completed with an error
 }
 ```
 

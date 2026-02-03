@@ -29,26 +29,29 @@ This module provides the foundational macros, constants, error codes, and generi
 
 The `ErrorCode` enum defines a unified error code system used to represent various operation results:
 
-| Name           | Value | Meaning                  |
-|----------------|-------|--------------------------|
-| `OK`           | 0     | Operation succeeded      |
-| `FAILED`       | -1    | Operation failed         |
-| `INIT_ERR`     | -2    | Initialization error     |
-| `ARG_ERR`      | -3    | Invalid argument         |
-| `STATE_ERR`    | -4    | Invalid state            |
-| `SIZE_ERR`     | -5    | Size mismatch            |
-| `CHECK_ERR`    | -6    | Validation failed        |
-| `NOT_SUPPORT`  | -7    | Feature not supported    |
-| `NOT_FOUND`    | -8    | Object not found         |
-| `NO_RESPONSE`   | -9    | No response              |
-| `NO_MEM`       | -10   | Insufficient memory      |
-| `NO_BUFF`      | -11   | Insufficient buffer      |
-| `TIMEOUT`      | -12   | Operation timeout        |
-| `EMPTY`        | -13   | No data available        |
-| `FULL`         | -14   | Data full                |
-| `BUSY`         | -15   | Resource busy            |
-| `PTR_NULL`     | -16   | Null pointer error       |
-| `OUT_OF_RANGE` | -17   | Out of valid range       |
+| Name           | Value | Meaning               |
+| -------------- | ----- | --------------------- |
+| `PENDING`      | 1     | Operation in progress |
+| `OK`           | 0     | Operation succeeded   |
+| `FAILED`       | -1    | Operation failed      |
+| `INIT_ERR`     | -2    | Initialization error  |
+| `ARG_ERR`      | -3    | Invalid argument      |
+| `STATE_ERR`    | -4    | Invalid state         |
+| `SIZE_ERR`     | -5    | Size mismatch         |
+| `CHECK_ERR`    | -6    | Validation failed     |
+| `NOT_SUPPORT`  | -7    | Feature not supported |
+| `NOT_FOUND`    | -8    | Object not found      |
+| `NO_RESPONSE`  | -9    | No response           |
+| `NO_MEM`       | -10   | Insufficient memory   |
+| `NO_BUFF`      | -11   | Insufficient buffer   |
+| `TIMEOUT`      | -12   | Operation timeout     |
+| `EMPTY`        | -13   | No data available     |
+| `FULL`         | -14   | Data full             |
+| `BUSY`         | -15   | Resource busy         |
+| `PTR_NULL`     | -16   | Null pointer error    |
+| `OUT_OF_RANGE` | -17   | Out of valid range    |
+
+Convention: positive values usually indicate a non-terminal / in-progress state (for example `PENDING`), `0` means success, and negative values indicate a failure reason.
 
 ## Size Limit Modes (`SizeLimitMode`)
 

@@ -36,7 +36,6 @@ Setup STM32Cube project的时候建议选择混合模式（gcc+starm-clang）以
 
 ### stm32cube-clangd 插件主要问题
 
-* ~~不会为 `--query-driver` 自动添加 C++ 编译器路径，且手动添加后每次打开工程会被覆盖~~：新版已经修复
 * 无法识别 ST-ARM-CLANG 的 `--multi-lib-config` 编译选项：避免使用混合（Hybrid）模式的starm-clang编译器，gcc、starm-clang+newlib和starm-clang+picolibc模式的starm-clang编译器均可以正常使用，推荐使用picolibc。
 
 ### CLion / 命令行编译

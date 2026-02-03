@@ -34,21 +34,31 @@ struct Configuration {
 ### 构造与配置
 
 ```cpp
-UART(ReadPort* read_port, WritePort* write_port);
+template <typename ReadPortType = ReadPort, typename WritePortType = WritePort>
+UART(ReadPortType* read_port, WritePortType* write_port);
+
 virtual ErrorCode SetConfig(Configuration config) = 0;
 ```
+
+构造时传入读写端口指针（允许传入 `ReadPort/WritePort` 的派生类型）。对象内部会保存：
+
+- `ReadPort* read_port_`
+- `WritePort* write_port_`
 
 ### 数据收发接口
 
 ```cpp
 template <typename OperationType>
-ErrorCode Write(ConstRawData data, OperationType&& op);
+ErrorCode Write(ConstRawData data, OperationType&& op, bool in_isr = false);
 
 template <typename OperationType>
-ErrorCode Read(RawData data, OperationType&& op);
+ErrorCode Read(RawData data, OperationType&& op, bool in_isr = false);
 ```
 
 `Write` 与 `Read` 接口基于统一的 `Port + Operation` 抽象，支持阻塞、回调、轮询等模式，便于在主循环或异步环境中使用。
+
+- `OperationType` 需要是 `WriteOperation` / `ReadOperation`（或其派生/等价类型）。
+- `in_isr` 指示是否在中断上下文中调用（会透传到端口的 `operator()`）。
 
 ## 特性总结
 

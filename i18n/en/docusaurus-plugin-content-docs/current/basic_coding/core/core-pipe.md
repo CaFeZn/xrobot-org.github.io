@@ -13,7 +13,7 @@ sidebar_position: 12
 ## Feature Overview
 
 - **Zero extra copies**: writer writes → goes directly into the shared queue → reader takes from the same queue.
-- **ISR-friendly**: the `in_isr` flag ensures that advancing the read side follows interrupt-context constraints.
+- **ISR-friendly**: read-side progress is done via `ProcessPendingReads(in_isr)` and can be triggered in either ISR or task context.
 - **Consistent semantics with `ReadPort`/`WritePort`**: completion modes such as blocking/callback/polling are uniformly controlled by `Operation`.
 
 ---
@@ -23,14 +23,13 @@ sidebar_position: 12
 ```cpp
 class Pipe {
 public:
-  // Construct with the capacity (bytes) of the shared data queue; in_isr = true
-  // indicates callbacks may run in ISR context
-  Pipe(size_t buffer_size, bool in_isr = false);
+  // Construct with the capacity (bytes) of the shared data queue
+  Pipe(size_t buffer_size);
 
   // Non-copyable / non-assignable
   Pipe(const Pipe&) = delete;
   Pipe& operator=(const Pipe&) = delete;
-  ~Pipe() = default;
+  ~Pipe();
 
   // Port access
   ReadPort&  GetReadPort();
@@ -39,6 +38,27 @@ public:
 ```
 
 - `buffer_size`: total capacity of the shared queue (in bytes) used to hold written data. Immutable after creation.
-- `in_isr`: indicates whether `WriteFun` should advance the read side with ISR semantics (e.g., avoid blocking / perform only necessary progress).
+- `Pipe` does not directly expose methods like `Size()` / `Reset()` - use the corresponding port interfaces via `GetReadPort()` / `GetWritePort()`.
 
-> `Pipe` does not directly expose methods like `Size`/`Reset`—please use the corresponding port interfaces via `GetReadPort()` / `GetWritePort()`.
+---
+
+## Usage
+
+Use `Pipe` as an in-memory pipe with a built-in "loopback driver": writing triggers `WriteFun`, which then advances the read side to serve pending reads.
+
+```cpp
+LibXR::Pipe pipe(256);
+
+auto& r = pipe.GetReadPort();
+auto& w = pipe.GetWritePort();
+
+// Typical: start a read first (may become PENDING), then write to drive it forward.
+uint8_t buf[16];
+LibXR::ReadOperation rop(status_or_cb_or_sem);
+LibXR::WriteOperation wop(status_or_cb_or_sem);
+
+r({buf, sizeof(buf)}, rop);           // may pend
+w({some_data, some_len}, wop);        // this will drive r.ProcessPendingReads(...)
+```
+
+> Note: the read side of `Pipe` is "passively progressed": a pending read completes only when the write side triggers progress (or you explicitly call `ProcessPendingReads` from the outside). This matches the `ReadPort` model.

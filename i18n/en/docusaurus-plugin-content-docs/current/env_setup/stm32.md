@@ -38,7 +38,6 @@ When setting up a new STM32Cube project, it is recommended to use the **hybrid m
 
 ### stm32cube-clangd Extension Issues
 
-* ~~Did not automatically add the C++ compiler path for `--query-driver`, and manual additions were overwritten each time the project was opened~~ → **Fixed in the latest version**.
 * Still does **not** recognize ST-ARM-CLANG’s `--multi-lib-config` option.  
   → Avoid using **Hybrid (STARM_HYBRID)** mode with starm-clang.  
   → `gcc`, `starm-clang+newlib` and `starm-clang+picolibc` modes work correctly. **Recommended: starm-clang + picolibc**.

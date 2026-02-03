@@ -11,7 +11,7 @@ This module provides runtime error checking, fatal error handling, and size vali
 ## Fatal Error Handling Interface
 
 ```cpp
-void libxr_fatal_error(const char *file, uint32_t line, bool in_isr);
+extern "C" void libxr_fatal_error(const char *file, uint32_t line, bool in_isr);
 ```
 
 This function is used to terminate program execution and can be called from both normal and callback contexts. It is automatically invoked on assertion failure and can be handled via callbacks registered with the `Assert` class.

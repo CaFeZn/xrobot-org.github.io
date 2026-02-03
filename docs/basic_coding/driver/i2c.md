@@ -30,18 +30,32 @@ struct Configuration {
 ### 主要方法
 
 ```cpp
-virtual ErrorCode Read(uint16_t slave_addr, RawData read_data, ReadOperation& op) = 0;
-virtual ErrorCode Write(uint16_t slave_addr, ConstRawData write_data, WriteOperation& op) = 0;
+virtual ErrorCode Read(uint16_t slave_addr,
+                       RawData read_data,
+                       ReadOperation& op,
+                       bool in_isr = false) = 0;
+
+virtual ErrorCode Write(uint16_t slave_addr,
+                        ConstRawData write_data,
+                        WriteOperation& op,
+                        bool in_isr = false) = 0;
+
 virtual ErrorCode SetConfig(Configuration config) = 0;
 
 virtual ErrorCode MemRead(uint16_t slave_addr, uint16_t mem_addr,
                           RawData read_data, ReadOperation& op,
-                          MemAddrLength mem_addr_size = MemAddrLength::BYTE_8) = 0;
+                          MemAddrLength mem_addr_size = MemAddrLength::BYTE_8,
+                          bool in_isr = false) = 0;
 
 virtual ErrorCode MemWrite(uint16_t slave_addr, uint16_t mem_addr,
                            ConstRawData write_data, WriteOperation& op,
-                           MemAddrLength mem_addr_size = MemAddrLength::BYTE_8) = 0;
+                           MemAddrLength mem_addr_size = MemAddrLength::BYTE_8,
+                           bool in_isr = false) = 0;
 ```
+
+- `slave_addr`：从设备 **8 位地址**。
+- `in_isr`：指示是否在中断上下文中发起/推进本次 I2C 操作（默认 `false`）。
+
 
 ## 特性总结
 

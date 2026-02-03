@@ -16,7 +16,19 @@ class MicrosecondTimestamp {
   MicrosecondTimestamp();
   MicrosecondTimestamp(uint64_t microsecond);
   operator uint64_t() const;
-  Duration operator-(const MicrosecondTimestamp &old) const;
+
+  class Duration {
+   public:
+    Duration(uint64_t diff);
+    operator uint64_t() const;
+    double ToSecond() const;
+    float ToSecondf() const;
+    uint64_t ToMicrosecond() const;
+    uint32_t ToMillisecond() const;
+  };
+
+  Duration operator-(const MicrosecondTimestamp& old) const;
+  MicrosecondTimestamp& operator=(const MicrosecondTimestamp& other);
 };
 ```
 
@@ -24,19 +36,7 @@ class MicrosecondTimestamp {
 
 ### Duration
 
-```cpp
-class Duration {
- public:
-  Duration(uint64_t diff);
-  operator uint64_t() const;
-  double ToSecond() const;
-  float ToSecondf() const;
-  uint64_t ToMicrosecond() const;
-  uint32_t ToMillisecond() const;
-};
-```
-
-表示两个 `MicrosecondTimestamp` 之间的差值，单位为微秒。支持以秒/毫秒返回差值。
+`MicrosecondTimestamp::Duration` 表示两个 `MicrosecondTimestamp` 之间的差值，单位为微秒。支持以秒/毫秒返回差值。
 
 ## MillisecondTimestamp
 
@@ -46,7 +46,18 @@ class MillisecondTimestamp {
   MillisecondTimestamp();
   MillisecondTimestamp(uint32_t millisecond);
   operator uint32_t() const;
-  Duration operator-(MillisecondTimestamp &old);
+
+  class Duration {
+   public:
+    Duration(uint32_t diff);
+    operator uint32_t() const;
+    double ToSecond() const;
+    float ToSecondf() const;
+    uint32_t ToMillisecond() const;
+    uint64_t ToMicrosecond() const;
+  };
+
+  Duration operator-(const MillisecondTimestamp& old) const;
 };
 ```
 
@@ -54,23 +65,20 @@ class MillisecondTimestamp {
 
 ### Duration
 
-```cpp
-class Duration {
- public:
-  Duration(uint32_t diff);
-  operator uint32_t() const;
-  double ToSecond() const;
-  float ToSecondf() const;
-  uint64_t ToMicrosecond() const;
-  uint32_t ToMillisecond() const;
-};
-```
-
-表示两个 `MillisecondTimestamp` 之间的差值，单位为毫秒。支持以秒/微秒返回差值。
+`MillisecondTimestamp::Duration` 表示两个 `MillisecondTimestamp` 之间的差值，单位为毫秒。支持以秒/微秒返回差值。
 
 ## 溢出处理
 
 时间差计算中已考虑时间戳回绕（如溢出），可用于嵌入式平台上的系统时钟处理。
+
+为适配不同平台/时间基，本模块额外暴露两个时间基配置量（由实现层使用）：
+
+```cpp
+extern uint64_t libxr_timebase_max_valid_us;
+extern uint32_t libxr_timebase_max_valid_ms;
+```
+
+它们用于指定“时间基最大有效值”（微秒/毫秒），以便在回绕场景下进行差值计算与合法性判定。
 
 ---
 
