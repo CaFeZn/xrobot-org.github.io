@@ -6,190 +6,105 @@ sidebar_position: 6
 
 # HPM 环境配置
 
-本文只覆盖 HPM 开发环境的基础配置，不包含 LibXR 自动代码生成部分。
+本文目前只覆盖 HPM 开发环境的基础配置，不包含 LibXR 自动代码生成部分。
 
-## 基础环境
+先楫官方的快速入门手册配置比较麻烦且并无新建工程的操作，因此本文以这篇文章为基础进行介绍
+[[HPM杂谈]你想要了解的先楫hpm_sdk开发都在这里系列 (二)](https://www.hpmicro.com/service-support/technical-articles/212)
 
-Windows:
+> 在阅读上述文章前，你需要先了解一点：截至本文撰写时，`hpm_env` 仓库已包含 `hpm_sdk`，因此现在只需获取 `hpm_env`。另外，由于其中包含需要配置环境变量的内容，建议将其存放在固定且不易移动的位置。笔者将其放在 `D:/HPM/`。
 
-- Git: https://git-scm.com/
-- Python (>= 3.8): https://www.python.org/downloads/
-- CMake (>= 3.13): https://cmake.org/download/
-- Ninja (推荐): https://github.com/ninja-build/ninja/releases
 
-> 官方文档也提到可使用包管理器安装依赖，但笔者未验证；建议仍以手动安装或 `sdk_env` 为准。
+根据网络状况从选择`gitee`或`github`源
 
-Linux (Ubuntu/Debian):
-
-```bash
-sudo apt update
-sudo apt install -y build-essential cmake ninja-build libc6-i386 libc6-i386-cross libstdc++6-i386-cross
-sudo apt install -y git python3 python3-pip tar xz-utils wget
+```sh
+ # gitee
+ git clone https://gitee.com/hpmicro/sdk_env.git
+ # github
+ git clone https://github.com/hpmicro/sdk_env.git
 ```
 
-## 获取 HPM SDK 与工具
+此处以`hpm5301evklite`开发板为例，其余配置均保持默认
 
-按网络情况选择 gitee 或 github：
+# 新建工程
 
-```bash
-# HPM SDK
-git clone https://gitee.com/hpmicro/hpm_sdk.git
-# or
-git clone https://github.com/hpmicro/hpm_sdk.git
+自行创建一个`CMakeLists.txt`内容如下
 
-# SDK 环境与工具链
-git clone https://gitee.com/hpmicro/sdk_env.git
-# or
-git clone https://github.com/hpmicro/sdk_env.git
+```cmake
+# Copyright (c) 2021 HPMicro
+# SPDX-License-Identifier: BSD-3-Clause
 
-# OpenOCD (HPM patched)
-git clone https://gitee.com/hpmicro/riscv-openocd.git
-# or
-git clone https://github.com/hpmicro/riscv-openocd.git
+cmake_minimum_required(VERSION 3.13)
+
+find_package(hpm-sdk REQUIRED HINTS $ENV{HPM_SDK_BASE})
+
+project(user_app)
+
+sdk_app_inc(inc)
+sdk_app_src(src/main.cpp)
+
 ```
 
-建议将这些仓库放在固定路径（不要放在“下载”这类经常整理移动的目录），例如：
+加入`src/main.cpp`(为了方便融入LibXR，此处直接使用了main.cpp)，内容如下：
+```cpp
+#include <stdio.h>
+#include "board.h"
 
-- `D:\hpm\hpm_sdk`
-- `D:\hpm\sdk_env`
-- `D:\hpm\riscv-openocd`
+int main(void)
+{
+    board_init();
 
-## 工具链配置
+    while(1) {
+        ;
+    }
+    return 0;
+}
 
-推荐使用 `sdk_env` 中提供的工具链与环境脚本，避免手动配置出错。
-
-### Windows (PowerShell)
-
-在 `sdk_env` 目录中执行：
-
-```powershell
-.\env.cmd
 ```
 
-> 也可以使用 Chocolatey 安装依赖（需要管理员权限）。
 
-### Linux / macOS
+>前提：已经设置好环境变量了，经过笔者测试，若使用`sdk_env\hpm_sdk\env.cmd`设置系统环境变量后移动了`sdk_env`，直接重新运行该脚本并不能直接修改环境变量，需要手动去系统环境变量修改为最新路径，此处不再赘述。
+>
+> **强烈建议一次配置完毕之后不要移动路径，重新配置系统变量非常麻烦**
 
-在 `sdk_env` 目录中执行：
+示例工程文件结构如下
+![alt text](/static/img/hpm_template_dir.png)
 
-```bash
-source ./env.sh
-```
+> linkers可忽略，在gui配置时可配置为本地ld文件，若不配置则使用默认ld文件，此处为了高级开发保留了该目录，这些文件可从`sdk_env\user_template\user_app`获取
 
-> 如果你已经安装了独立的 RISC-V GCC 工具链，也可以自行设置 `PATH`，但建议优先使用 `sdk_env` 以保持一致性。
+然后运行`sdk_env\start_gui.exe`
 
-### 可选：手动设置工具链环境变量
+按照下图配置
+![alt text](/static/img/hpm_example_setup.png)
 
-如果不使用 `sdk_env`，需要手动设置以下环境变量（以 GNU GCC 为例，默认工具链）：
+其中框出的区域是刚刚新建工程的路径，为了方便VSCode配置，我们将`生成文件夹`设置为`debug`而非默认的长字符串
 
-Linux/macOS:
+然后点击`本地化SDK`
 
-```bash
-export GNURISCV_TOOLCHAIN_PATH=/path/to/toolchain
-export HPM_SDK_TOOLCHAIN_VARIANT=
-```
+## VSCode 环境配置
 
-Windows:
-
-```cmd
-set GNURISCV_TOOLCHAIN_PATH=C:\path\to\toolchain
-set HPM_SDK_TOOLCHAIN_VARIANT=
-```
-
-> 也可切换 `HPM_SDK_TOOLCHAIN_VARIANT` 为 `nds-gcc` 或 `zcc`。
-
-## HPM SDK 环境变量
-
-使用脚本或手动声明 `HPM_SDK_BASE`：
-
-Linux/macOS:
-
-```bash
-export HPM_SDK_BASE=/path/to/hpm_sdk
-```
-
-Windows:
-
-```cmd
-set HPM_SDK_BASE=C:\path\to\hpm_sdk
-```
-
-## 安装 Python 依赖
-
-Linux/macOS:
-
-```bash
-pip3 install --user -r "$HPM_SDK_BASE/scripts/requirements.txt"
-```
-
-Windows:
-
-```cmd
-pip install --user -r "%HPM_SDK_BASE%/scripts/requirements.txt"
-```
-
-> Windows 默认不提供 `python3/pip3`，请使用 `python/pip`。
-
-## VSCode + CMake（推荐）
-
-建议使用 VSCode + CMake Tools 进行构建与调试。
-
-### 推荐插件
-
-- CMake Tools
-- C/C++
-- clangd
-- HPM Pinmux Tool (可选)
-
+安装以下插件(或者直接创建`.vscode`文件夹，新建`externsions.json`，将下面内容粘贴，然后在拓展处安装工作区推荐的插件)
 ```json
 {
-  "recommendations": [
-    "ms-vscode.cmake-tools",
-    "ms-vscode.cpptools",
-    "llvm-vs-code-extensions.vscode-clangd",
-    "hpmicro.hpm-pinmux-tool"
-  ]
+    "recommendations": [
+        "llvm-vs-code-extensions.vscode-clangd",
+        "ms-vscode.cmake-tools",
+        "josetr.cmake-language-support-vscode",
+        "hpmicro.hpm-pinmux-tool",
+    ]
 }
 ```
 
-### CMake 构建方式
+按下面步骤配置
 
-以 HPM SDK 示例工程为例：
+![alt text](/static/img/hpm-setup-1.png)
 
-```bash
-mkdir build
-cd build
-cmake -GNinja -DBOARD=hpm6750evkmini ..
-ninja
-```
+找到sdk_env的路径，然后选择文件夹
 
-不同板卡对应的 CMake 参数可能不同，请以 HPM SDK 的对应 board/sample 说明为准。
+![alt text](/static/img/hpm-setup-2.png)
 
-## 烧录与调试
+此时就可以找到`GCC 13.2.0 riscv32-unknown-elf`，选择后即可使用CMake插件进行管理
 
-- 使用 `riscv-openocd` 进行调试与烧录
-- 使用板卡配套的调试器（J-Link / HPM 官方调试器）
+现在按`F7`即可完成编译
 
-如果你在调试时遇到连接问题，优先检查：
+![alt text](/static/img/hpm-setup-3.png)
 
-- 调试器驱动是否安装
-- 目标板供电与复位脚状态
-- OpenOCD 配置是否匹配芯片型号
-
-如果需要手动配置 OpenOCD 脚本路径：
-
-Windows:
-
-```cmd
-set OPENOCD_SCRIPTS=%HPM_SDK_BASE%\boards\openocd
-```
-
-Linux/macOS:
-
-```bash
-export OPENOCD_SCRIPTS=$HPM_SDK_BASE/boards/openocd
-```
-
-## 参考
-
-- HPM SDK 快速入门: https://hpm-sdk.readthedocs.io/zh-cn/latest/get_started.html
