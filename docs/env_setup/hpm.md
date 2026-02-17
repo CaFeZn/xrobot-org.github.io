@@ -11,16 +11,23 @@ sidebar_position: 6
 先楫官方的快速入门手册配置比较麻烦且并无新建工程的操作，因此本文以这篇文章为基础进行介绍
 [[HPM杂谈]你想要了解的先楫hpm_sdk开发都在这里系列 (二)](https://www.hpmicro.com/service-support/technical-articles/212)
 
-> 在阅读上述文章前，你需要先了解一点：截至本文撰写时，`hpm_env` 仓库已包含 `hpm_sdk`，因此现在只需获取 `hpm_env`。另外，由于其中包含需要配置环境变量的内容，建议将其存放在固定且不易移动的位置。笔者将其放在 `D:/HPM/`。
+> 在阅读上述文章前，你需要先了解一点：当前仓库名为 `sdk_env`，其中已包含 `hpm_sdk`。另外，由于其中包含需要配置环境变量的内容，建议将其存放在固定且不易移动的位置。本文示例统一使用 `C:/HPM/sdk_env`。
 
 
-根据网络状况从选择`gitee`或`github`源
+根据网络状况选择 `gitee` 或 `github` 源进行克隆。
 
 ```sh
  # gitee
- git clone https://gitee.com/hpmicro/sdk_env.git
+ git clone https://gitee.com/hpmicro/sdk_env.git C:/HPM/sdk_env
  # github
- git clone https://github.com/hpmicro/sdk_env.git
+ git clone https://github.com/hpmicro/sdk_env.git C:/HPM/sdk_env
+```
+
+若终端可上网但 `git clone github` 失败，可先为命令行配置代理（示例端口 `7897`）：
+
+```powershell
+git config --global http.proxy  http://127.0.0.1:7897
+git config --global https.proxy http://127.0.0.1:7897
 ```
 
 此处以`hpm5301evklite`开发板为例，其余配置均保持默认
@@ -62,7 +69,7 @@ int main(void)
 ```
 
 
->前提：已经设置好环境变量了，经过笔者测试，若使用`sdk_env\hpm_sdk\env.cmd`设置系统环境变量后移动了`sdk_env`，直接重新运行该脚本并不能直接修改环境变量，需要手动去系统环境变量修改为最新路径，此处不再赘述。
+>前提：已经设置好环境变量了。若使用 `sdk_env\hpm_sdk\env.cmd` 设置系统环境变量后又移动了 `sdk_env`，直接重新运行该脚本可能无法自动修复旧路径，需要手动到系统环境变量中改为最新路径。
 >
 > **强烈建议一次配置完毕之后不要移动路径，重新配置系统变量非常麻烦**
 
@@ -76,13 +83,13 @@ int main(void)
 按照下图配置
 ![alt text](/static/img/hpm_example_setup.png)
 
-其中框出的区域是刚刚新建工程的路径，为了方便VSCode配置，我们将`生成文件夹`设置为`debug`而非默认的长字符串
+其中框出的区域是刚刚新建工程的路径。为了方便 VSCode 配置，我们将`生成文件夹`设置为`build`而非默认的长字符串。
 
 然后点击`本地化SDK`
 
 ## VSCode 环境配置
 
-安装以下插件(或者直接创建`.vscode`文件夹，新建`externsions.json`，将下面内容粘贴，然后在拓展处安装工作区推荐的插件)
+安装以下插件（或者直接创建`.vscode`文件夹，新建`extensions.json`，将下面内容粘贴，然后在扩展处安装工作区推荐插件）
 ```json
 {
     "recommendations": [
