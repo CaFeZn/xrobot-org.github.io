@@ -11,16 +11,16 @@ sidebar_position: 6
 先楫官方的快速入门手册配置比较麻烦且并无新建工程的操作，因此本文以这篇文章为基础进行介绍
 [[HPM杂谈]你想要了解的先楫hpm_sdk开发都在这里系列 (二)](https://www.hpmicro.com/service-support/technical-articles/212)
 
-> 在阅读上述文章前，你需要先了解一点：当前仓库名为 `sdk_env`，其中已包含 `hpm_sdk`。另外，由于其中包含需要配置环境变量的内容，建议将其存放在固定且不易移动的位置。本文示例统一使用 `C:/HPM/sdk_env`。
+> 在阅读上述文章前，你需要先了解一点：当前仓库名为 `sdk_env`，其中已包含 `hpm_sdk`。另外，由于其中包含需要配置环境变量的内容，建议将其存放在固定且不易移动的位置。本文示例统一使用 `D:/HPM/sdk_env`。
 
 
 根据网络状况选择 `gitee` 或 `github` 源进行克隆。
 
 ```sh
  # gitee
- git clone https://gitee.com/hpmicro/sdk_env.git C:/HPM/sdk_env
+ git clone https://gitee.com/hpmicro/sdk_env.git D:/HPM/sdk_env
  # github
- git clone https://github.com/hpmicro/sdk_env.git C:/HPM/sdk_env
+ git clone https://github.com/hpmicro/sdk_env.git D:/HPM/sdk_env
 ```
 
 若终端可上网但 `git clone github` 失败，可先为命令行配置代理（示例端口 `7897`）：
@@ -83,7 +83,7 @@ int main(void)
 按照下图配置（路径与输出目录已更新）
 ![alt text](/static/img/hpm_example_setup.png)
 
-其中框出的区域是刚刚新建工程的路径。为了方便 VSCode 配置，我们将`生成文件夹`设置为`build`而非默认的长字符串，路径统一为 `C:/HPM/sdk_env`。
+其中框出的区域是刚刚新建工程的路径。为了方便 VSCode 配置，我们将`生成文件夹`设置为`build`而非默认的长字符串，路径统一为 `D:/HPM/sdk_env`。
 
 然后点击`本地化SDK`
 
@@ -105,7 +105,7 @@ int main(void)
 
 ![alt text](/static/img/hpm-setup-1.png)
 
-找到 `sdk_env` 的路径（`C:/HPM/sdk_env`），然后选择文件夹
+找到 `sdk_env` 的路径（`D:/HPM/sdk_env`），然后选择文件夹
 
 ![alt text](/static/img/hpm-setup-2.png)
 
