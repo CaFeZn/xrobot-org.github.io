@@ -73,17 +73,17 @@ int main(void)
 >
 > **强烈建议一次配置完毕之后不要移动路径，重新配置系统变量非常麻烦**
 
-示例工程文件结构如下
+示例工程文件结构如下（已统一为 `build` 目录）
 ![alt text](/static/img/hpm_template_dir.png)
 
 > linkers可忽略，在gui配置时可配置为本地ld文件，若不配置则使用默认ld文件，此处为了高级开发保留了该目录，这些文件可从`sdk_env\user_template\user_app`获取
 
 然后运行`sdk_env\start_gui.exe`
 
-按照下图配置
+按照下图配置（路径与输出目录已更新）
 ![alt text](/static/img/hpm_example_setup.png)
 
-其中框出的区域是刚刚新建工程的路径。为了方便 VSCode 配置，我们将`生成文件夹`设置为`build`而非默认的长字符串。
+其中框出的区域是刚刚新建工程的路径。为了方便 VSCode 配置，我们将`生成文件夹`设置为`build`而非默认的长字符串，路径统一为 `C:/HPM/sdk_env`。
 
 然后点击`本地化SDK`
 
@@ -105,7 +105,7 @@ int main(void)
 
 ![alt text](/static/img/hpm-setup-1.png)
 
-找到sdk_env的路径，然后选择文件夹
+找到 `sdk_env` 的路径（`C:/HPM/sdk_env`），然后选择文件夹
 
 ![alt text](/static/img/hpm-setup-2.png)
 
