@@ -6,7 +6,7 @@ sidebar_position: 3
 
 # Auto-Generate Main Function (XRobotMain)
 
-XRobot provides a main function generator tool `xrobot_gen_main`, which extracts constructor parameters from each module’s header `MANIFEST` section and automatically generates a unified entry function `XRobotMain` for building complete embedded applications efficiently.
+`xrobot_gen_main` extracts constructor parameters from the MANIFEST sections in module headers and generates the unified entry function `XRobotMain`.
 
 ---
 
@@ -39,9 +39,9 @@ Discovered modules: BlinkLED
 [SUCCESS] Generated entry file: User/xrobot_main.hpp
 ```
 
-You will get two new files:
+Generation usually produces two files:
 
-- `User/xrobot.yaml`: configuration file (you can edit parameters)
+- `User/xrobot.yaml`: module parameter configuration
 - `User/xrobot_main.hpp`: auto-generated main function source code
 
 ---
@@ -60,7 +60,7 @@ modules:
       blink_cycle: 250
 ```
 
-You can adjust the parameters and rerun `xrobot_gen_main` to regenerate the updated main function.
+Adjust the parameters and rerun `xrobot_gen_main` to regenerate the main function.
 
 ---
 
@@ -123,7 +123,7 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
 
 ---
 
-## 7. Recommended Workflow
+## 7. Typical Flow
 
 1. Ensure each module header includes a `=== MODULE MANIFEST` comment block
 2. Run `xrobot_gen_main` to generate configuration and main function

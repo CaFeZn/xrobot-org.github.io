@@ -47,7 +47,7 @@ evt.Active(0x10);  // 普通线程上下文触发
 // 在非回调中获取事件链表
 auto list = evt.GetList(0x1234);
 // 在回调中触发
-evt.ActiveFromCallback(list, 0x1234);
+evt.ActiveFromCallback(list, 0x1234, true);
 ```
 
 ### 事件绑定
@@ -62,7 +62,7 @@ evt_dst.Bind(evt_src, 0xA, 0xB);  // 当 evt_src 的事件 0xA 触发时，会�
 
 - `Event::Register(event, cb)`：注册回调；
 - `Event::Active(event)`：非中断触发；
-- `Event::ActiveFromCallback(list, event)`：中断上下文安全触发；
+- `Event::ActiveFromCallback(list, event, in_isr)`：回调安全触发；
 - `Event::GetList(event)`：获取并缓存事件链表；
 - `Event::Bind(src, id_src, id_dst)`：实现事件桥接；
 - 内部使用 `RBTree<uint32_t>` 管理事件映射，事件对应回调使用 `LockFreeList` 存储。
@@ -79,9 +79,9 @@ auto cb = Event::Callback::Create([](bool, int* a, uint32_t e) {
 
 Event e1, e2;
 e1.Register(0x1234, cb);
-e1.Active(0x1234);  // arg += 1
-e2.Bind(e1, 0x4321, 0x1234);
-e2.Active(0x4321);  // arg += 1
+e2.Register(0x4321, cb);
+e2.Bind(e1, 0x1234, 0x4321);
+e1.Active(0x1234);  // arg += 2
 ```
 
 ---

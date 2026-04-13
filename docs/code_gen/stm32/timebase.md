@@ -18,11 +18,11 @@ STM32CubeMX默认会将Systick作为时钟基准，也可以手动指定其他�
 
 ```cpp
 // Systick 作为时钟基准
-STM32Timebase timebase();
+STM32Timebase timebase;
 ```
 
 ```cpp
-// Systick 作为时钟基准
+// 定时器作为时钟基准
 STM32TimerTimebase timebase(&htimX); // X 为时钟基准的定时器
 ```
 

@@ -20,6 +20,8 @@ Under the following conditions, any firmware based on the XRUSB stack may reuse 
 
    Detailed requirements are described below.
 
+> Devices such as CMSIS-DAP that intentionally use specific identification strings for compatibility with existing host toolchains do not follow the default rules on this page. In those cases, follow the corresponding device-class page.
+
 ## Serial Rules
 
 ### 1. Vendor Prefix
@@ -76,7 +78,7 @@ in order to have better control and brand independence.
 
 ## How to Request a Vendor Prefix
 
-You can request a vendor prefix (free of charge) in any of the following ways:
+Vendor prefixes can be requested in any of the following ways (free of charge):
 
 1. Open a GitHub issue in the repository, describing the prefix you want and how you plan to use it;
 2. Fork the repository, edit this document to add your vendor prefix under **Assigned Prefixes**, and submit a Pull Request;

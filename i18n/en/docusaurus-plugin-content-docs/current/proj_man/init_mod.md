@@ -6,7 +6,7 @@ sidebar_position: 1
 
 # Initialize Module Repositories
 
-XRobot provides the module initialization tool `xrobot_init_mod` to automatically fetch and synchronize your project's dependency module repositories. This tool supports both **local config files** and **remote config files**, and it can **recursively resolve module dependencies** to ensure all versions are consistent.
+`xrobot_init_mod` fetches and synchronizes the module repositories required by a project. It supports both local and remote configuration files, and recursively resolves dependencies so the dependency tree and version constraints stay consistent.
 
 ---
 
@@ -14,7 +14,7 @@ XRobot provides the module initialization tool `xrobot_init_mod` to automaticall
 
 ### 1. First Run (Auto-generate Config Template)
 
-If no config file (e.g., `Modules/modules.yaml`) exists, the tool will create a template on first run:
+If no config file exists yet, such as `Modules/modules.yaml`, the first run creates a template:
 
 ```bash
 $ xrobot_init_mod
@@ -22,7 +22,7 @@ $ xrobot_init_mod
 [INFO] Please edit the configuration file and rerun this script.
 ```
 
-You just need to fill in the module list like:
+Fill in the module list, for example:
 
 ```yaml
 modules:
@@ -30,7 +30,7 @@ modules:
   - xrobot-org/MySensor@master
 ```
 
-Then re-run to automatically fetch all module repositories:
+Run it again and the repositories will be fetched automatically:
 
 ```bash
 $ xrobot_init_mod
@@ -43,7 +43,7 @@ $ xrobot_init_mod
 
 ### 2. Specify Local Config File
 
-To use a specific local config file, use the `--config` option:
+Use `--config` to point to a local configuration file:
 
 ```bash
 $ xrobot_init_mod --config Modules/modules.yaml
@@ -55,7 +55,7 @@ $ xrobot_init_mod --config Modules/modules.yaml
 
 ### 3. Specify Remote Config File
 
-You can also use a remote config file (e.g., GitHub raw link):
+A remote configuration file, such as a GitHub raw URL, can also be passed directly:
 
 ```bash
 $ xrobot_init_mod --config https://raw.githubusercontent.com/<user>/<repo>/<branch>/modules.yaml
@@ -67,8 +67,8 @@ $ xrobot_init_mod --config https://raw.githubusercontent.com/<user>/<repo>/<bran
 
 ### 4. Custom Repository Sources (Optional)
 
-XRobot supports multiple module sources and mirrors configured via `sources.yaml`.  
-Use the `--sources` option to specify a custom sources file:
+XRobot supports multiple sources and mirrors through `sources.yaml`.
+Use `--sources` to point to a custom sources file:
 
 ```bash
 $ xrobot_init_mod --config Modules/modules.yaml --sources Modules/sources.yaml

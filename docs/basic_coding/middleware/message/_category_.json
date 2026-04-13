@@ -1,0 +1,8 @@
+{
+  "label": "消息系统",
+  "position": 4,
+  "link": {
+    "type": "doc",
+    "id": "message-overview"
+  }
+}

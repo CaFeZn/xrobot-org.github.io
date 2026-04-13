@@ -6,12 +6,14 @@ sidebar_position: 5
 
 # 一键配置
 
-XRobot 提供了自动化工具 `xrobot_setup`，用于完成以下任务的一键配置：
+`xrobot_setup` 会检查配置文件、拉取模块、生成 `xrobot_main.hpp`，并刷新 `Modules/CMakeLists.txt`：
 
 - 检查配置文件是否存在（modules.yaml / sources.yaml）
 - 拉取所有模块仓库
 - 自动生成主函数代码（xrobot_main.hpp）
 - 生成构建配置（Modules/CMakeLists.txt）
+
+如果你主要在 `VS Code` 里使用 XRobot，也可以安装官方插件 [`XRobot.xrobot`](https://marketplace.visualstudio.com/items?itemName=XRobot.xrobot)。插件提供工作区内的图形化配置入口，适合配合 `xrobot_setup` 这类命令一起使用。
 
 ---
 
@@ -85,10 +87,11 @@ User/
 
 ---
 
-## 4. 自定义配置路径（可选）
+## 4. 说明
 
-你可以通过参数手动指定配置路径：
+默认工作区下，配置和生成文件位于：
 
-```bash
-xrobot_setup --config User/xrobot.yaml
-```
+- `Modules/modules.yaml`
+- `Modules/sources.yaml`
+- `User/xrobot.yaml`
+- `User/xrobot_main.hpp`

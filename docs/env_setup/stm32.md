@@ -6,41 +6,55 @@ sidebar_position: 1
 
 # STM32 环境配置
 
-本页面将指导你如何配置STM32的开发环境，以便使用LibXR，CodeGenerator，XRobot。
+本文适用于由 `STM32CubeMX` 导出的 **CMake 工程**。推荐基于 `VS Code` 开发。`STM32CubeMX2 / HAL2` 当前不在支持范围内。
 
 推荐配合[视频教程](https://space.bilibili.com/339766655/lists/5028472)使用此文档。
 
 ## 基础环境
 
-Windows安装：
+Windows 安装：
 
 * [git](https://git-scm.com/)
 * [python](https://www.python.org/downloads/)
 
-linux使用apt安装：
+Linux 使用 apt 安装：
 
 ```bash
 sudo apt update
-sudo apt install -y git python3 python3-pip cmake tar xz-utils wget pipx
+sudo apt install -y git python3 python3-pip cmake tar xz-utils wget pipx ninja-build
 ```
 
-## 基于GCC/Clang (新版STM32 VSCode 插件)
+## VS Code 开发
 
-在STM32CubeMX (>=15.0)中，已经集成了Clang 相关工具链的CMake配置。 在`Project Manager`中选择`Default Compiler/Linker`为gcc或者starm-clang即可，不需要额外配置。LibXR_CppCodeGenerator提供的`xr_stm32_toolchain_switch`可以用于切换编译器与标准库。
+先用 `STM32CubeMX` 建工程，并导出 **CMake** 工程。`Project Manager` 里的 `Default Compiler/Linker` 选择 `gcc` 或 `starm-clang` 即可。这个设置会写到工程根目录 `CMakePresets.json` 的 `toolchainFile`，通常对应 `${sourceDir}/cmake/gcc-arm-none-eabi.cmake` 或 `${sourceDir}/cmake/starm-clang.cmake`。
 
-在VSCode中安装使用插件`STMicroelectronics.stm32-vscode-extension`即可，插件会自行下载工具链等资源。
+建议安装：
 
-Setup STM32Cube project的时候建议选择混合模式（gcc+starm-clang）以便适应所有情况。
+* `STMicroelectronics.stm32-vscode-extension`
+* [`XRobot.xrobot`](https://marketplace.visualstudio.com/items?itemName=XRobot.xrobot)
 
----
+`XRobot.xrobot` 提供代码生成工具的 GUI 配置页面，适合直接在工作区里看和改当前配置。
 
-### stm32cube-clangd 插件主要问题
+<img src="/img/xrobot_vscode_plugin_setup.png" alt="XRobot VS Code 插件界面" width="360" />
 
-* 无法识别 ST-ARM-CLANG 的 `--multi-lib-config` 编译选项：避免使用混合（Hybrid）模式的starm-clang编译器，gcc、starm-clang+newlib和starm-clang+picolibc模式的starm-clang编译器均可以正常使用，推荐使用picolibc。
+## 工具链
 
-### CLion / 命令行编译
+当前推荐的编译器选择仍然是：
 
-windows需要先配置相关path。安装STM32CubeCLT可能会简化下面某些设置。
+* `gcc`
+* `starm-clang`
+
+如果你要配合 `clangd`、`CLion` 或命令行自己接管编译，建议优先使用**纯 gcc** 或 **纯 starm-clang**，不要默认选混合 `Hybrid` 模式。
+
+`clangd` 目前对 ST-ARM-CLANG 的 `--multi-lib-config` 识别并不稳定。混合 `Hybrid` 模式下，`compile_commands.json` 往往会带出额外参数，IDE 体验会比较差。
+
+如果你明确要走 `starm-clang`，当前更推荐 `picolibc`。`starm-clang.cmake` 里的 `STARM_TOOLCHAIN_CONFIG` 仍然有 `STARM_HYBRID`、`STARM_NEWLIB`、`STARM_PICOLIBC` 三种配置，默认不建议继续用 `STARM_HYBRID`。
+
+## CLion / 命令行编译
+
+如果你不走 VS Code 插件流，而是要自己在命令行或 `CLion` 里接管构建，可以按下面方式配置。
+
+Windows 需要先配置相关 `PATH`。安装 `STM32CubeCLT` 可以简化下面某些设置。
 
 ```bash
 # gcc
@@ -52,52 +66,41 @@ set PATH=%PATH%;C:\Users\$env:USERNAME\AppData\Local\stm32cube\bundles\st-arm-cl
 
 需要设置环境变量：
 
-windows:
+Windows：
 
 ```powershell
 $env:GCC_TOOLCHAIN_ROOT = "C:\Users\$env:USERNAME\AppData\Local\stm32cube\bundles\gnu-tools-for-stm32\${版本号}\bin"
 $env:CLANG_GCC_CMSIS_COMPILER = "C:\Users\$env:USERNAME\AppData\Local\stm32cube\bundles\st-arm-clang\${版本号}"
 ```
 
-linux:
+Linux：
 
 ```bash
 export GCC_TOOLCHAIN_ROOT=/opt/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi/bin
 export CLANG_GCC_CMSIS_COMPILER=/opt/st-arm-clang
 ```
 
-编译时还要指定`-DCMAKE_TOOLCHAIN_FILE="cmake/gcc-arm-none-eabi.cmake"`或者`-DCMAKE_TOOLCHAIN_FILE="cmake/starm-clang.cmake"`来选择工具链。
+编译时还要指定 `-DCMAKE_TOOLCHAIN_FILE="cmake/gcc-arm-none-eabi.cmake"` 或 `-DCMAKE_TOOLCHAIN_FILE="cmake/starm-clang.cmake"` 来选择工具链。对于 `starm-clang.cmake`，也可以继续通过 `-DSTARM_TOOLCHAIN_CONFIG=STARM_NEWLIB` 或 `-DSTARM_TOOLCHAIN_CONFIG=STARM_PICOLIBC` 控制标准库配置。
 
-### `旧版CubeMX工程(<15.0)迁移到新版本编译问题`
+## 常见问题
 
-如果提示链接不到库`ob`，则在工程根目录的`CMakeLists.txt`中添加:
+### 旧版 CubeMX 工程迁移到新版编译时链接不到 `ob`
+
+如果提示链接不到库 `ob`，则在工程根目录的 `CMakeLists.txt` 中添加：
 
 ```cmake
 # Remove wrong libob.a library dependency when using cpp files
 list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)
 ```
 
-## 基于GCC的旧版STM32 VSCode 插件（不推荐）
+### 工具链切换怎么做
 
-### Windows环境配置
-
-需要安装[STM32CubeCLT](https://www.st.com/en/development-tools/stm32cubeclt.html)
-
-### Linux环境配置
-
-需要安装的软件包:
+如果你已经接入了代码生成工具，也可以直接使用 `xr_stm32_toolchain_switch` 切换工具链和标准库，例如：
 
 ```bash
-sudo apt update
-sudo apt install -y git python3 python3-pip cmake tar xz-utils wget pipx ninja-build
+xr_stm32_toolchain_switch gcc
+xr_stm32_toolchain_switch clang --newlib
+xr_stm32_toolchain_switch clang --picolibc
 ```
 
-从[ARM官网](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)下载适合你的编译器。例如使用x64的linux系统，请下载`x86_64 Linux hosted cross toolchains`下的`AArch32 bare-metal target (arm-none-eabi)`，即为arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz。
-
-解压后移动到`/opt`下，创建软链接`/usr/local/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi`，即可使用`arm-none-eabi-`前缀的命令，例如`arm-none-eabi-gcc`。
-
-然后使用链接命令：
-
-```bash
-sudo ln -s /opt/arm-gun-toolchain-xx.x/bin/* /usr/bin
-```
+这个命令会直接修改 `CMakePresets.json` 和 `cmake/starm-clang.cmake`，改完后重启 `VS Code` 即可生效。

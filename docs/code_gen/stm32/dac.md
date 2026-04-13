@@ -18,7 +18,7 @@ STM32DAC dac1_out1(&hdac1, DAC_CHANNEL_1, 0.0, 3.3);
 
 ## 配置文件
 
-在上一步代码生成后，会在`User/libxr_config.yaml`文件中出现ADC配置文件，格式如下：
+在上一步代码生成后，会在`User/libxr_config.yaml`文件中出现 DAC 配置，格式如下：
 
 ```yaml
 DAC:

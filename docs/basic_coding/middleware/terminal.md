@@ -46,18 +46,18 @@ Terminal(RamFS &ramfs,
 ## 使用示例（线程模式）
 
 ```cpp
-  auto ramfs = LibXR::RamFS();
-  LibXR::Terminal terminal(ramfs);
+  LibXR::RamFS ramfs;
+  LibXR::Terminal<> terminal(ramfs);
   LibXR::Thread term_thread;
-  term_thread.Create(&terminal, terminal.ThreadFun, "terminal", thread_stack_depth,
-                     thread_priority);
+  term_thread.Create(&terminal, terminal.ThreadFun, "terminal", 1024,
+                     LibXR::Thread::Priority::MEDIUM);
 ```
 
 ## 使用示例（任务模式）
 
 ```cpp
   static LibXR::RamFS ramfs;
-  static LibXR::Terminal terminal(ramfs);
+  static LibXR::Terminal<> terminal(ramfs);
   auto terminal_task = Timer::CreateTask(terminal.TaskFun, &terminal, 10);
   Timer::Add(terminal_task);
   Timer::Start(terminal_task);
@@ -80,7 +80,7 @@ Terminal(RamFS &ramfs,
 ## 内部使用的类与结构
 
 - `Stack<char> input_line_`: 输入缓冲；
-- `Queue<String>` history_`: 命令历史；
+- `Queue<LibXR::String<MAX_LINE_SIZE>> history_`: 命令历史；
 - `arg_tab_[]`: 解析后的参数数组；
 - `Path2Dir`, `Path2File`: 路径解析工具；
 - `AutoComplete()`: 补全处理；

@@ -6,13 +6,13 @@ sidebar_position: 4
 
 # Environment Setup
 
-This page will guide you through configuring and using LibXR, CodeGenerator, and XRobot on your local system.
+This chapter covers local environment setup for LibXR, CodeGenerator, and XRobot.
 
 ## Supported Platforms
 
-LibXR itself is a C++ library that does not depend on any specific operating system. It requires the C++17 standard and the standard C++ library. It can run on bare-metal environments or with an RTOS.
+LibXR itself is a C++ library that does not depend on a specific operating system. It requires C++17 and the standard C++ library, and can run on bare metal or with an RTOS.
 
-CodeGenerator and XRobot are Python-based packages that require Python 3 and a working `pip3` environment.
+CodeGenerator and XRobot are Python-based packages and require Python 3 plus a working `pip3` environment.
 
 ## Installation
 
@@ -24,7 +24,7 @@ Clone the repository directly:
 git clone https://github.com/Jiu-xiao/libxr.git
 ```
 
-Or use Git submodules or subtree (recommended for integration):
+For integration into an existing project, `submodule` or `subtree` is more common:
 
 ```bash
 git submodule add https://github.com/Jiu-xiao/libxr.git libxr
@@ -32,13 +32,13 @@ git submodule add https://github.com/Jiu-xiao/libxr.git libxr
 
 ### CodeGenerator (libxr) and XRobot
 
-Install via pip:
+Install with `pip`:
 
 ```bash
 pip install libxr xrobot
 ```
 
-Or install using pipx:
+Install with `pipx`:
 
 ```bash
 ### Windows
@@ -55,4 +55,4 @@ pipx ensurepath
 # Restart your terminal
 ```
 
-Please note that you should not use both pip and pipx to install the same package at the same time. If you do, your environment variables may become confused and cause version conflicts.
+Do not install the same package with both `pip` and `pipx` at the same time. That usually leads to mixed PATH state and version conflicts.

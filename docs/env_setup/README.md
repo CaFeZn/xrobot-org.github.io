@@ -6,25 +6,25 @@ sidebar_position: 4
 
 # 环境配置
 
-本页将指导你如何在本地系统中配置和使用 LibXR/CodeGenerator/XRobot。
+LibXR、CodeGenerator 和 XRobot 的本地环境配置见本章。
 
 ## 支持平台
 
-LibXR本身是一个C++的库，不依赖于任何特定的操作系统，但需要依赖于C++17标准和C++标准库(无需操作系统,可以在裸机和RTOS上使用)。
+LibXR 本身是一个 C++ 库，不依赖特定操作系统，但要求 C++17 和标准 C++ 库，可用于裸机和 RTOS。
 
-CodeGenerator和XRobot是基于Python的包，需要Python3和pip3环境。
+CodeGenerator 和 XRobot 是基于 Python 的包，需要 Python 3 和 `pip3` 环境。
 
 ## 安装
 
 ### LibXR
 
-直接拉取代码:
+直接拉取代码：
 
 ```bash
 git clone https://github.com/Jiu-xiao/libxr.git
 ```
 
-推荐使用submodules或者subtree:
+集成到现有工程时，更常见的做法是使用 submodule 或 subtree：
 
 ```bash
 git submodule add https://github.com/Jiu-xiao/libxr.git libxr
@@ -32,13 +32,13 @@ git submodule add https://github.com/Jiu-xiao/libxr.git libxr
 
 ### CodeGenerator(libxr)与XRobot
 
-直接通过pip安装:
+直接通过 pip 安装：
 
 ```bash
 pip install libxr xrobot
 ```
 
-使用pipx安装:
+使用 `pipx` 安装：
 
 ```bash
 ### windows

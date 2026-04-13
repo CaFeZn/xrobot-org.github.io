@@ -18,7 +18,7 @@ class CallbackBlock;
 用于封装一个具体的回调函数及其第一个绑定参数，并提供重入保护（reentrancy guard），可在 ISR 或任务上下文触发：
 
 - `FunctionType`: 回调函数签名为 `void(bool in_isr, ArgType arg, Args... args)`。
-- `Call(bool in_isr, Args... args)`: 触发回调执行，并透传额外参数。
+- 具体执行入口由内部 `InvokeThunk(...)` / `Invoke(...)` 完成。
 
 构造时即完成函数与绑定参数的绑定。支持移动构造与移动赋值，禁用拷贝。
 

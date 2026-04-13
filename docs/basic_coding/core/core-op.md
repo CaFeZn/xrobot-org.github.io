@@ -66,7 +66,6 @@ void MarkAsRunning();
   - BLOCK：调用信号量的 `PostFromCallback(in_isr)` 解除阻塞等待（完成状态本身不参与阻塞唤醒语义）。
   - POLLING：更新轮询状态变量 `OperationPollingStatus`：当 `status` 表示成功时置为 `DONE`，否则置为 `ERROR`。该规则对任意 `T` 一致；约定以 “0” 表示成功（例如 `ErrorCode::OK == 0` 或其它状态类型的 0 值）。
 - `MarkAsRunning()` 在 POLLING 模式下设置状态为 `RUNNING`。
-- 当 `in_isr == true` 且操作类型为 `BLOCK` 会主动断言失败。
 - 这两个函数通常由驱动/端口在合适的时机调用；用户侧只需选择合适的 `OperationType` 并传入即可。
 
 

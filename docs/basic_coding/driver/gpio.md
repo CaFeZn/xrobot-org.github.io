@@ -55,7 +55,7 @@ virtual ErrorCode SetConfig(Configuration config) = 0;
 
 ```cpp
 virtual bool Read() = 0;              // 读取引脚电平
-virtual ErrorCode Write(bool value) = 0; // 写入引脚电平
+virtual void Write(bool value) = 0;   // 写入引脚电平
 ```
 
 ### 中断控制

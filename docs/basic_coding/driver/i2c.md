@@ -53,7 +53,7 @@ virtual ErrorCode MemWrite(uint16_t slave_addr, uint16_t mem_addr,
                            bool in_isr = false) = 0;
 ```
 
-- `slave_addr`：从设备 **8 位地址**。
+- `slave_addr`：从设备地址，**不带 R/W 位**。
 - `in_isr`：指示是否在中断上下文中发起/推进本次 I2C 操作（默认 `false`）。
 
 

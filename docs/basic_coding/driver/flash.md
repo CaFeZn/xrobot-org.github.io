@@ -22,21 +22,21 @@ public:
   virtual ErrorCode Write(size_t offset, ConstRawData data) = 0;
 
   // 读取指定偏移地址的数据
-  virtual ErrorCode Read(size_t offset, RawData data) = 0;
+  virtual ErrorCode Read(size_t offset, RawData data);
 
   // 获取最小可擦除块大小
-  size_t MinEraseSize() const { return min_erase_size_; }
+  size_t MinEraseSize() const;
 
   // 获取最小可写入块大小
-  size_t MinWriteSize() const { return min_write_size_; }
+  size_t MinWriteSize() const;
 
   // 获取flash大小
-  size_t Size() const { return flash_area_.size_; }
+  size_t Size() const;
 };
 ```
 
 ## 使用说明
 
-- 所有写入必须对齐 `min_write_size_`，擦除对齐 `min_erase_size_`；
-- `flash_area_` 指向实际用于存储的内存区域或 Flash 映射地址；
+- 所有写入必须对齐 `MinWriteSize()`，擦除对齐 `MinEraseSize()`；
+- `flash_area` 参数描述的是当前 `Flash` 对象可操作的存储区域；
 - 上层可基于该接口实现参数存储、文件系统、日志管理等功能。

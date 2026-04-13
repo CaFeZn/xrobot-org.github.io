@@ -6,9 +6,9 @@ sidebar_position: 2
 
 # SWD GPIO Implementation
 
-This document describes `LibXR::Debug::SwdGeneralGPIO<SwclkGpioType, SwdioGpioType>`: a GPIO polling (bit-bang) SWD probe implementation. It inherits from `LibXR::Debug::Swd` and provides SWD link-layer capability, typically used by upper layers (e.g., a CMSIS-DAP processor/debugger).
+`LibXR::Debug::SwdGeneralGPIO<SwclkGpioType, SwdioGpioType>` is a GPIO polling (bit-bang) SWD probe implementation. It inherits from `LibXR::Debug::Swd`, provides SWD link-layer capability, and is typically used by upper layers such as a CMSIS-DAP processor or debugger.
 
-This document focuses on **how to use it** and **how to choose/calibrate the delay parameter (`loops_per_us`)**, without diving into implementation details.
+The focus here is on practical usage and on choosing/calibrating the delay parameter `loops_per_us`, not on implementation details.
 
 ---
 

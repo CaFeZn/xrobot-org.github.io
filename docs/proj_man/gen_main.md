@@ -6,7 +6,7 @@ sidebar_position: 3
 
 # 自动生成主函数（XRobotMain）
 
-XRobot 提供了自动主函数生成工具 `xrobot_gen_main`，可根据每个模块头文件中的 MANIFEST 信息，自动提取构造参数并生成统一入口函数 `XRobotMain`，用于快速搭建完整的嵌入式应用框架。
+`xrobot_gen_main` 根据模块头文件中的 MANIFEST 信息提取构造参数，并生成统一入口函数 `XRobotMain`。
 
 ---
 
@@ -16,7 +16,7 @@ XRobotMain 是一个统一的主函数入口，用于：
 
 - 实例化每个模块（从 MANIFEST 中提取参数）
 - 构建模块之间的依赖关系
-- 周期性调用每个模块的 `Monitor()` 方法
+- 通过 `ApplicationManager::MonitorAll()` 周期性调度各模块的 `OnMonitor()`
 
 生成后的文件是标准的 C++ 源码，可以直接编译和使用。
 
@@ -39,9 +39,9 @@ Discovered modules: BlinkLED
 [SUCCESS] Generated entry file: User/xrobot_main.hpp
 ```
 
-你将看到两个新文件：
+生成后通常会有两个文件：
 
-- `User/xrobot.yaml`：配置文件（你可以编辑参数）
+- `User/xrobot.yaml`：模块参数配置文件
 - `User/xrobot_main.hpp`：主函数源码（自动生成）
 
 ---
@@ -60,13 +60,13 @@ modules:
       blink_cycle: 250
 ```
 
-你可以修改每个模块的参数，然后重新运行 `xrobot_gen_main`，主函数会自动更新。
+修改参数后重新运行 `xrobot_gen_main`，主函数会随之更新。
 
 ---
 
 ## 4. 使用已有配置文件
 
-如果你已有 `xrobot.yaml` 配置，可以指定读取：
+如果已有 `xrobot.yaml`，也可以显式指定：
 
 ```bash
 xrobot_gen_main --config User/xrobot.yaml
@@ -76,7 +76,20 @@ xrobot_gen_main --config User/xrobot.yaml
 
 ---
 
-## 5. 支持模板参数和实例名
+## 5. 自定义输出与硬件容器变量
+
+当前 CLI 还支持：
+
+```bash
+xrobot_gen_main --output User/xrobot_main.hpp --hw hw
+```
+
+- `--output`：指定输出文件路径
+- `--hw`：指定生成代码里的硬件容器变量名
+
+---
+
+## 6. 支持模板参数和实例名
 
 如果模块 MANIFEST 中包含模板参数 `template_args`，也会一并生成：
 
@@ -98,7 +111,7 @@ static PID<float> pid_left(hw, appmgr, 1.0, 0.2);
 
 ---
 
-## 6. 最终生成的主函数长什么样？
+## 7. 最终生成的主函数长什么样？
 
 ```cpp
 #include "app_framework.hpp"
@@ -123,7 +136,7 @@ static void XRobotMain(LibXR::HardwareContainer &hw) {
 
 ---
 
-## 7. 典型工作流推荐
+## 8. 典型流程
 
 1. 确保每个模块头文件包含 `=== MODULE MANIFEST` 注释块
 2. 运行 `xrobot_gen_main` 自动生成配置和主函数

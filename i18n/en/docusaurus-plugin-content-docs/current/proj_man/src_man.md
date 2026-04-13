@@ -6,18 +6,16 @@ sidebar_position: 0
 
 # Module Source Management
 
-In the XRobot project, module functionalities are typically distributed across multiple Git repositories as "module repositories." While an official default source is provided, to support **private modules, custom components, internal mirrors, or acceleration services**, you can define multiple module sources.
-
-This page introduces the multi-source module repository management mechanism of XRobot and how to use the `xrobot_src_man` command-line tool to flexibly configure, aggregate, and locate module repositories.
+XRobot can combine multiple `index.yaml` files through `sources.yaml`. Official sources, private sources, and mirrors all use the same mechanism, and `xrobot_src_man` is used to generate, maintain, and query them.
 
 ---
 
 ## Why Manage Module Sources?
 
-- ✅ Slow network access to official repos? Add mirror or internal acceleration sources.
-- ✅ Have internal modules? Add private `index.yaml` files with dedicated namespaces.
-- ✅ Avoid naming conflicts? Each source has its own namespace—no interference.
-- ✅ Need to upgrade or migrate modules? Same-named modules can come from different sources with flexible priority control.
+- Add a mirror or internal acceleration source when access to the official repository is slow.
+- Maintain a private `index.yaml` and namespace for internal modules.
+- Use separate namespaces per source to avoid naming conflicts.
+- Let same-named modules come from different sources and choose by priority.
 
 ---
 
@@ -58,7 +56,7 @@ Available modules:
 
 ## 2. Add a Private Module Source
 
-You can add your own `index.yaml` to include private modules or mirrors.
+You can add a custom `index.yaml` for private modules or mirrors.
 
 ### 1. Create `sources.yaml` and Add Multiple Sources
 
@@ -100,7 +98,7 @@ modules:
 
 ## 4. Creating and Maintaining Custom index.yaml
 
-You can create and maintain your own `index.yaml` to organize private modules.
+You can also maintain your own `index.yaml` to organize private modules.
 
 ### 1. Create an index.yaml Template
 
@@ -124,7 +122,7 @@ xrobot_src_man add-index https://github.com/yourorg/MyModule.git --index Modules
 
 ## 5. Query and Validate Modules
 
-You can query module origins and URLs:
+Module origins and URLs can be queried directly:
 
 ### List All Modules
 

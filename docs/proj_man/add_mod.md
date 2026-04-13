@@ -6,7 +6,7 @@ sidebar_position: 4
 
 # 添加模块
 
-XRobot 提供了 `xrobot_add_mod` 工具，用于：
+`xrobot_add_mod` 支持两类操作：
 
 - **添加远程模块仓库**（添加到 `modules.yaml` 并拉取）
 - **添加模块实例**（添加到 `xrobot.yaml` 并生成代码）
@@ -15,7 +15,7 @@ XRobot 提供了 `xrobot_add_mod` 工具，用于：
 
 ## 1. 添加远程模块
 
-你可以通过提供模块仓库地址快速添加模块：
+通过模块仓库名添加模块：
 
 ```bash
 xrobot_add_mod xrobot-org/BlinkLED@master
@@ -75,7 +75,7 @@ modules:
     blink_cycle: 250
 ```
 
-你可以直接运行 `xrobot_gen_main` 生成主函数：
+随后运行 `xrobot_gen_main` 生成主函数：
 
 ```bash
 xrobot_gen_main
@@ -95,7 +95,7 @@ xrobot_add_mod BlinkLED --instance-id myled
 
 ## 4. 将别的模块实例作为参数
 
-你可以将别的模块实例作为参数传递给模块：
+也可以把别的模块实例作为参数传给模块：
 
 ```yaml
 modules:

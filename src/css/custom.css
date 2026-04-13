@@ -193,22 +193,183 @@ html[data-theme='dark'] .footer a:hover {
     color: #222;
 }
 
+:root {
+    --nav-glass-light: rgba(255, 255, 255, 0.72);
+    --nav-glass-dark: rgba(10, 16, 24, 0.72);
+    --nav-line-light: rgba(122, 138, 168, 0.16);
+    --nav-line-dark: rgba(255, 255, 255, 0.06);
+}
+
+.navbar {
+    margin: 0;
+    width: 100%;
+    border-radius: 0;
+    background: rgba(255, 255, 255, 0.68);
+    border: 0;
+    border-bottom: 1px solid var(--nav-line-light);
+    box-shadow: none;
+    backdrop-filter: blur(18px) saturate(145%);
+}
+
+.navbar__inner {
+    min-height: 56px;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 0.85rem;
+}
+
+.navbar__brand {
+    gap: 0.5rem;
+}
+
+.navbar__logo {
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+.navbar__logo img {
+    display: block;
+    filter: none;
+}
+
+.navbar__title {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #172033;
+    font-size: 0.98rem;
+}
+
+.navbar__items--right {
+    gap: 0.35rem;
+}
+
+.navbar__link,
+.navbar__item.dropdown .navbar__link {
+    border-radius: 8px;
+    padding: 0.35rem 0.58rem;
+    color: #4d586c;
+    font-size: 0.94rem;
+    transition: color 0.18s ease, background-color 0.18s ease;
+}
+
+.navbar__link:hover,
+.navbar__item.dropdown .navbar__link:hover {
+    background: rgba(255, 255, 255, 0.5);
+    color: #111827;
+}
+
+.toggle_vylO,
+.clean-btn[class*='toggle'],
+.clean-btn[class*='colorModeToggle'],
+.navbar button.clean-btn {
+    border-radius: 8px;
+}
+
+.DocSearch-Button,
+.navbar__search-input {
+    margin: 0;
+    min-width: 132px;
+    min-height: 34px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(122, 138, 168, 0.18);
+    box-shadow: none;
+}
+
+.DocSearch-Button:hover {
+    background: rgba(255, 255, 255, 0.84);
+}
+
 /* 🌚 Dark Theme Footer */
 :root[data-theme='dark'] .footer {
-    background: linear-gradient(180deg, #2b2b3c 0%, #1e1e2f 100%);
-    color: #ccc;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: #0f141a;
+    color: #c9d3df;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 :root[data-theme='dark'] .footer a {
-    color: #aaa;
+    color: #aab8c8;
 }
 
 :root[data-theme='dark'] .footer a:hover {
-    color: #fff;
+    color: #ffffff;
     text-decoration: underline;
 }
 
 :root[data-theme='dark'] .footer__title {
-    color: #eee;
+    color: #f4f7fb;
+}
+
+:root[data-theme='dark'] .navbar {
+    background: rgba(10, 16, 24, 0.72);
+    border: 0;
+    border-bottom: 1px solid var(--nav-line-dark);
+    box-shadow: none;
+    backdrop-filter: blur(18px) saturate(140%);
+}
+
+:root[data-theme='dark'] .navbar__brand {
+    gap: 0.5rem;
+}
+
+:root[data-theme='dark'] .navbar__logo {
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+:root[data-theme='dark'] .navbar__logo img {
+    display: block;
+    filter: none;
+}
+
+:root[data-theme='dark'] .navbar__title {
+    color: #eef2f7;
+}
+
+:root[data-theme='dark'] .navbar__link,
+:root[data-theme='dark'] .navbar__item.dropdown .navbar__link {
+    color: #c0cad8;
+}
+
+:root[data-theme='dark'] .navbar__link:hover,
+:root[data-theme='dark'] .navbar__item.dropdown .navbar__link:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+}
+
+:root[data-theme='dark'] .DocSearch-Button,
+:root[data-theme='dark'] .navbar__search-input {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: none;
+}
+
+:root[data-theme='dark'] .DocSearch-Button:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 996px) {
+    .navbar {
+        width: 100%;
+        margin-top: 0;
+        border-radius: 0;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .navbar__inner {
+        min-height: 54px;
+        padding: 0 0.75rem;
+    }
+
+    .navbar-sidebar,
+    .navbar-sidebar__backdrop {
+        height: 100vh;
+    }
 }

@@ -6,7 +6,7 @@ sidebar_position: 4
 
 # Add Module
 
-XRobot provides the `xrobot_add_mod` tool to:
+`xrobot_add_mod` supports two kinds of operations:
 
 - **Add remote module repositories** (appends to `modules.yaml` and pulls)
 - **Add module instances** (appends to `xrobot.yaml` and enables code generation)
@@ -15,7 +15,7 @@ XRobot provides the `xrobot_add_mod` tool to:
 
 ## 1. Add a Remote Module
 
-You can quickly add a module by specifying its repository address:
+Add a module by repository name:
 
 ```bash
 xrobot_add_mod xrobot-org/BlinkLED@master
@@ -75,7 +75,7 @@ modules:
     blink_cycle: 250
 ```
 
-You can now generate the main function:
+Then run `xrobot_gen_main` to generate the main function:
 
 ```bash
 xrobot_gen_main
@@ -95,7 +95,7 @@ xrobot_add_mod BlinkLED --instance-id myled
 
 ## 4. Passing Other Module Instances as Arguments
 
-You can pass other module instances as arguments to a module:
+You can also pass other module instances as arguments:
 
 ```yaml
 modules:

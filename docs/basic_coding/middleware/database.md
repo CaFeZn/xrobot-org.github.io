@@ -18,7 +18,7 @@ LibXR 提供了两种轻量级的嵌入式键值数据库实现：`DatabaseRawSe
 - 两种实现模式：
   - `DatabaseRawSequential`：顺序写入，支持任意数据长度；
   - `DatabaseRaw<N>`：页对齐写入，适用于 NOR Flash 等要求写入对齐的场景；
-- 所有数据操作通过 `Save()` 写入，`Restore()` 清空，支持完整恢复流程。
+- 键值更新后会由数据库实现自动保存；`Restore()` 用于清空数据库并回到初始状态。
 
 ---
 
@@ -28,14 +28,14 @@ LibXR 提供了两种轻量级的嵌入式键值数据库实现：`DatabaseRawSe
 
 ```cpp
 LinuxBinaryFileFlash<2048> flash("/tmp/flash.bin", 512, 8);
-Database& db = *(new DatabaseRawSequential(flash));
+DatabaseRawSequential db(flash);
 ```
 
 或使用页对齐版本：
 
 ```cpp
 LinuxBinaryFileFlash<2048> flash2("/tmp/flash2.bin", 512, 16);
-Database& db = *(new DatabaseRaw<16>(flash2));
+DatabaseRaw<16> db(flash2);
 ```
 
 ### 定义类型安全的键
@@ -77,13 +77,12 @@ cfg.Load();
 
 ## 方法一览（基类接口）
 
-以下为抽象接口 `Database` 及其模板类 `Key<T>` 提供的完整方法：
+以下更适合作为用户侧直接使用的接口：
 
 | 方法/操作                       | 功能描述                                                     |
 |----------------------------------|----------------------------------------------------------------|
-| `Database::Add(KeyBase&)`        | 添加键值（仅在数据库不存在该键时调用）                       |
-| `Database::Set(KeyBase&, RawData)` | 更新键值内容，要求名称和大小一致                            |
-| `Database::Get(KeyBase&)`        | 从数据库加载键值到内存                                        |
+| `DatabaseRawSequential::Restore()` | 清空顺序写数据库并重新初始化                                 |
+| `DatabaseRaw<N>::Restore()`      | 清空页对齐数据库并重新初始化                                  |
 | `Key<T>::Set(const T&)`          | 设置键值并写入数据库                                           |
 | `Key<T>::Load()`                 | 从数据库加载键值至变量                                         |
 | `Key<T>::operator=(const T&)`    | 设置键值（等效于 `Set()`）                                     |
@@ -109,7 +108,7 @@ cfg.Load();
 - 写入仅在调用 `key = val` 或 `key.Set(val)` 时发生；
 - 对所有键值数据类型要求为 POD 且可拷贝存储；
 - 若存储已满或写入失败，`Set()` 会返回对应错误码；
-- 若需手动释放数据库对象，注意释放派生类指针。
+- 若要显式清空数据库，可调用具体实现类的 `Restore()`。
 
 ---
 

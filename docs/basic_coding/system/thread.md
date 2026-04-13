@@ -25,7 +25,7 @@ sidebar_position: 3
 | `static Thread Current()`                                                                                        | 获取当前线程对象包装。                                        |
 | `static uint32_t GetTime()`                                                                                      | 返回自启动以来的毫秒计数（32 位环绕）。                              |
 | `static void Sleep(uint32_t ms)`                                                                                 | 阻塞当前线程指定毫秒。                                        |
-| `static void SleepUntil(TimestampMS& last, uint32_t period)`                                                     | 周期性延时，常用于固定周期循环。`last` 在函数内自动更新。                   |
+| `static void SleepUntil(MillisecondTimestamp& last, uint32_t period)`                                            | 周期性延时，常用于固定周期循环。`last` 在函数内自动更新。                   |
 | `static void Yield()`                                                                                            | 主动让出 CPU，调用底层 `sched_yield()` / `taskYIELD()` 等实现。 |
 | `operator libxr_thread_handle()`                                                                                 | 隐式转换为底层线程句柄，供与平台 API 交互。                           |
 
@@ -61,14 +61,14 @@ int main() {
 
 | 平台                       | 头/源文件                       | 关键映射                                                          |
 | ------------------------ | --------------------------- | ------------------------------------------------------------- |
-| **Linux / POSIX**        | `thread.hpp` + `thread.cpp` | `pthread_create`, `clock_nanosleep`, `sched_yield`            |
-| **FreeRTOS**             | `thread.hpp` + `thread.cpp` | `xTaskCreate`, `vTaskDelay`, `xTaskGetTickCount`              |
-| **ThreadX (Azure RTOS)** | `thread.hpp` + `thread.cpp` | `tx_thread_create`, `tx_thread_sleep`, `tx_thread_relinquish` |
-| **Bare‑metal**           | `thread.hpp` + `thread.cpp` | 轮询 `Timebase` + `Timer::RefreshTimerInIdle` 实现软延时             |
+| **Linux / POSIX**        | `system/Linux/thread.hpp` + `thread.cpp`    | `pthread_create`, `clock_nanosleep`, `sched_yield`            |
+| **FreeRTOS**             | `system/FreeRTOS/thread.hpp` + `thread.cpp` | `xTaskCreate`, `vTaskDelay`, `xTaskGetTickCount`              |
+| **ThreadX (Azure RTOS)** | `system/ThreadX/thread.hpp` + `thread.cpp`  | `tx_thread_create`, `tx_thread_sleep`, `tx_thread_relinquish` |
+| **None（单线程/裸机）**   | `system/None/thread.hpp` + `thread.cpp`     | 轮询 `Timebase` + `Timer::RefreshTimerInIdle` 实现软延时      |
 
 移植新平台时，仅需：
 
-1. 在 `platform/<os>/` 下实现对应的 `thread.hpp / thread.cpp`；
+1. 在 `system/<os>/` 下实现对应的 `thread.hpp / thread.cpp`；
 2. 在 `libxr_system.hpp` 中 typedef `libxr_thread_handle`；
 3. 更新构建系统以选择正确源文件。
 

@@ -6,7 +6,7 @@ sidebar_position: 5
 
 # One-Click Setup
 
-XRobot provides an automated tool `xrobot_setup` to complete the following setup tasks in one command:
+`xrobot_setup` checks configuration files, fetches modules, generates `xrobot_main.hpp`, and refreshes `Modules/CMakeLists.txt`:
 
 - Check if configuration files exist (`modules.yaml` / `sources.yaml`)
 - Fetch all module repositories
@@ -85,10 +85,11 @@ User/
 
 ---
 
-## 4. Custom Configuration Path (Optional)
+## 4. Default Output Paths
 
-You can specify the config path manually:
+In the default workspace layout, configuration and generated files are written to:
 
-```bash
-xrobot_setup --config User/xrobot.yaml
-```
+- `Modules/modules.yaml`
+- `Modules/sources.yaml`
+- `User/xrobot.yaml`
+- `User/xrobot_main.hpp`

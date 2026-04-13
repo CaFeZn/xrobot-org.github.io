@@ -6,11 +6,8 @@ sidebar_position: 10
 
 # Advanced Programming
 
-This chapter dives into lower-level and advanced programming topics, including:
+This chapter covers runtime semantics, middleware internals, and driver design details that do not fit in the basic API reference.
 
-- Low-level implementations for driver development
-- Principles and optimization of I/O and communication mechanisms
-- Lock-free / high-performance data structure design
-- Techniques for tuning code performance and real-time behavior
-
-Whether you’re building your own high-performance modules, debugging complex peripherals, or simply interested in system internals, you’ll find practical technical details and best-practice guidance in this chapter.
+- [Core Mechanisms](./core/README.md)
+- [Middleware Internals](./middleware/README.md)
+- [Driver Development](./driver/README.md)

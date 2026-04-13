@@ -46,7 +46,7 @@ public:
 ```cpp
 #include <libxr/async.hpp>
 
-LibXR::ASync async_worker(2048, LibXR::Thread::Priority::NORMAL);
+LibXR::ASync async_worker(2048, LibXR::Thread::Priority::MEDIUM);
 
 void HeavyCalc(bool, int *, LibXR::ASync*)
 {
@@ -59,7 +59,7 @@ auto async_job = LibXR::ASync::Job::Create(HeavyCalc, &arg);
 void SensorISR()
 {
   // 采样完成后在中断中提交计算任务
-  async_worker.AssignJobFromCallback(HeavyCalc, true);
+  async_worker.AssignJobFromCallback(async_job, true);
 }
 
 void Loop()
@@ -84,6 +84,6 @@ void Loop()
 | 任务唤醒 | `Semaphore::Post/Wait`          |
 | ISR 兼容 | `Semaphore::PostFromCallback()` |
 
-裸机模式下可在 `async.cpp` 中改为 **同步直调**：若系统无线程支持，`AssignJob()` 直接调用 `job.Run()`，`ASync` 退化为函数调用包装。
+在裸机等无线程实现里，`ASync` 当前就是**同步直调**：`AssignJob()` 会直接调用 `job.Run()`，不会再创建后台工作线程。
 
 设计理念中Callback不允许阻塞/延时，但是此处复用了Callback的接口与数据结构，为防止混淆重命名为`Job`。

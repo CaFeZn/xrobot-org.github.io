@@ -6,44 +6,40 @@ sidebar_position: 5
 
 # Device Drivers
 
-This module summarizes LibXR's abstract interfaces for common hardware peripherals, providing a unified object-oriented programming approach. It supports asynchronous operations, configuration encapsulation, and platform adaptation.
+This module summarizes LibXR's abstract interfaces for common hardware peripherals.
 
-All device interfaces in LibXR follow these design principles:
+The common properties of these device interfaces are:
 
-- **Platform Independent**: Abstract class interfaces have unified naming and behavior, independent of low-level hardware registers or driver structures;  
-- **Asynchronous Operation Support**: Uses the general operation model based on `ReadPort` / `WritePort`, compatible with interrupts, DMA, and other hardware mechanisms;  
-- **Type Safety**: Interface parameters and configuration structures use strong typing to improve reliability and code readability;  
-- **Minimal Dependencies**: Core modules rely only on C++17 features and basic LibXR components, suitable for bare-metal systems and various RTOS platforms;  
-- **Flexible Extension**: Each peripheral can be implemented according to platform capabilities, supporting resource reuse (e.g., shared buses);  
+- **Platform Independent**: Abstract interfaces use unified naming and behavior, independent of low-level hardware registers or driver structures.
+- **Asynchronous Operation Support**: The common operation model is based on `ReadPort` / `WritePort`, and fits interrupt- and DMA-driven implementations.
+- **Type Safety**: Interface parameters and configuration structures use strong typing.
+- **Minimal Dependencies**: Core modules rely only on C++17 features and basic LibXR components.
+- **Flexible Extension**: Each peripheral can be implemented according to platform capabilities, including shared-resource cases such as shared buses.
 
----
+## Contents
 
-## Quick Navigation
-
-- [GPIO (General Purpose Input/Output)](./gpio.md)  
-- [UART (Serial Communication)](./uart.md)  
-- [I2C (I2C Bus)](./i2c.md)  
-- [SPI (SPI Interface)](./spi.md)  
-- [CAN / FDCAN (Controller Area Network)](./can.md)  
-- [ADC (Analog-to-Digital Conversion)](./adc.md)  
+- [GPIO (General Purpose Input/Output)](./gpio.md)
+- [UART (Serial Communication)](./uart.md)
+- [I2C (I2C Bus)](./i2c.md)
+- [SPI (SPI Interface)](./spi.md)
+- [CAN / FDCAN (Controller Area Network)](./can.md)
+- [ADC (Analog-to-Digital Conversion)](./adc.md)
 - [DAC (Digital-to-Analog Conversion)](./dac.md)
-- [PWM (Pulse-Width Modulation)](./pwm.md)  
-- [Flash (Flash Interface)](./flash.md)  
-- [Power (Power Management)](./power.md)  
-- [Timebase (Time Base)](./timebase.md)  
+- [PWM (Pulse-Width Modulation)](./pwm.md)
+- [Flash (Flash Interface)](./flash.md)
+- [Power (Power Management)](./power.md)
+- [Timebase (Time Base)](./timebase.md)
 - [Watchdog (Watchdog Timer)](./watchdog.md)
 - [USB (Universal Serial Bus)](./usb.md)
 
----
+## Interface structure
 
-## Usage Example
+Each peripheral abstraction class typically includes:
 
-Each peripheral abstraction class typically includes the following components:
+- a `Configuration` structure
+- a `SetConfig()` interface
+- `Read()` / `Write()` data transfer interfaces
+- `Enable()` / `Disable()` control interfaces, when applicable
+- `Callback` registration for event handling, such as interrupts
 
-- `Configuration` structure for settings  
-- `SetConfig()` configuration interface  
-- `Read()` / `Write()` for data transfer  
-- `Enable()` / `Disable()` for control (if applicable)  
-- `Callback` registration for event handling (e.g., interrupts)  
-
-Users do not need to worry whether the backend is STM32UART, ESP32UART, or LinuxUART — just use the base class pointer and call the provided interface.
+Users do not need to care whether the backend is STM32UART, ESP32UART, or LinuxUART. Use the base class interface directly.

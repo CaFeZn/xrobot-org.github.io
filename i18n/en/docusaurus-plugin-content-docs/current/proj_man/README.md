@@ -6,15 +6,15 @@ sidebar_position: 7
 
 # Project Management (XRobot)
 
-XRobot is an automated code generation toolset designed for embedded systems (e.g., STM32), used in conjunction with the modular hardware abstraction layer LibXR. It supports module repository management, parameter configuration, and automatic main function generation, significantly improving engineering organization and development efficiency in embedded projects.
+XRobot handles module repositories, parameter configuration, and main-function generation, usually together with LibXR.
 
-This chapter introduces XRobot's installation, directory structure, main features, CLI usage, and a full quick start workflow.
-
----
+This chapter covers installation, directory conventions, and CLI tools.
 
 ## Installation
 
-**Recommended:** Install via `pipx` (supports isolated environments):
+If you mainly use XRobot inside `VS Code`, you can also install the official plugin [`XRobot.xrobot`](https://marketplace.visualstudio.com/items?itemName=XRobot.xrobot). The plugin provides a graphical workspace entry for configuration and works well together with the command line tools.
+
+Recommended installation uses `pipx`:
 
 **Windows:**
 
@@ -48,13 +48,11 @@ cd XRobot
 pip install .
 ```
 
-Please note that you should not use both pip and pipx to install the same package at the same time. If you do, your environment variables may become confused and cause version conflicts.
-
----
+Do not install the same package with both `pip` and `pipx` at the same time. That usually leads to mixed PATH state and version conflicts.
 
 ## Directory Structure Convention
 
-XRobot recommends the following layout for module management and code generation:
+The default layout is:
 
 ```text
 YourProject/
@@ -66,24 +64,20 @@ YourProject/
 │   └── xrobot_main.hpp    # Auto-generated main function
 ```
 
----
+## Main Features
 
-## Feature Overview
-
-- **Module repository fetch & sync**  
-  Automatically fetches, syncs, and recursively parses module repositories to ensure dependency and version consistency.
-- **Parameter auto-detection & configuration**  
+- **Module repository fetch and sync**
+  Automatically fetches, syncs, and recursively parses module repositories to keep dependencies and versions aligned.
+- **Parameter extraction and configuration**
   Automatically extracts parameters from module headers and manages YAML configuration.
-- **Main function auto-generation**  
-  Automatically generates a `XRobotMain()` C++ entry function based on configuration, supporting multiple modules, instances, and nesting.
+- **Main function generation**
+  Generates a `XRobotMain()` C++ entry function from configuration, supporting multiple modules, instances, and nesting.
 - **Manifest parsing**  
   Parses and formats module manifest headers.
 - **Module template generation**  
-  One-click generation of a standardized module folder with CI.
+  Generates a standardized module folder with CI in one step.
 - **Multi-source module management**  
-  Supports local/remote YAML configuration and multi-source repository indexing.
-
----
+  Supports local and remote YAML configuration plus multi-source repository indexing.
 
 ## CLI Tools Summary
 
@@ -99,10 +93,10 @@ YourProject/
 
 See the following sections for detailed options and usage.
 
-## Quick Start (Recommended Workflow)
+## Quick Start
 
 ```bash
-# 1. One-click initialize workspace, fetch modules, and generate main function (recommended)
+# 1. One-click initialize workspace, fetch modules, and generate main function
 $ xrobot_setup
 Starting XRobot auto-configuration...
 [INFO] Created default Modules/modules.yaml
@@ -126,70 +120,7 @@ Discovered modules: BlinkLED
 [INFO] Writing configuration to User/xrobot.yaml
 [SUCCESS] Generated entry file: User/xrobot_main.hpp
 
-All done! Main function generated at: User/xrobot_main.hpp
-
-# 2. Pull or sync module repositories separately (optional)
+# 2. Pull or sync module repositories separately
 $ xrobot_init_mod --config Modules/modules.yaml --directory Modules
 ... (sync output) ...
-
-# 3. Create a module
-$ xrobot_create_mod MySensor --desc "IMU interface module" --hw i2c1
-[OK] Module MySensor generated at Modules/MySensor
-
-# 4. View module information
-$ xrobot_mod_parser --path ./Modules/MySensor/
-
-=== Module: MySensor.hpp ===
-Description       : IMU interface module
-Constructor Args  :
-Required Hardware : i2c1
-Depends           : None
-
-# 5. Add a module repository (custom source, optional)
-$ xrobot_add_mod your-namespace/YourModule@main
-[SUCCESS] Added repo module 'your-namespace/YourModule@main' to Modules/modules.yaml
-
-# 6. Add a module instance
-$ xrobot_add_mod MySensor
-[SUCCESS] Appended module instance 'MySensor' as id 'MySensor_0' to User/xrobot.yaml
-
-# 7. View module instances
-$ cat ./User/xrobot.yaml
-global_settings:
-  monitor_sleep_ms: 1000
-modules:
-- name: BlinkLED
-  constructor_args:
-    blink_cycle: 250
-- id: MySensor_0
-  name: MySensor
-  constructor_args: {}
-
-# 8. Regenerate main function (auto scan & config supported)
-$ xrobot_gen_main --output User/xrobot_main.hpp
-Discovered modules: BlinkLED, MySensor
-[SUCCESS] Generated entry file: User/xrobot_main.hpp
-
-# 9. View main function
-$ cat ./User/xrobot_main.hpp
-#include "app_framework.hpp"
-#include "libxr.hpp"
-
-// Module headers
-#include "BlinkLED.hpp"
-#include "MySensor.hpp"
-
-static void XRobotMain(LibXR::HardwareContainer &hw) {
-  using namespace LibXR;
-  ApplicationManager appmgr;
-
-  // Auto-generated module instantiations
-  static BlinkLED blinkled(hw, appmgr, 250);
-  static MySensor MySensor_0(hw, appmgr);
-
-  while (true) {
-    appmgr.MonitorAll();
-    Thread::Sleep(1000);
-  }
-}
 ```

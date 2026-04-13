@@ -16,16 +16,19 @@ public:
   Timebase(uint64_t max_valid_us = UINT64_MAX, uint32_t max_valid_ms = UINT32_MAX);
 
   // 获取当前时间（微秒）
-  static TimestampUS GetMicroseconds();
+  static MicrosecondTimestamp GetMicroseconds();
 
   // 获取当前时间（毫秒）
-  static TimestampMS GetMilliseconds();
+  static MillisecondTimestamp GetMilliseconds();
+
+  // 微秒级忙等待
+  static void DelayMicroseconds(uint32_t us);
 
   // 派生类需实现：获取微秒级时间戳
-  virtual TimestampUS _get_microseconds() = 0;
+  virtual MicrosecondTimestamp _get_microseconds() = 0;
 
   // 派生类需实现：获取毫秒级时间戳
-  virtual TimestampMS _get_milliseconds() = 0;
+  virtual MillisecondTimestamp _get_milliseconds() = 0;
 
   static inline Timebase *timebase = nullptr;
 };

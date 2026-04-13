@@ -6,45 +6,41 @@ sidebar_position: 13
 
 # 高速缓存 (Cache)
 
-在 STM32 H7/F7 等带 Cache 的系列中，**LibXR** 框架已自动适配 Cache 特性，自动进行 Cache 同步，保证数据一致性。用户仅需在 CubeMX 中开启 I-Cache 和 D-Cache，即可获得高性能，无需手动配置 MPU。
-
----
+在 STM32 H7/F7 等带 Cache 的系列中，LibXR 已经处理了 Cache 同步。用户只需要在 CubeMX 中开启 I-Cache 和 D-Cache，不需要再手工补一套 Cache 维护逻辑，也不需要为了 DMA 缓冲区再额外写一套 Cache 维护代码。
 
 ## Cache 配置基础
 
-- 参考 `ST AN4839 应用笔记`：**MPU 关闭时，SRAM 区域默认为 WBWA（Write-Back, Write-Allocate）模式。**
-- 开启 MPU 后，Cache 策略可以自定义，此处暂不讨论。
+* 参考 `ST AN4839`：MPU 关闭时，SRAM 区域默认是 `WBWA (Write-Back, Write-Allocate)`。
+* 开启 MPU 后，Cache 策略可以继续自定义，这里不展开。
+* 真正需要关心的是：DMA 缓冲区放在哪块 RAM、这块 RAM 是否可被 DMA 访问，以及是否需要 Cache 同步。
 
----
+## DMA 缓冲区内存分区
 
-## DMA 缓冲区内存分区推荐
+以 STM32H750 为例，其内部常见 RAM 区域可以粗略分成下面几类：
 
-以 STM32H750 为例，其内部有多个 RAM 区域：**AXI RAM、SRAM1/2/3/4、ITCMRAM、DTCMRAM**。每种内存与 Cache 和 DMA 的关系如下：
+* `AXI RAM`、`SRAM1~4`：DMA 可访问，但 DMA 与 CPU 共享访问时需要 Cache 同步
+* `ITCMRAM`、`DTCMRAM`：CPU 直连，通常不能给 DMA 当缓冲区
+* `SRAM4`：在 STM32H7 上也是 `BDMA` 可访问区域
 
-- ✅：**无需关心 Cache 一致性**（TCM，CPU直连，DMA无法访问）
-- 🔄：**需要 Cache 同步**（Cacheable，DMA/CPU 可访问，LibXR 已自动处理）
-- ❌：**DMA 无法访问**
+如果只看“能不能做 DMA Buffer”，可以按下面这张表理解：
 
 |      | AXI RAM | SRAM1 | SRAM2 | SRAM3 | SRAM4 | ITCMRAM | DTCMRAM |
 | ---- | ------- | ----- | ----- | ----- | ----- | ------- | ------- |
-| CPU  | 🔄       | 🔄     | 🔄     | 🔄     | 🔄     | ✅       | ✅       |
-| DMA1 | 🔄       | 🔄     | 🔄     | 🔄     | 🔄     | ❌       | ❌       |
-| DMA2 | 🔄       | 🔄     | 🔄     | 🔄     | 🔄     | ❌       | ❌       |
-| BDMA | ❌       | ❌     | ❌     | ❌     | 🔄     | ❌       | ❌       |
+| CPU  | ✅      | ✅    | ✅    | ✅    | ✅    | ✅      | ✅      |
+| DMA1 | ✅      | ✅    | ✅    | ✅    | ✅    | ❌      | ❌      |
+| DMA2 | ✅      | ✅    | ✅    | ✅    | ✅    | ❌      | ❌      |
+| BDMA | ❌      | ❌    | ❌    | ❌    | ✅    | ❌      | ❌      |
 
-**说明：**
-- AXI RAM、SRAM1~4：适合做大容量缓冲区，但 DMA 读写时**需要 Cache 同步**（LibXR 自动处理）。
-- ITCMRAM、DTCMRAM：CPU 独享，高速、低延迟，**不参与 Cache，不适合 DMA Buffer**（DMA 通常无法访问）。
-- SRAM4：STM32H7 上唯一支持 BDMA 的内存区，适合特殊外设用作缓冲。
+说明：
 
----
+* `AXI RAM`、`SRAM1~4` 适合做大容量 DMA 缓冲区，但 DMA 访问后需要处理 Cache 一致性；这一层由 LibXR 负责
+* `ITCMRAM`、`DTCMRAM` 适合放 CPU 高频访问的数据，但不适合做 DMA Buffer
+* `SRAM4` 更适合给 `BDMA` 这类受限 DMA 控制器用
 
-## 链接脚本分区示例
-
-在 `STM32H7` 的 `.ld` 文件中增加如下 section，可以让特定变量放到对应物理内存区域：
+如果你要显式控制 DMA 缓冲区所在区域，可以在链接脚本里增加 section，例如：
 
 ```ld
-.ram_d3 (NOLOAD) : 
+.ram_d3 (NOLOAD) :
 {
   . = ALIGN(4);
   *(.ram_d3)
@@ -61,11 +57,9 @@ sidebar_position: 13
 } >RAM
 ```
 
----
+## 配置文件
 
-## LibXR 缓冲区分配配置示例
-
-在 LibXR 的 `libxr_config.yaml` 或你的项目配置中，推荐为每个 DMA 外设**显式指定缓冲区分区**，如下：
+代码生成工具会直接读取 `dma_section`，并把对应缓冲区放进指定 section。例如：
 
 ```yaml
 SPI:
@@ -80,11 +74,6 @@ I2C:
     dma_section: '.axi_ram'
     dma_enable_min_size: 3
 USART:
-  lpuart1:
-    tx_buffer_size: 128
-    rx_buffer_size: 128
-    dma_section: '.ram_d3'
-    tx_queue_size: 5
   usart1:
     tx_buffer_size: 128
     rx_buffer_size: 128
@@ -97,18 +86,14 @@ ADC:
     vref: 3.3
 ```
 
----
+## 生成结果
 
-## 生成结果举例
-
-通过 `xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp` 自动生成：
+重新生成后，缓冲区会带上对应的 `section` 属性，例如：
 
 ```cpp
 static uint16_t adc3_buf[64] __attribute__((section(".ram_d3")));
 static uint8_t spi4_tx_buf[32] __attribute__((section(".axi_ram")));
 static uint8_t spi4_rx_buf[32] __attribute__((section(".axi_ram")));
-static uint8_t lpuart1_tx_buf[128] __attribute__((section(".ram_d3")));
-static uint8_t lpuart1_rx_buf[128] __attribute__((section(".ram_d3")));
 static uint8_t usart1_tx_buf[128] __attribute__((section(".axi_ram")));
 static uint8_t usart1_rx_buf[128] __attribute__((section(".axi_ram")));
 static uint8_t i2c1_buf[32] __attribute__((section(".axi_ram")));
@@ -116,4 +101,8 @@ static uint8_t i2c1_buf[32] __attribute__((section(".axi_ram")));
 
 ## 使用
 
-与无Cache时一致，无需特别处理。
+使用方式与无 Cache 时一致，不需要额外改业务代码。实际要做的主要是：
+
+* 在 `CubeMX` 里把 Cache 打开
+* 把 DMA Buffer 放到 DMA 可访问的内存区域
+* 如果你要手工指定区域，就在链接脚本和 `libxr_config.yaml` 里把 `section` 对上

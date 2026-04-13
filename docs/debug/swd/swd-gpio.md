@@ -6,9 +6,9 @@ sidebar_position: 2
 
 # SWD GPIO实现
 
-本文档描述 `LibXR::Debug::SwdGeneralGPIO<SwclkGpioType, SwdioGpioType>`：一个基于 GPIO 轮询（bit-bang）的 SWD 探针实现。它继承自 `LibXR::Debug::Swd`，提供 SWD 链路层能力，通常由上层（如 CMSIS-DAP 处理器/调试器）调用。
+`LibXR::Debug::SwdGeneralGPIO<SwclkGpioType, SwdioGpioType>` 是一个基于 GPIO 轮询（bit-bang）的 SWD 探针实现。它继承自 `LibXR::Debug::Swd`，提供 SWD 链路层能力，通常由上层（如 CMSIS-DAP 处理器或调试器）调用。
 
-本文重点放在“如何使用”和“延时参数（loops_per_us）的选择/标定”，不展开实现细节。
+重点放在使用方式和延时参数 `loops_per_us` 的选取/标定，不展开实现细节。
 
 ---
 
@@ -44,6 +44,13 @@ class SwdGeneralGPIO final : public Swd;
 其中 SWDIO 需要支持两种配置：
 - 输出驱动：`OUTPUT_PUSH_PULL`
 - 输入采样：`INPUT + PULL_UP`
+
+工程上选择输出模式时，可按下面这条经验先做：
+
+- 板上已有明确的外部上拉时，优先考虑开漏输出；
+- 没有外部上拉时，优先考虑推挽输出。
+
+但这只是起步经验，不是硬规则。SWDIO / SWCLK 的实际电气行为会受到 GPIO 驱动能力、布线长度、阻尼电阻、探头负载、目标板输入结构等多种因素共同影响。
 
 ---
 
@@ -169,6 +176,8 @@ probe.ReadIdCode(idcode, ack);
 2) 确认 33Ω 串阻与 SWDIO 上拉；
 3) 缩短线缆/改善接地；
 4) 再考虑重新标定 `loops_per_us`（尤其在改了优化选项之后）。
+
+另外，开漏 / 推挽的实际效果也不能只靠概念判断。尤其在较高 SWCLK 频率下，边沿速度、振铃、过冲/过充与回落时间都可能直接影响 ACK 与采样稳定性。遇到“低频正常、高频随机失败”的情况，最好直接上示波器看 SWCLK / SWDIO 边沿，而不是只在软件层继续猜。
 
 ---
 

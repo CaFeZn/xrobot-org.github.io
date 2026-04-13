@@ -21,6 +21,9 @@ public:
 
   // 系统关机操作（由子类实现具体逻辑）
   virtual void Shutdown() = 0;
+
+  // 跳转到启动加载器（默认退化为 Reset）
+  virtual void JumpToBootloader() { Reset(); }
 };
 ```
 
@@ -28,5 +31,6 @@ public:
 
 - `Reset()` 可用于软复位控制器、重新启动系统等；
 - `Shutdown()` 用于关机、掉电、进入睡眠等低功耗控制；
+- `JumpToBootloader()` 默认会退化为 `Reset()`，平台实现可按需改为真正的 Bootloader 跳转；
 - 可用于平台的电源按钮、远程命令、低电量策略等情境；
 - 由具体平台实现其底层行为，接口保持一致，便于移植与抽象封装。

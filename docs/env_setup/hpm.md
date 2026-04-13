@@ -1,12 +1,12 @@
 ---
 id: env-setup-hpm
 title: HPM 环境配置
-sidebar_position: 6
+sidebar_position: 5
 ---
 
 # HPM 环境配置
 
-本文目前只覆盖 HPM 开发环境的基础配置，不包含 LibXR 自动代码生成部分。
+这里只覆盖 HPM 开发环境的基础配置，不包含 LibXR 自动代码生成部分。
 
 先楫官方的快速入门手册配置比较麻烦且并无新建工程的操作，因此本文以这篇文章为基础进行介绍
 [[HPM杂谈]你想要了解的先楫hpm_sdk开发都在这里系列 (二)](https://www.hpmicro.com/service-support/technical-articles/212)

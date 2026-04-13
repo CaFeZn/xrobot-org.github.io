@@ -46,10 +46,10 @@ IWDG:
 
 # Watchdog 相关全局配置
 Watchdog:
-  run_as_thread: true         # 是否作为线程运行（否则定时任务）
-  feed_interval_ms: 1024    # 线程栈深度（仅在线程下有效）
-  thread_stack_depth: 3         # 线程优先级（仅在线程下有效）
-  thread_priority: 250         # 定时任务喂狗周期（毫秒，默认250）
+  run_as_thread: true        # 是否作为线程运行（否则定时任务）
+  thread_stack_depth: 1024   # 线程栈深度（仅在线程下有效）
+  thread_priority: 3         # 线程优先级（仅在线程下有效）
+  feed_interval_ms: 250      # 定时任务喂狗周期（毫秒，仅在非线程模式下有效）
 ```
 
 > * 若 `RunAsThread: true`，则每个启用的 IWDG 会自动生成线程，线程参数可全局配置。

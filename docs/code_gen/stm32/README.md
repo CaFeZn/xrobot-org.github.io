@@ -12,11 +12,13 @@ LibXR 提供 `xr_cubemx_cfg` 命令用于从 STM32CubeMX 工程中一键生成�
 
 ## 快速使用
 
-在 STM32CubeMX 工程根目录下执行：
+在 `STM32CubeMX` 工程根目录下执行：
 
 ```bash
 xr_cubemx_cfg -d .
 ```
+
+如果你已经在 `VS Code` 里使用 [`XRobot.xrobot`](https://marketplace.visualstudio.com/items?itemName=XRobot.xrobot)，也可以直接在插件提供的 GUI 页面里改配置；修改后会自动执行生成命令。
 
 该命令将自动完成以下流程：
 
@@ -46,7 +48,7 @@ Generating C++ code...
 
 ## 输出结构
 
-执行完成后，项目将包含以下新增或修改文件：
+执行完成后，项目通常会新增或修改这些文件：
 
 ```txt
 .
@@ -168,7 +170,7 @@ int main() {
 
 ## 工具链切换
 
-如需切换 GCC/Clang编译器 或更改 Clang 标准库，请使用如下命令：
+如需切换 GCC/Clang 或切换 Clang 标准库，可以使用：
 
 ```bash
 xr_stm32_toolchain_switch gcc
@@ -195,7 +197,7 @@ xr_stm32_toolchain_switch clang --picolibc
 
 ---
 
-## 相关命令（由 `xr_cubemx_cfg` 内部调用，可单独执行）
+## 相关命令
 
 | 工具名                      | 功能说明                          |
 | --------------------------- | --------------------------------- |
@@ -206,6 +208,5 @@ xr_stm32_toolchain_switch clang --picolibc
 
 ## 参考
 
-[LibXR STM32 代码生成工具测试项目 (Github Action)](https://github.com/Jiu-xiao/libxr_stm32_test)
-
-[LibXR 命令行工具以及文档](https://pypi.org/project/libxr/)
+* [LibXR STM32 代码生成工具测试项目 (GitHub Action)](https://github.com/Jiu-xiao/libxr_stm32_test)
+* [LibXR 命令行工具以及文档](https://pypi.org/project/libxr/)

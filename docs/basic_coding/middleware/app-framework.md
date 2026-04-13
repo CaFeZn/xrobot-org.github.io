@@ -19,16 +19,10 @@ sidebar_position: 1
 ## HardwareContainer：硬件设备注册与查找
 
 ```cpp
-template <typename T>
-struct Entry {
-  T& object;
-  std::initializer_list<const char*> aliases;
-};
-
-HardwareContainer container({
+HardwareContainer container(
   Entry<UART>{uart1, {"uart1", "console"}},
-  Entry<Motor>{gpio1, {"gpio1", "LED"}}
-});
+  Entry<GPIO>{gpio1, {"gpio1", "LED"}}
+);
 ```
 
 支持：
@@ -50,6 +44,7 @@ class MyApp : public Application {
 };
 
 MyApp app;
+LibXR::ApplicationManager manager;
 manager.Register(app);
 manager.MonitorAll();  // 周期调用所有模块的 OnMonitor()
 ```

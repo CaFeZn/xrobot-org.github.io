@@ -1,41 +1,84 @@
 ---
 id: env-setup-docker
 title: Docker 环境配置
-sidebar_position: 5
+sidebar_position: 6
 ---
 
-此界面介绍了如何使用[此仓库](https://github.com/xrobot-org/Docker-Image)中发布的Docker镜像。
+# Docker 环境配置
 
-提供的Docker镜像总共有五种：
+[xrobot-org/Docker-Image](https://github.com/xrobot-org/Docker-Image) 当前发布的 Docker 镜像和使用方式如下。
 
-* docker-image-stm32： 针对STM32的docker镜像
-* docker-image-esp32： 针对ESP32的docker镜像
-* docker-image-ch32-riscv: 针对CH32 RISC-V系列的docker镜像
-* docker-image-linux： 针对Linux的docker镜像
-* docker-image-webots： 针对Webots仿真的docker镜像（同时包含OpenCV）
+当前仓库维护以下 5 种镜像：
 
-## ghcr.io
+* `docker-image-stm32`
+* `docker-image-esp32`
+* `docker-image-ch32-riscv`
+* `docker-image-linux`
+* `docker-image-webots`
 
-github的容器仓库，推荐在github actions中使用
+## 当前镜像内容（按当前 Dockerfile 手动核对）
 
-* docker-image-stm32: `docker pull ghcr.io/xrobot-org/docker-image-stm32:main`
-* docker-image-esp32: `docker pull ghcr.io/xrobot-org/docker-image-esp32:main`
-* docker-image-ch32-riscv: `docker pull ghcr.io/xrobot-org/docker-image-ch32-riscv:main`
-* docker-image-linux: `docker pull ghcr.io/xrobot-org/docker-image-linux:main`
-* docker-image-webots: `docker pull ghcr.io/xrobot-org/docker-image-webots:main`
+### `docker-image-stm32`
 
-## Docker Hub
+* 基于 `ubuntu:24.04`
+* 包含 `arm-gnu-toolchain-14.2.rel1`
+* 包含 `starm-clang`
+* 当前镜像专门把 `stm32cube-ide-core` 固定在 `1.1.0`，因为更新后的包线已经不再提供 Linux 侧 `cube` downloader，直接跟随更新会使当前 STM32 镜像失去这部分能力
 
-docker hub的镜像，推荐在本地使用
+### `docker-image-ch32-riscv`
 
-* docker-image-stm32: `docker pull xrimage/xrimage-stm32`
-* docker-image-esp32: `docker pull xrimage/xrimage-esp32`
-* docker-image-ch32-riscv: `docker pull xrimage/xrimage-ch32-riscv`
-* docker-image-linux: `docker pull xrimage/xrimage-linux`
-* docker-image-webots: `docker pull xrimage/xrimage-webots`
+* 基于 `ubuntu:24.04`
+* 当前已切换到 **WCH GCC15 v240**
+* 编译器前缀为 `riscv32-wch-elf-`
+* 同时带有对应 OpenOCD
 
-## 运行Docker镜像
+### `docker-image-esp32`
+
+* 基于 `ubuntu:24.04`
+* 预装 `ESP-IDF v5.4.1`
+* 目录位于 `~/esp/esp-idf`
+* 适合直接跑官方 `idf.py` 工作流
+
+### `docker-image-linux`
+
+* 基于 `ubuntu:24.04`
+* 预装 `clang / cmake / ninja / gcc / g++ / gdb`
+* 预装 `libwpa-client-dev / libnm-dev / libudev-dev / libgpiod-dev`
+* 适合直接作为 Linux 原生驱动和工具链环境
+
+### `docker-image-webots`
+
+* 面向 Webots 仿真环境
+* 同时包含图形 / 仿真相关依赖
+
+## GHCR 拉取
+
+当前以 `GHCR` 为准：
+
+* `docker pull ghcr.io/xrobot-org/docker-image-stm32:main`
+* `docker pull ghcr.io/xrobot-org/docker-image-esp32:main`
+* `docker pull ghcr.io/xrobot-org/docker-image-ch32-riscv:main`
+* `docker pull ghcr.io/xrobot-org/docker-image-linux:main`
+* `docker pull ghcr.io/xrobot-org/docker-image-webots:main`
+
+## Docker Hub 镜像源
+
+如果你使用 Docker Hub 镜像源，也可以直接拉这些名字：
+
+* `docker pull xrimage/xrimage-stm32`
+* `docker pull xrimage/xrimage-esp32`
+* `docker pull xrimage/xrimage-ch32-riscv`
+* `docker pull xrimage/xrimage-linux`
+* `docker pull xrimage/xrimage-webots`
+
+## 运行 Docker 镜像
 
 ```bash
-docker run -it 镜像名
+docker run -it --rm 镜像名
+```
+
+如果要把本地工程挂进去，直接显式挂载工作目录，例如：
+
+```bash
+docker run -it --rm -v "$PWD":/work -w /work ghcr.io/xrobot-org/docker-image-linux:main
 ```

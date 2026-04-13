@@ -6,9 +6,9 @@ sidebar_position: 4
 
 # Operating System
 
-This module provides LibXR's unified abstraction for low-level OS resources such as thread management, synchronization primitives, and timers, ensuring seamless portability across various RTOSes, Linux, and even bare-metal environments.
+This module provides LibXR's unified abstraction for low-level OS resources such as thread management, synchronization primitives, and timers, ensuring seamless portability across various RTOSes, Linux, and bare-metal environments.
 
-## Quick Navigation
+## Contents
 
 - [Thread](./thread.md)
 - [Mutex](./mutex.md)
@@ -16,4 +16,4 @@ This module provides LibXR's unified abstraction for low-level OS resources such
 - [Async](./async.md)
 - [Timer](./timer.md)
 
-For more usage guidelines, platform adaptation instructions, and design principles, please refer to the individual pages.
+For usage details and platform differences, see the individual pages.

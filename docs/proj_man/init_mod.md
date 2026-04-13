@@ -6,7 +6,7 @@ sidebar_position: 1
 
 # 初始化模块仓库
 
-XRobot 提供了模块初始化工具 `xrobot_init_mod`，用于自动拉取和同步你的项目依赖模块仓库。该工具支持**本地配置文件**和**远程配置文件**两种模式，并具备自动递归解析模块依赖、确保所有依赖和版本一致的能力。
+`xrobot_init_mod` 用于拉取并同步项目依赖的模块仓库。它同时支持本地配置文件和远程配置文件，并会递归解析依赖关系，保证依赖树和版本约束一致。
 
 ---
 
@@ -14,7 +14,7 @@ XRobot 提供了模块初始化工具 `xrobot_init_mod`，用于自动拉取和�
 
 ### 1. 初次运行（自动生成配置文件模板）
 
-如果当前没有配置文件（如 `Modules/modules.yaml`），第一次运行会自动生成模板，供你后续编辑。
+如果当前没有配置文件（如 `Modules/modules.yaml`），第一次运行会自动生成模板。
 
 ```bash
 $ xrobot_init_mod
@@ -22,7 +22,7 @@ $ xrobot_init_mod
 [INFO] Please edit the configuration file and rerun this script.
 ```
 
-你只需要按照模板填写你的模块列表，例如：
+按模板补上模块列表，例如：
 
 ```yaml
 modules:
@@ -30,7 +30,7 @@ modules:
   - xrobot-org/MySensor@master
 ```
 
-然后再次运行即可自动拉取所有模块仓库：
+再次运行后就会自动拉取所有模块仓库：
 
 ```bash
 $ xrobot_init_mod
@@ -43,7 +43,7 @@ $ xrobot_init_mod
 
 ### 2. 指定本地配置文件
 
-如需指定本地配置文件，可使用 `--config` 选项：
+指定本地配置文件时，使用 `--config`：
 
 ```bash
 $ xrobot_init_mod --config Modules/modules.yaml
@@ -55,12 +55,12 @@ $ xrobot_init_mod --config Modules/modules.yaml
 
 ### 3. 指定远程配置文件
 
-如需指定远程配置文件（如 GitHub Raw 地址），也可直接传递 URL：
+远程配置文件（如 GitHub Raw 地址）也可以直接传 URL：
 
 ```bash
 $ xrobot_init_mod --config https://raw.githubusercontent.com/<user>/<repo>/<branch>/modules.yaml
 [INFO] Cloning new module: BlinkLED
-[SUCCESS] All modules and其 dependencies processed.
+[SUCCESS] All modules and their dependencies processed.
 ```
 
 ---
@@ -68,7 +68,7 @@ $ xrobot_init_mod --config https://raw.githubusercontent.com/<user>/<repo>/<bran
 ### 4. 自定义仓库源（可选）
 
 XRobot 支持通过 `sources.yaml` 配置多个模块源和镜像。  
-如需指定自定义 sources 文件，可以用 `--sources` 选项：
+需要指定自定义 `sources` 文件时，可以使用 `--sources`：
 
 ```bash
 $ xrobot_init_mod --config Modules/modules.yaml --sources Modules/sources.yaml
