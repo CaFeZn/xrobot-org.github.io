@@ -17,6 +17,9 @@
   "homepage.hero.cta.concept": {
     "message": "Read the Design Concepts"
   },
+  "homepage.hero.cta.demo": {
+    "message": "Web Demo"
+  },
   "homepage.hero.cta.xrobot": {
     "message": "Open XRobot"
   },

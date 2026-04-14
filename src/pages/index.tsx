@@ -272,6 +272,14 @@ export default function Home(): JSX.Element {
                   <Link className="button button--lg homeButton homeButtonSecondary" to="/docs/concept">
                     <Translate id="homepage.hero.cta.concept">理解设计思想</Translate>
                   </Link>
+                  <Link
+                    className="button button--lg homeButton homeButtonSecondary"
+                    to={isEnglish
+                      ? 'https://xrobot-org.github.io/libxr_web_demo/index_en.html'
+                      : 'https://xrobot-org.github.io/libxr_web_demo/'}
+                  >
+                    <Translate id="homepage.hero.cta.demo">Web Demo</Translate>
+                  </Link>
                   <Link className="button button--lg homeButton homeButtonGhost" to="/docs/proj_man">
                     <Translate id="homepage.hero.cta.xrobot">查看 XRobot</Translate>
                   </Link>
