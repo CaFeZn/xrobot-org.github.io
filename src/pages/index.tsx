@@ -1,13 +1,138 @@
 import React from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Translate, { translate } from '@docusaurus/Translate';
 import commitInfo from '../data/commitInfo.json';
 import './Home.css';
 
-const agentQuickDeployFilename = 'xrobot-agent-quick-deploy.md';
+const agentQuickDeployFilename = 'xrobot-agent-context.md';
 
-const agentQuickDeployPrompt = ["# XRobot Agent 快速部署提示词","","你现在负责在当前工程里完成 XRobot 的快速部署，并把 workspace 初始化到可以继续开发的状态。","","## 任务目标","- 检查 Python、pipx / pip、xrobot 是否可用","- 如果 xrobot 未安装，优先使用 pipx 安装；不具备 pipx 时再退回 pip","- 在项目根目录运行 xrobot_setup","- 如果首次生成了 Modules/modules.yaml 或 Modules/sources.yaml，提示我补全配置后再继续第二次执行","- 成功后确认 Modules/ 和 User/ 下的关键生成结果","","## 推荐执行顺序","1. 检查环境：python --version / pipx --version / xrobot_setup --help","2. 安装 XRobot CLI（如缺失）","3. 在项目根目录执行 xrobot_setup","4. 汇总生成文件、拉取到的模块、以及下一步建议阅读入口","","## 重点检查项","- Modules/modules.yaml","- Modules/sources.yaml","- Modules/CMakeLists.txt","- User/xrobot.yaml","- User/xrobot_main.hpp","","## 约束","- 不要修改无关文件","- 优先使用官方命令，不要自创目录结构","- 所有失败都给出可以直接执行的下一步","- Windows 使用 PowerShell，Linux 使用 bash","","## 核心命令","    xrobot_setup"].join('\n');
+const agentQuickDeployPromptZh = [
+  '# XRobot / LibXR 专用 Agent 启动提示词',
+  '',
+  '你正在协助的是 XRobot / LibXR 相关仓库。这里的仓库不一定是 STM32 工程，也不一定是 XRobot workspace；它也可能是 CH32、ESP32、Linux、Webots、HPM、MSPM0 平台工程，或者驱动、XRUSB、调试、CodeGen、示例与测试仓库。',
+  '',
+  '开始分析前，先根据当前仓库的目录和关键文件判断它属于哪一类，再进入对应文档和代码入口。',
+  '',
+  '## 这几个项目分别是什么',
+  '- LibXR：运行时框架，负责核心语义、驱动抽象、中间件和 XRUSB。',
+  '- XRobot：工程工作流工具，负责模块仓库、工作区组织和项目初始化。',
+  '- CodeGen：代码生成工具，负责根据配置生成工程入口和相关代码。',
+  '',
+  '## 使用原则',
+  '- 这是 XRobot / LibXR 专用助手提示词，不是通用嵌入式模板。',
+  '- 不要在看目录之前就默认它是 STM32、ESP32、Linux，或者默认它一定要先跑 XRobot 命令。',
+  '- 先判断仓库角色，再决定看哪份文档、读哪部分代码、执行哪类命令。',
+  '',
+  '## 第一步先看什么',
+  '- 先检查仓库根目录与关键配置文件，确认它更像工作区、平台工程、驱动仓库，还是工具仓库。',
+  '- XRobot workspace 常见痕迹：`Modules/`、`User/`、`modules.yaml`、`sources.yaml`、`xrobot.yaml`。',
+  '- LibXR 平台工程常见痕迹：`CMakeLists.txt`、`CMakePresets.json`、`libxr_config.yaml`、平台目录、芯片配置文件、板级实现目录。',
+  '- 平台或 SDK 线索也要纳入判断：`.ioc`、CubeMX 工程、`idf.py`、`platformio.ini`、Linux / Webots 目录、厂商 SDK 目录。',
+  '- 如果重点文件集中在 `driver`、`system`、`USB`、`DAP`、`Debug`、协议栈或设备枚举实现，优先按驱动 / XRUSB / 调试工程理解。',
+  '',
+  '## 工程类型判断',
+  '- 如果当前仓库已经有 `Modules/`、`User/`、`xrobot.yaml` 等文件，按 XRobot workspace 处理。',
+  '- 如果当前仓库主要围绕 LibXR 集成、平台工程、芯片/板级配置、驱动实现展开，按 LibXR 平台工程处理。',
+  '- 如果当前仓库重点是设备接口、协议栈、调试链路、USB/CAN/UART 等实现，按驱动 / XRUSB 工程处理。',
+  '- 如果当前仓库主要是代码生成、模板、示例、测试或基准，按工具 / 示例仓库处理，不要硬套到板级移植流程。',
+  '- 如果仓库里同时存在多类入口，先说明你看到的证据，再决定主入口，不要直接跳到某个工具命令。',
+  '',
+  '## 文档入口',
+  '- 总入口：https://xrobot-org.github.io/docs/intro',
+  '- 设计思想：https://xrobot-org.github.io/docs/concept',
+  '- 环境配置：https://xrobot-org.github.io/docs/env_setup',
+  '- 基础编程：https://xrobot-org.github.io/docs/basic_coding',
+  '- 项目管理（XRobot）：https://xrobot-org.github.io/docs/proj_man',
+  '- XRUSB：https://xrobot-org.github.io/docs/xrusb',
+  '- 调试：https://xrobot-org.github.io/docs/debug',
+  '',
+  '## 入口选择规则',
+  '- 只有确认是 XRobot workspace 时，才优先看 `proj_man`、`xrobot_setup`、`Modules/`、`User/`。',
+  '- 如果是 LibXR 平台工程，优先看 `env_setup`、`concept`、`basic_coding`，再按实际平台进入对应环境页。',
+  '- 如果是驱动或设备接口问题，再转去 `xrusb`、`debug`、`basic_coding/driver`。',
+  '- 如果是中间件、消息系统、调度、Topic 等运行时机制问题，优先看 `basic_coding` 下对应章节。',
+  '- 如果当前仓库只是某个平台或某个芯片工程，不要把它强行解释成 XRobot workspace。',
+  '',
+  '## 遇到问题时怎么处理',
+  '- 先确认问题属于哪一层：环境、工程工作流、运行时语义、驱动/XRUSB。',
+  '- 先打开上面的对应文档链接，不要脱离文档自行猜测接口或目录结构。',
+  '- 如果文档里没有，再结合当前仓库代码和命令输出继续判断。',
+  '- 如果仍然解决不了，再整理最小问题描述、命令输出和环境信息后提问。',
+  '',
+  '## 需要进一步求助时',
+  '- 补充当前平台、目标芯片/系统、使用的命令、报错原文。',
+  '- 如果是 XRobot workspace 问题，优先附上 `Modules/` 和 `User/` 下相关文件状态。',
+  '- 如果是 LibXR 平台工程问题，优先附上 `CMakeLists.txt`、`CMakePresets.json`、平台配置文件、`libxr_config.yaml` 等文件状态。',
+  '- 如果是驱动、XRUSB、调试或运行时问题，优先附上相关源码位置、最小复现代码和日志。',
+  '',
+  '## 补充入口',
+  '- 新手任务引导：https://xrobot-org.github.io/XRobot-Onboarding/',
+].join('\n');
+
+const agentQuickDeployPromptEn = [
+  '# XRobot / LibXR Agent Startup Prompt',
+  '',
+  'You are assisting with a repository related to XRobot / LibXR. It may be an STM32, CH32, ESP32, Linux, Webots, HPM, or MSPM0 platform project; it may also be an XRobot workspace, a driver repository, an XRUSB/debug project, CodeGen, examples, or tests.',
+  '',
+  'Before changing code or running setup commands, inspect the repository layout and key files first, identify what kind of repository this is, and then choose the corresponding docs and code entry points.',
+  '',
+  '## What these projects are',
+  '- LibXR: the runtime framework, covering core semantics, driver abstractions, middleware, and XRUSB.',
+  '- XRobot: the project workflow toolchain, covering module repositories, workspace layout, and project initialization.',
+  '- CodeGen: the code generation tool, used to generate project entry code from configuration.',
+  '',
+  '## Ground rules',
+  '- This is a dedicated XRobot / LibXR assistant prompt, not a generic embedded template.',
+  '- Do not assume STM32, ESP32, Linux, or an XRobot workspace before you inspect the repository.',
+  '- Classify the repository role first, then decide which docs to read, which code to inspect, and which commands to run.',
+  '',
+  '## What to inspect first',
+  '- Start from the repository root and key config files, and decide whether it looks like a workspace, a platform project, a driver repository, or a tooling repository.',
+  '- Common XRobot workspace traces: `Modules/`, `User/`, `modules.yaml`, `sources.yaml`, `xrobot.yaml`.',
+  '- Common LibXR platform-project traces: `CMakeLists.txt`, `CMakePresets.json`, `libxr_config.yaml`, platform directories, chip config files, and board-level implementation directories.',
+  '- Platform or SDK clues also matter: `.ioc`, CubeMX projects, `idf.py`, `platformio.ini`, Linux / Webots directories, vendor SDK directories.',
+  '- If key files are concentrated around `driver`, `system`, `USB`, `DAP`, `Debug`, protocol stacks, or device-enumeration logic, treat it first as a driver / XRUSB / debug project.',
+  '',
+  '## Repository classification',
+  '- If the repository already contains `Modules/`, `User/`, `xrobot.yaml`, and similar files, treat it as an XRobot workspace.',
+  '- If the repository mainly centers on LibXR integration, platform bring-up, chip / board configuration, and driver implementation, treat it as a LibXR platform project.',
+  '- If the repository mainly focuses on device interfaces, protocol stacks, debug links, or USB/CAN/UART implementation, treat it as a driver / XRUSB project.',
+  '- If the repository mainly contains code generation, templates, examples, tests, or benchmarks, treat it as a tooling / example repository instead of forcing it into a board-porting flow.',
+  '- If multiple entry styles coexist, describe the evidence first and then pick the main entry point. Do not jump straight to one tool command.',
+  '',
+  '## Documentation entry points',
+  '- Overview: https://xrobot-org.github.io/docs/intro',
+  '- Design concepts: https://xrobot-org.github.io/docs/concept',
+  '- Environment setup: https://xrobot-org.github.io/docs/env_setup',
+  '- Basic coding: https://xrobot-org.github.io/docs/basic_coding',
+  '- Project management (XRobot): https://xrobot-org.github.io/docs/proj_man',
+  '- XRUSB: https://xrobot-org.github.io/docs/xrusb',
+  '- Debug: https://xrobot-org.github.io/docs/debug',
+  '',
+  '## Entry selection rules',
+  '- Only prioritize `proj_man`, `xrobot_setup`, `Modules/`, and `User/` after confirming that the repository is an XRobot workspace.',
+  '- For a LibXR platform project, start from `env_setup`, `concept`, and `basic_coding`, then drill into the actual platform page.',
+  '- For driver or device-interface problems, move to `xrusb`, `debug`, and `basic_coding/driver`.',
+  '- For runtime mechanisms such as middleware, messaging, scheduling, or Topic semantics, go to the corresponding `basic_coding` sections first.',
+  '- If the repository is only a platform project or chip-specific project, do not force it into an XRobot workspace explanation.',
+  '',
+  '## How to proceed when there is a problem',
+  '- First identify which layer the problem belongs to: environment, project workflow, runtime semantics, or driver / XRUSB.',
+  '- Open the corresponding docs links above first. Do not guess APIs or directory structure without the docs.',
+  '- If the docs are not enough, continue by combining the current repository code and command output.',
+  '- If it is still unresolved, provide a minimal problem statement, command output, and environment details before asking for help.',
+  '',
+  '## What to include when asking for help',
+  '- Include the current platform, target chip / system, commands used, and the exact error message.',
+  '- For XRobot workspace problems, include the relevant file state under `Modules/` and `User/` first.',
+  '- For LibXR platform-project problems, include the relevant state of `CMakeLists.txt`, `CMakePresets.json`, platform config files, and `libxr_config.yaml` first.',
+  '- For driver, XRUSB, debug, or runtime problems, include the related source location, a minimal repro, and logs.',
+  '',
+  '## Extra entry',
+  '- Onboarding guide: https://xrobot-org.github.io/XRobot-Onboarding/',
+].join('\n');
 
 type AgentPromptStatus = 'idle' | 'copied' | 'downloaded' | 'copy-failed';
 
@@ -55,6 +180,9 @@ function VersionCard(): JSX.Element {
 }
 
 export default function Home(): JSX.Element {
+  const {i18n} = useDocusaurusContext();
+  const isEnglish = i18n.currentLocale === 'en';
+  const agentQuickDeployPrompt = isEnglish ? agentQuickDeployPromptEn : agentQuickDeployPromptZh;
   const [isAgentPromptOpen, setIsAgentPromptOpen] = React.useState(false);
   const [agentPromptStatus, setAgentPromptStatus] = React.useState<AgentPromptStatus>('idle');
 
@@ -152,7 +280,7 @@ export default function Home(): JSX.Element {
                 <div className="homeHeroFlowRail" aria-label="Abstract Module Workflow shortcuts">
                   <Link className="homeHeroFlowStep homeHeroFlowStepAbstract" to="/docs/basic_coding/driver">
                     <span className="homeHeroFlowStepKicker">Abstract</span>
-                    <strong>平台抽象</strong>
+                    <strong>{isEnglish ? 'Platform Abstraction' : '平台抽象'}</strong>
                     <div className="homeHeroFlowMini homeHeroFlowMiniAbstract">
                       <div className="homeHeroFlowMiniRow homeHeroFlowMiniRowFour">
                         <span className="homeHeroFlowMiniChip">STM32</span>
@@ -167,7 +295,7 @@ export default function Home(): JSX.Element {
 
                   <Link className="homeHeroFlowStep homeHeroFlowStepModule" to="/docs/basic_coding/middleware">
                     <span className="homeHeroFlowStepKicker">Module</span>
-                    <strong>模块编排</strong>
+                    <strong>{isEnglish ? 'Module Composition' : '模块编排'}</strong>
                     <div className="homeHeroFlowMini homeHeroFlowMiniModule">
                       <span className="homeHeroFlowMiniPill homeHeroFlowMiniPillTop">Feature</span>
                       <div className="homeHeroFlowMiniBridge" />
@@ -180,7 +308,7 @@ export default function Home(): JSX.Element {
 
                   <Link className="homeHeroFlowStep homeHeroFlowStepWorkflow" to="/docs/proj_man">
                     <span className="homeHeroFlowStepKicker">Workflow</span>
-                    <strong>工程工作流</strong>
+                    <strong>{isEnglish ? 'Project Workflow' : '工程工作流'}</strong>
                     <div className="homeHeroFlowMini homeHeroFlowMiniWorkflow">
                       <div className="homeHeroWorkflowGrid">
                         <span className="homeHeroFlowMiniCmd">CodeGen</span>
@@ -215,10 +343,11 @@ export default function Home(): JSX.Element {
                     </h3>
                     <p>
                       <Translate id="homepage.guide.agent.desc">
-                        打开一份可直接交给 AI 助手的部署提示词，并支持下载成 Markdown 或一键复制。
+                        给 XRobot / LibXR 专用助手的一页启动上下文，先判断仓库角色，再进入对应文档和代码入口。
                       </Translate>
                     </p>
                   </button>
+
                 </div>
               </div>
             </div>
@@ -358,7 +487,7 @@ export default function Home(): JSX.Element {
                 </h3>
                 <p>
                   <Translate id="homepage.path.usb.desc">
-                    从 xrobot_setup、模块拉取和主函数生成开始，先把工程入口搭起来。
+                    先区分这是 XRobot workspace 还是普通 LibXR 工程；如果准备让 Agent 先判断入口，首页这份提示词可以直接用。
                   </Translate>
                 </p>
               </Link>
@@ -480,12 +609,14 @@ export default function Home(): JSX.Element {
                 </h3>
                 <p>
                   <Translate id="homepage.focus.project.desc">
-                    先看 xrobot_setup、模块管理和代码生成，把工程入口、依赖和生成链路先搭起来。
+                    先让 Agent 判断工程类型，再决定走 workspace、平台工程还是驱动入口，把初始化路径选对。
                   </Translate>
                 </p>
                 <div className="homeMiniLinks">
                   <Link to="/docs/proj_man/proj-man-setup">Setup</Link>
-                  <Link to="/docs/proj_man">Project</Link>
+                  <button type="button" onClick={handleAgentPromptOpen}>
+                    Agent Prompt
+                  </button>
                   <Link to="/docs/code_gen">Code Gen</Link>
                 </div>
               </div>
@@ -505,41 +636,64 @@ export default function Home(): JSX.Element {
               <div className="homeAgentModalHeader">
                 <div>
                   <div className="homePanelEyebrow">Agent Prompt</div>
-                  <h2 id="home-agent-modal-title">Agent 快速部署</h2>
+                  <h2 id="home-agent-modal-title">
+                    {isEnglish ? 'Agent Quick Start' : 'Agent 快速部署'}
+                  </h2>
                 </div>
                 <button
                   type="button"
                   className="homeAgentModalClose"
                   onClick={handleAgentPromptClose}
-                  aria-label="关闭 Agent 提示词弹框"
+                  aria-label={isEnglish ? 'Close Agent prompt dialog' : '关闭 Agent 提示词弹框'}
                 >
                   ×
                 </button>
               </div>
               <p className="homeAgentModalLead">
-                这里提供一份可直接交给 AI 助手的快速部署提示词。你可以把它下载成 Markdown，或者直接复制后贴进对话。
+                {isEnglish
+                  ? 'This prompt makes the Agent classify the repository as a workspace, platform project, or driver project first, then locks down the doc entry points and decision order so it does not start from the wrong path.'
+                  : '这份提示词先让 Agent 判断当前工程属于 workspace、平台工程还是驱动工程，再把文档入口和后续判断顺序钉住，避免一上来就走错链路。'}
               </p>
               <div className="homeAgentModalMeta">
-                <span>文件名</span>
+                <span>{isEnglish ? 'Filename' : '文件名'}</span>
                 <code>{agentQuickDeployFilename}</code>
+              </div>
+              <div className="homeAgentModalLinks">
+                <Link className="homeAgentModalLink" to="/docs/proj_man/proj-man-setup">
+                  {isEnglish ? 'Setup Guide' : '一键配置文档'}
+                </Link>
+                <Link className="homeAgentModalLink" to="/docs/proj_man">
+                  {isEnglish ? 'Project Management' : '项目管理总览'}
+                </Link>
+                <Link className="homeAgentModalLink" to="https://xrobot-org.github.io/XRobot-Onboarding/">
+                  {isEnglish ? 'Onboarding Guide' : '新手任务引导'}
+                </Link>
               </div>
               <pre className="homeAgentModalPreview">{agentQuickDeployPrompt}</pre>
               <div className="homeAgentModalActions">
                 <button type="button" className="homeAgentModalAction is-primary" onClick={handleAgentPromptDownload}>
-                  下载提示词 .md
+                  {isEnglish ? 'Download Prompt .md' : '下载提示词 .md'}
                 </button>
                 <button type="button" className="homeAgentModalAction" onClick={() => void handleAgentPromptCopy()}>
-                  直接复制
+                  {isEnglish ? 'Copy' : '直接复制'}
                 </button>
               </div>
               <p className="homeAgentModalStatus" aria-live="polite">
                 {agentPromptStatus === 'copied'
-                  ? '已复制到剪贴板。'
+                  ? isEnglish
+                    ? 'Copied to clipboard.'
+                    : '已复制到剪贴板。'
                   : agentPromptStatus === 'downloaded'
-                    ? 'Markdown 文件已开始下载。'
+                    ? isEnglish
+                      ? 'Markdown download started.'
+                      : 'Markdown 文件已开始下载。'
                     : agentPromptStatus === 'copy-failed'
-                      ? '复制失败，请改用下载。'
-                      : '提示词用于初始化 XRobot workspace 和主函数生成链路。'}
+                      ? isEnglish
+                        ? 'Copy failed. Please use download instead.'
+                        : '复制失败，请改用下载。'
+                      : isEnglish
+                        ? 'This prompt is for classifying the repository first, then deciding which docs or commands should come next.'
+                        : '提示词用于先判定工程类型，再决定后续该进哪份文档或执行哪一步。'}
               </p>
             </div>
           </div>
@@ -564,15 +718,15 @@ export default function Home(): JSX.Element {
             <div className="homeFootPanel">
               <Link className="homeFootStat" to="/docs/about">
                 <span>About</span>
-                <strong>项目起源</strong>
+                <strong>{isEnglish ? 'Project Background' : '项目起源'}</strong>
               </Link>
               <Link className="homeFootStat" to="/docs/con_guide">
                 <span>Contribute</span>
-                <strong>贡献指南</strong>
+                <strong>{isEnglish ? 'Contribution Guide' : '贡献指南'}</strong>
               </Link>
               <Link className="homeFootStat" to="https://github.com/xrobot-org">
                 <span>Community</span>
-                <strong>开发者与仓库</strong>
+                <strong>{isEnglish ? 'Developers & Repos' : '开发者与仓库'}</strong>
               </Link>
             </div>
           </div>

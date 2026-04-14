@@ -606,7 +606,10 @@
   gap: 0.6rem;
 }
 
-.homeRouteGrid,
+.homeRouteGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .homeGuideGrid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -1641,14 +1644,20 @@
   margin-top: 0.75rem;
 }
 
-.homeMiniLinks a {
+.homeMiniLinks a,
+.homeMiniLinks button {
   color: #6b7280;
   font-family: 'IBM Plex Mono', monospace;
   font-size: 0.72rem;
   text-decoration: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
 }
 
-.homeMiniLinks a:hover {
+.homeMiniLinks a:hover,
+.homeMiniLinks button:hover {
   color: #111827;
   text-decoration: underline;
 }
@@ -4262,6 +4271,34 @@ html[data-theme='dark'] .flowMotionMoverModule rect {
   padding: 0.18rem 0.48rem;
 }
 
+.homeAgentModalLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-bottom: 0.8rem;
+}
+
+.homeAgentModalLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.44rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid rgba(114, 130, 157, 0.14);
+  background: rgba(255, 255, 255, 0.68);
+  color: var(--home-accent-deep);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  text-decoration: none;
+}
+
+.homeAgentModalLink:hover {
+  color: var(--home-accent-deep);
+  text-decoration: none;
+  border-color: rgba(35, 87, 216, 0.18);
+  background: rgba(229, 236, 255, 0.78);
+}
+
 .homeAgentModalPreview {
   margin: 0;
   padding: 0.88rem 0.92rem;
@@ -4350,6 +4387,18 @@ html[data-theme='dark'] .homeAgentModalMeta code {
   color: #eef4ff;
 }
 
+html[data-theme='dark'] .homeAgentModalLink {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  color: #dfe8ff;
+}
+
+html[data-theme='dark'] .homeAgentModalLink:hover {
+  border-color: rgba(136, 172, 255, 0.16);
+  background: rgba(136, 172, 255, 0.12);
+  color: #eef4ff;
+}
+
 html[data-theme='dark'] .homeAgentModalPreview {
   border-color: rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.05);
@@ -4364,6 +4413,15 @@ html[data-theme='dark'] .homeAgentModalPreview {
   .homeAgentModalMeta {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .homeAgentModalLinks {
+    flex-direction: column;
+  }
+
+  .homeAgentModalLink {
+    width: 100%;
+    justify-content: center;
   }
 
   .homeAgentModalAction {

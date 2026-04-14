@@ -3,43 +3,163 @@
     "message": "Home"
   },
   "homepage.description": {
-    "message": "Documentation homepage for the XRobot project"
+    "message": "Development documentation for XRobot and LibXR."
   },
-  "homepage.heroTitle": {
-    "message": "Welcome to XRobot"
+  "homepage.hero.title": {
+    "message": "XRobot / LibXR"
   },
-  "homepage.heroSubtitle": {
-    "message": "A documentation and tutorial platform for robotics and embedded developers"
+  "homepage.hero.lead": {
+    "message": "A modular framework for robotics development, device interfaces, and engineering automation. XRobot covers package management, project layout, and code generation, while LibXR provides core semantics, driver abstractions, and XRUSB."
   },
-  "homepage.getStarted": {
-    "message": "Get Started"
+  "homepage.hero.cta.read": {
+    "message": "Start Reading"
   },
-  "homepage.feature1.title": {
-    "message": "Documentation Support"
+  "homepage.hero.cta.concept": {
+    "message": "Read the Design Concepts"
   },
-  "homepage.feature1.content": {
-    "message": "Organize various project contents modularly, from setup, getting started to advanced usage, easy to maintain and consult."
+  "homepage.hero.cta.xrobot": {
+    "message": "Open XRobot"
   },
-  "homepage.feature2.title": {
-    "message": "Complete Ecosystem"
+  "homepage.versionCard.eyebrow": {
+    "message": "Documentation Baseline"
   },
-  "homepage.feature2.content": {
-    "message": "Development supports both Windows and Linux, with Docker images available to enable modular design and automated workflows."
+  "homepage.guide.onboarding.title": {
+    "message": "Onboarding Tasks"
   },
-  "homepage.feature3.title": {
-    "message": "Powerful Features"
+  "homepage.guide.onboarding.desc": {
+    "message": "Pick the right starting path by platform, then get familiar with XR design ideas and the basic coding style step by step."
   },
-  "homepage.feature3.content": {
-    "message": "From compatibility with peripherals and RTOS to kinematics and coordinate transformations, XRobot is like a Swiss Army knife for development."
+  "homepage.guide.agent.title": {
+    "message": "Agent Quick Start"
   },
-  "homepage.feature4.title": {
-    "message": "Open Source Collaboration"
+  "homepage.guide.agent.desc": {
+    "message": "A one-page startup context for a dedicated XRobot / LibXR assistant: identify the repository role first, then jump into the right docs and code entry points."
   },
-  "homepage.feature4.content": {
-    "message": "Contributors are welcome to improve and expand the content together for a better XRobot."
+  "homepage.panel.eyebrow": {
+    "message": "Document Entry Map"
   },
-  "homepage.versionTitle": {
-    "message": "Current repository versions"
+  "homepage.panel.title": {
+    "message": "Jump straight into the docs from the task at hand"
+  },
+  "homepage.route.xrobot.title": {
+    "message": "Project & Workflow"
+  },
+  "homepage.route.xrobot.desc": {
+    "message": "Package management, project management, code generation, and the day-to-day development flow."
+  },
+  "homepage.route.core.title": {
+    "message": "Core Semantics"
+  },
+  "homepage.route.core.desc": {
+    "message": "Callbacks, events, messages, time, memory, and the foundational abstractions."
+  },
+  "homepage.route.driver.title": {
+    "message": "Drivers & XRUSB"
+  },
+  "homepage.route.driver.desc": {
+    "message": "Peripheral abstractions, platform implementations, and XRUSB as part of the driver layer."
+  },
+  "homepage.route.start.title": {
+    "message": "Environment & Getting Started"
+  },
+  "homepage.route.start.desc": {
+    "message": "Platform selection, environment setup, and the first demo."
+  },
+  "homepage.quick.eyebrow": {
+    "message": "Quick Paths"
+  },
+  "homepage.quick.title": {
+    "message": "Enter by common task"
+  },
+  "homepage.quick.desc": {
+    "message": "This section answers not \"how the docs are divided\", but \"what problem you are solving right now\"."
+  },
+  "homepage.path.intro.title": {
+    "message": "I am new to LibXR / XRobot"
+  },
+  "homepage.path.intro.desc": {
+    "message": "Start with the overall concepts, repository structure, and the smallest working path before deciding which layer to dive into."
+  },
+  "homepage.path.core.title": {
+    "message": "I want to port to a new hardware platform"
+  },
+  "homepage.path.core.desc": {
+    "message": "Start from driver abstractions, platform implementation, and basic peripheral capabilities to understand the board-level foundation first."
+  },
+  "homepage.path.driver.title": {
+    "message": "I need to work on device-side interfaces and links"
+  },
+  "homepage.path.driver.desc": {
+    "message": "Start from device interfaces, protocol stacks, and transport implementations, then look at communication, identification, and update-related content."
+  },
+  "homepage.path.usb.title": {
+    "message": "I want to get the project running quickly"
+  },
+  "homepage.path.usb.desc": {
+    "message": "First determine whether this is an XRobot workspace or a plain LibXR project. If you want the Agent to identify the entry path first, use the prompt on the homepage."
+  },
+  "homepage.recent.eyebrow": {
+    "message": "Recent Direction"
+  },
+  "homepage.recent.title": {
+    "message": "Recent Development"
+  },
+  "homepage.recent.desc": {
+    "message": "This section shows directions that have recently started or are actively moving, so you can quickly see which capabilities are being expanded."
+  },
+  "homepage.recent.core.title": {
+    "message": "MSPM0 / HPM5301 support is underway"
+  },
+  "homepage.recent.core.desc": {
+    "message": "New platform adaptation has started, and basic drivers such as GPIO, UART, and PWM will be filled in step by step."
+  },
+  "homepage.recent.linux.title": {
+    "message": "XRUSB device protocol stacks continue to expand"
+  },
+  "homepage.recent.linux.desc": {
+    "message": "Existing device-side protocol stack support is still being completed, with more device communication and transport support on the way."
+  },
+  "homepage.recent.usb.title": {
+    "message": "SWD support is expanding, and DapLink is moving toward JTAG"
+  },
+  "homepage.recent.usb.desc": {
+    "message": "Both push-pull and open-drain SWD implementations are being adapted to more hardware, while the DapLink side continues to move toward JTAG support."
+  },
+  "homepage.focus.eyebrow": {
+    "message": "Focus Areas"
+  },
+  "homepage.focus.title": {
+    "message": "First decide what kind of problem you are solving"
+  },
+  "homepage.focus.desc": {
+    "message": "Most problems fall into these three categories: understanding the mechanisms, connecting hardware, or getting the project running."
+  },
+  "homepage.focus.core.title": {
+    "message": "When you are figuring out how the system works"
+  },
+  "homepage.focus.core.desc": {
+    "message": "Start from callbacks, events, messages, and middleware relationships, and understand the internal runtime first."
+  },
+  "homepage.focus.driver.title": {
+    "message": "When you are wiring hardware and doing platform bring-up"
+  },
+  "homepage.focus.driver.desc": {
+    "message": "Start from drivers, platform implementation, XRUSB, and debug links to understand how boards, peripherals, and interfaces are brought in."
+  },
+  "homepage.focus.project.title": {
+    "message": "When you are trying to get the project running"
+  },
+  "homepage.focus.project.desc": {
+    "message": "Let the Agent identify the repository type first, then choose the workspace, platform-project, or driver entry path so the initialization flow starts from the right place."
+  },
+  "homepage.foot.eyebrow": {
+    "message": "Project"
+  },
+  "homepage.foot.title": {
+    "message": "Project Background & Community"
+  },
+  "homepage.foot.desc": {
+    "message": "This section holds the project background, how to contribute, and community entry points, so you can understand the project itself before going deeper into the technical material."
   },
   "theme.ErrorPageContent.title": {
     "message": "This page crashed.",
