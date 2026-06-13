@@ -1,0 +1,62 @@
+{
+  "title": "XRobot Onboarding Guide",
+  "subtitle": "算控一体 · 软硬兼修 · 多端同构",
+  "storageKey": "xrobot_skill_tree_v1",
+  "root": "start",
+  "includes": [
+    "config.mcu_newbie.json",
+    "config.linux_newbie.json",
+    "config.os_api.json",
+    "config.libxr_core.json"
+  ],
+  "nodes": {
+    "start": {
+      "type": "choice",
+      "title": "选择你的起点",
+      "subtitle": "我们会根据你的经验水平和目标平台安排不同的学习路径。",
+      "question": "请选择最符合你的组合：",
+      "options": [
+        {
+          "id": "mcu_newbie",
+          "label": "MCU · 新手",
+          "desc": "没有 LibXR 经验，从零开始配置环境并在 MCU 上跑通第一个固件。",
+          "next": "mcu_newbie_env",
+          "profile": {
+            "exp": "newbie",
+            "platform": "mcu"
+          }
+        },
+        {
+          "id": "linux_newbie",
+          "label": "Linux · 新手",
+          "desc": "没有 LibXR 经验，从零在 Linux 上搭建环境并跑通第一个 LibXR 程序。",
+          "next": "linux_newbie_env",
+          "profile": {
+            "exp": "newbie",
+            "platform": "linux"
+          }
+        },
+        {
+          "id": "os_api",
+          "label": "系统层 · 操作系统 API",
+          "desc": "已经有自己的工程环境，只想学习 LibXR 提供的统一线程 / 同步原语 / 定时器 / 异步任务接口。",
+          "next": "os_api_basics",
+          "profile": {
+            "exp": "any",
+            "platform": "any"
+          }
+        },
+        {
+          "id": "libxr_core",
+          "label": "LibXR · 核心组件",
+          "desc": "已经具备基本 OS / 线程概念，只想集中了解 LibXR 的基础数据类型、错误处理、时间与通用 I/O 等核心模块。",
+          "next": "libxr_core_intro",
+          "profile": {
+            "exp": "any",
+            "platform": "any"
+          }
+        }
+      ]
+    }
+  }
+}
