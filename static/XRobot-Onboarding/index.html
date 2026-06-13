@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>学习路线引导</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      color-scheme: light;
+      --bg-color: #f5f5f7;
+      --text-color: #111827;
+      --muted-color: #555;
+      --card-bg: #fff;
+      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      --border-color: #ddd;
+      --choice-bg: #fafafa;
+      --choice-hover-bg: #f0f7ff;
+      --choice-hover-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      --task-bg: #fafafa;
+      --tag-bg: #e7f3ff;
+      --tag-color: #0b63ce;
+      --progress-bg: #e5e5ea;
+      --progress-fg: #34c759;
+      --link-color: #007aff;
+      --danger-color: #b00020;
+      --surface-muted: #888;
+      --toggle-bg: rgba(255, 255, 255, 0.85);
+      --toggle-border: rgba(148, 163, 184, 0.28);
+      --toggle-button-text: #475569;
+      --toggle-button-active-bg: #111827;
+      --toggle-button-active-text: #fff;
+    }
+
+    html[data-theme='dark'] {
+      color-scheme: dark;
+      --bg-color: #0f172a;
+      --text-color: #e5eefb;
+      --muted-color: #a8b3c7;
+      --card-bg: #111c31;
+      --card-shadow: 0 10px 30px rgba(2, 6, 23, 0.45);
+      --border-color: #334155;
+      --choice-bg: #172338;
+      --choice-hover-bg: #1e2f4f;
+      --choice-hover-shadow: 0 8px 20px rgba(15, 23, 42, 0.35);
+      --task-bg: #172338;
+      --tag-bg: rgba(59, 130, 246, 0.16);
+      --tag-color: #93c5fd;
+      --progress-bg: #334155;
+      --progress-fg: #4ade80;
+      --link-color: #7cc4ff;
+      --danger-color: #fda4af;
+      --surface-muted: #94a3b8;
+      --toggle-bg: rgba(15, 23, 42, 0.82);
+      --toggle-border: rgba(148, 163, 184, 0.2);
+      --toggle-button-text: #cbd5e1;
+      --toggle-button-active-bg: #e2e8f0;
+      --toggle-button-active-text: #0f172a;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px;
+      background: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    h1 {
+      margin-bottom: 4px;
+    }
+
+    .page-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .page-heading {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .subtitle {
+      color: var(--muted-color);
+      margin-bottom: 0;
+      font-size: 14px;
+    }
+
+    .theme-toggle {
+      display: inline-flex;
+      gap: 6px;
+      padding: 6px;
+      border-radius: 999px;
+      background: var(--toggle-bg);
+      border: 1px solid var(--toggle-border);
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(10px);
+      flex-shrink: 0;
+    }
+
+    .theme-toggle button {
+      border: none;
+      background: transparent;
+      color: var(--toggle-button-text);
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 999px;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease, transform 0.05s ease;
+    }
+
+    .theme-toggle button:hover {
+      transform: translateY(-1px);
+    }
+
+    .theme-toggle button.active {
+      background: var(--toggle-button-active-bg);
+      color: var(--toggle-button-active-text);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 16px;
+    }
+
+    .node-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .node-subtitle {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .choice-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .choice-btn {
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      padding: 10px 12px;
+      background: var(--choice-bg);
+      color: var(--text-color);
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease, border-color 0.15s ease;
+    }
+
+    .choice-btn:hover {
+      background: var(--choice-hover-bg);
+      box-shadow: var(--choice-hover-shadow);
+      transform: translateY(-1px);
+    }
+
+    .choice-title {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .choice-desc {
+      font-size: 12px;
+      color: var(--muted-color);
+      margin-top: 2px;
+    }
+
+    .choice-main {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .task-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: var(--task-bg);
+      margin-top: 6px;
+    }
+
+    .task-list {
+      margin-top: 8px;
+    }
+
+    .task-title-line {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .task-estimate {
+      font-size: 11px;
+      color: #999;
+      margin-left: 8px;
+    }
+
+    .task-item input[type="checkbox"] {
+      margin-top: 4px;
+    }
+
+    .task-main {
+      font-size: 14px;
+    }
+
+    .task-title {
+      font-weight: 600;
+    }
+
+    .task-desc {
+      font-size: 12px;
+      color: var(--muted-color);
+      margin-top: 4px;
+      white-space: normal;
+    }
+
+    .task-link a {
+      font-size: 12px;
+      color: var(--link-color);
+      text-decoration: none;
+    }
+
+    .task-link a:hover {
+      text-decoration: underline;
+    }
+
+    .task-meta {
+      font-size: 11px;
+      color: #999;
+      margin-top: 2px;
+    }
+
+    .progress-wrap {
+      margin-top: 8px;
+      margin-bottom: 4px;
+    }
+
+    .progress-bar-bg {
+      height: 10px;
+      border-radius: 999px;
+      background: var(--progress-bg);
+      overflow: hidden;
+    }
+
+    .progress-bar-fg {
+      height: 100%;
+      width: 0%;
+      background: var(--progress-fg);
+      transition: width 0.2s ease;
+    }
+
+    .progress-text {
+      font-size: 12px;
+      color: var(--muted-color);
+      margin-top: 4px;
+    }
+
+    .nav-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 12px;
+      font-size: 13px;
+    }
+
+    .nav-btn {
+      border: none;
+      background: none;
+      color: var(--link-color);
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .nav-btn:hover {
+      text-decoration: underline;
+    }
+
+    .small-text {
+      font-size: 12px;
+      color: var(--surface-muted);
+      margin-top: 12px;
+    }
+
+    .tags {
+      margin-top: 4px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--tag-bg);
+      color: var(--tag-color);
+      margin-right: 6px;
+    }
+
+    #app-error {
+      color: var(--danger-color);
+      font-size: 14px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 18px;
+      }
+
+      .page-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .theme-toggle {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .theme-toggle button {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-toolbar">
+    <div class="page-heading">
+      <h1 id="page-title">学习路线引导</h1>
+      <div class="subtitle" id="page-subtitle">
+        加载配置中……
+      </div>
+    </div>
+
+    <div class="theme-toggle" role="group" aria-label="切换深浅色模式">
+      <button type="button" data-theme-option="light">浅色</button>
+      <button type="button" data-theme-option="dark">深色</button>
+    </div>
+  </div>
+
+  <div id="app"></div>
+  <div id="app-error"></div>
+
+  <div class="small-text">
+    ✅ 进度保存在本地浏览器（localStorage），只对当前设备生效。<br />
+    🔁 想重新选择路线，可以点击「返回起点」。
+  </div>
+  <!-- 新增：markdown 解析库 -->
+  <script src="marked.min.js"></script>
+  <script src="onboarding.js"></script>
+</body>
+
+</html>
