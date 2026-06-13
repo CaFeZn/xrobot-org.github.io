@@ -2,9 +2,11 @@
 
 const CONFIG_URL = "config.json";
 const THEME_STORAGE_KEY = "xrobot_onboarding_theme";
+const DARK_MODE_MEDIA_QUERY = "(prefers-color-scheme: dark)";
 
 let treeConfig = null;
 let state = null;
+let themeMediaQuery = null;
 
 const mdTextCache = {};
 
@@ -16,7 +18,7 @@ function md(text) {
   return String(text);
 }
 
-function getPreferredTheme() {
+function getStoredThemePreference() {
   try {
     const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
     if (savedTheme === "light" || savedTheme === "dark") {
@@ -26,38 +28,81 @@ function getPreferredTheme() {
     console.warn("读取主题偏好失败", e);
   }
 
-  if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+  return null;
+}
+
+function getSystemTheme() {
+  if (window.matchMedia && window.matchMedia(DARK_MODE_MEDIA_QUERY).matches) {
     return "dark";
   }
 
   return "light";
 }
 
-function syncThemeToggleButtons(theme) {
-  document.querySelectorAll("[data-theme-option]").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.themeOption === theme);
-  });
+function getPreferredTheme() {
+  return getStoredThemePreference() || getSystemTheme();
 }
 
-function applyTheme(theme) {
-  const nextTheme = theme === "dark" ? "dark" : "light";
-  document.documentElement.setAttribute("data-theme", nextTheme);
-  syncThemeToggleButtons(nextTheme);
+function updateThemeToggleLabel(theme) {
+  const nextTheme = theme === "dark" ? "light" : "dark";
+  const nextLabel = nextTheme === "dark" ? "切换到深色模式" : "切换到浅色模式";
+  const toggleButton = document.getElementById("theme-toggle-button");
+  const toggleText = document.getElementById("theme-toggle-text");
 
-  try {
-    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-  } catch (e) {
-    console.warn("保存主题偏好失败", e);
+  if (toggleButton) {
+    toggleButton.setAttribute("aria-label", nextLabel);
+    toggleButton.setAttribute("title", nextLabel);
+  }
+
+  if (toggleText) {
+    toggleText.textContent = nextLabel;
   }
 }
 
+function applyTheme(theme, options = {}) {
+  const nextTheme = theme === "dark" ? "dark" : "light";
+  const { persist = true } = options;
+  document.documentElement.setAttribute("data-theme", nextTheme);
+  updateThemeToggleLabel(nextTheme);
+
+  if (persist) {
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    } catch (e) {
+      console.warn("保存主题偏好失败", e);
+    }
+  }
+}
+
+function handleSystemThemeChange(event) {
+  if (getStoredThemePreference()) {
+    return;
+  }
+
+  applyTheme(event.matches ? "dark" : "light", { persist: false });
+}
+
 function initThemeToggle() {
-  const theme = getPreferredTheme();
-  syncThemeToggleButtons(theme);
-  document.querySelectorAll("[data-theme-option]").forEach(btn => {
-    btn.addEventListener("click", () => applyTheme(btn.dataset.themeOption));
-  });
-  applyTheme(theme);
+  const toggleButton = document.getElementById("theme-toggle-button");
+  const storedTheme = getStoredThemePreference();
+  applyTheme(storedTheme || getSystemTheme(), { persist: !!storedTheme });
+
+  if (toggleButton) {
+    toggleButton.addEventListener("click", () => {
+      const currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+      const nextTheme = currentTheme === "dark" ? "light" : "dark";
+      applyTheme(nextTheme, { persist: true });
+    });
+  }
+
+  if (window.matchMedia) {
+    themeMediaQuery = window.matchMedia(DARK_MODE_MEDIA_QUERY);
+    if (typeof themeMediaQuery.addEventListener === "function") {
+      themeMediaQuery.addEventListener("change", handleSystemThemeChange);
+    } else if (typeof themeMediaQuery.addListener === "function") {
+      themeMediaQuery.addListener(handleSystemThemeChange);
+    }
+  }
 }
 
 function loadMdIntoElement(path, el) {
