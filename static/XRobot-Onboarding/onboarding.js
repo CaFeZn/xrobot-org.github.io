@@ -18,6 +18,114 @@ function md(text) {
   return String(text);
 }
 
+const ALLOWED_HTML_TAGS = new Set([
+  "A",
+  "B",
+  "BLOCKQUOTE",
+  "BR",
+  "CODE",
+  "DEL",
+  "EM",
+  "H1",
+  "H2",
+  "H3",
+  "H4",
+  "H5",
+  "H6",
+  "HR",
+  "I",
+  "LI",
+  "OL",
+  "P",
+  "PRE",
+  "STRONG",
+  "UL"
+]);
+
+const ALLOWED_HTML_ATTRS = {
+  A: new Set(["href", "title"])
+};
+
+function isSafeUrl(url) {
+  if (!url) return false;
+
+  const normalized = String(url).trim();
+  if (!normalized) return false;
+
+  if (normalized.startsWith("#") || normalized.startsWith("/")) {
+    return true;
+  }
+
+  try {
+    const parsed = new URL(normalized, window.location.href);
+    return ["http:", "https:", "mailto:"].includes(parsed.protocol);
+  } catch (e) {
+    return false;
+  }
+}
+
+function sanitizeHtml(html) {
+  const template = document.createElement("template");
+  template.innerHTML = html;
+
+  const sanitizeNode = node => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return document.createTextNode(node.textContent || "");
+    }
+
+    if (node.nodeType !== Node.ELEMENT_NODE) {
+      return document.createDocumentFragment();
+    }
+
+    const tagName = node.tagName.toUpperCase();
+    if (!ALLOWED_HTML_TAGS.has(tagName)) {
+      const fragment = document.createDocumentFragment();
+      Array.from(node.childNodes).forEach(child => {
+        fragment.appendChild(sanitizeNode(child));
+      });
+      return fragment;
+    }
+
+    const clean = document.createElement(tagName.toLowerCase());
+    const allowedAttrs = ALLOWED_HTML_ATTRS[tagName] || new Set();
+
+    Array.from(node.attributes).forEach(attr => {
+      const attrName = attr.name.toLowerCase();
+      if (!allowedAttrs.has(attr.name)) {
+        return;
+      }
+
+      if (attrName === "href" && !isSafeUrl(attr.value)) {
+        return;
+      }
+
+      clean.setAttribute(attr.name, attr.value);
+    });
+
+    if (tagName === "A" && clean.hasAttribute("href")) {
+      clean.setAttribute("rel", "noopener noreferrer");
+      clean.setAttribute("target", "_blank");
+    }
+
+    Array.from(node.childNodes).forEach(child => {
+      clean.appendChild(sanitizeNode(child));
+    });
+
+    return clean;
+  };
+
+  const fragment = document.createDocumentFragment();
+  Array.from(template.content.childNodes).forEach(child => {
+    fragment.appendChild(sanitizeNode(child));
+  });
+  return fragment;
+}
+
+function setSanitizedMarkdown(el, markdownText) {
+  if (!el) return;
+  el.replaceChildren(sanitizeHtml(md(markdownText || "")));
+}
+
 function getStoredThemePreference() {
   try {
     const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
@@ -110,7 +218,7 @@ function loadMdIntoElement(path, el) {
 
   // 有缓存就直接用
   if (mdTextCache[path]) {
-    el.innerHTML = md(mdTextCache[path]);
+    setSanitizedMarkdown(el, mdTextCache[path]);
     return;
   }
 
@@ -126,7 +234,7 @@ function loadMdIntoElement(path, el) {
     })
     .then(text => {
       mdTextCache[path] = text;
-      el.innerHTML = md(text);
+      setSanitizedMarkdown(el, text);
     })
     .catch(err => {
       console.error(err);
@@ -396,7 +504,7 @@ function renderChoiceNode(node) {
     if (opt.desc) {
       const d = document.createElement("div");
       d.className = "choice-desc";
-      d.innerHTML = md(opt.desc);
+      setSanitizedMarkdown(d, opt.desc);
       main.appendChild(d);
     }
 
@@ -546,7 +654,7 @@ function renderTaskNode(nodeRaw) {
     } else if (t.desc) {
       const desc = document.createElement("div");
       desc.className = "task-desc";
-      desc.innerHTML = md(t.desc);
+      setSanitizedMarkdown(desc, t.desc);
       main.appendChild(desc);
     }
 
