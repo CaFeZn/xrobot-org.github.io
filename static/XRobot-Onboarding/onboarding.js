@@ -64,9 +64,17 @@ function isSafeUrl(url) {
   }
 }
 
+function isExternalHttpUrl(url) {
+  try {
+    const parsed = new URL(url, window.location.href);
+    return ["http:", "https:"].includes(parsed.protocol) && parsed.origin !== window.location.origin;
+  } catch (e) {
+    return false;
+  }
+}
+
 function sanitizeHtml(html) {
-  const template = document.createElement("template");
-  template.innerHTML = html;
+  const parsedHtml = new DOMParser().parseFromString(String(html || ""), "text/html");
 
   const sanitizeNode = node => {
     if (node.nodeType === Node.TEXT_NODE) {
@@ -91,7 +99,7 @@ function sanitizeHtml(html) {
 
     Array.from(node.attributes).forEach(attr => {
       const attrName = attr.name.toLowerCase();
-      if (!allowedAttrs.has(attr.name)) {
+      if (!allowedAttrs.has(attrName)) {
         return;
       }
 
@@ -103,8 +111,11 @@ function sanitizeHtml(html) {
     });
 
     if (tagName === "A" && clean.hasAttribute("href")) {
-      clean.setAttribute("rel", "noopener noreferrer");
-      clean.setAttribute("target", "_blank");
+      const href = clean.getAttribute("href");
+      if (isExternalHttpUrl(href)) {
+        clean.setAttribute("rel", "noopener noreferrer");
+        clean.setAttribute("target", "_blank");
+      }
     }
 
     Array.from(node.childNodes).forEach(child => {
@@ -115,7 +126,7 @@ function sanitizeHtml(html) {
   };
 
   const fragment = document.createDocumentFragment();
-  Array.from(template.content.childNodes).forEach(child => {
+  Array.from(parsedHtml.body.childNodes).forEach(child => {
     fragment.appendChild(sanitizeNode(child));
   });
   return fragment;
@@ -725,7 +736,7 @@ function render() {
   const app = document.getElementById("app");
   if (!app) return;
 
-  app.innerHTML = "";
+  app.replaceChildren();
 
   const currentId = state.currentNodeId || treeConfig.root;
   const nodeRaw = treeConfig.nodes[currentId];
