@@ -107,7 +107,7 @@ Don't forget to include LibXR too!
 ```cmake
 # A simple example
 project(xrobot_mod_test CXX)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 add_executable(xr_test main.cpp)
 
 # Set before add_subdirectory

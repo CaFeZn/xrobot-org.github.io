@@ -10,20 +10,22 @@ This module provides the foundational macros, constants, error codes, and generi
 
 ## Math and Physical Constants
 
-- `M_PI`, `M_2PI`: π and 2π, commonly used in angle calculations.
-- `M_1G`: Standard gravitational acceleration constant, with a value of `9.80665 m/s²`.
+- `PI`, `TWO_PI`: π and 2π, commonly used in angle calculations.
+- `STANDARD_GRAVITY`: Standard gravitational acceleration constant, with a value of `9.80665 m/s²`.
 
 ## Common Macros
 
 - `DEF2STR(x)`: Converts a macro value to string.
 - `UNUSED(x)`: Suppresses compiler warnings for unused variables.
-- `OFFSET_OF(type, member)`: Gets the offset of a struct member.
-- `MEMBER_SIZE_OF(type, member)`: Gets the byte size of a struct member.
-- `CONTAINER_OF(ptr, type, member)`: Retrieves the containing struct pointer from a member pointer, commonly used for object backtracking.
+- `LIBXR_NOINLINE`: Portability macro for disabling inlining.
+- `LIBXR_PACKED_BEGIN` / `LIBXR_PACKED_END` / `LIBXR_PACKED`: packed-layout related macros.
 
-## Cache Line Definition
+## Alignment and Cache-Line Definitions
 
-- `LIBXR_CACHE_LINE_SIZE`: Cache line size determined by pointer width—64 bytes on 64-bit platforms, 32 bytes on 32-bit.
+- `HW_CACHE_LINE_SIZE`: hardware cache-line size, typically 64 bytes on 64-bit platforms and 32 bytes on 32-bit platforms.
+- `CONCURRENCY_ALIGNMENT`: alignment policy used by concurrency-oriented structures; it may differ between single-core and multi-core configurations.
+- `CACHE_LINE_SIZE`: backward-compatible cache-line alias.
+- `ALIGN_SIZE`: native platform alignment size, currently `sizeof(void*)`.
 
 ## Error Codes (`ErrorCode`)
 
@@ -62,6 +64,14 @@ Used for runtime checks to validate data size:
 - `MORE`: Must be greater than or equal to the reference  
 - `NONE`: No size restriction
 
+Current mainline also provides:
+
+```cpp
+constexpr bool SizeLimitCheck(SizeLimitMode mode, size_t limit, size_t size) noexcept;
+```
+
+This is a pure predicate only. It answers whether the requested size relation holds, but does not decide whether the caller should assert, abort, or return an error code.
+
 ## Assertion Macros
 
 Provides unified runtime assertions:
@@ -78,6 +88,14 @@ void libxr_fatal_error(const char *file, uint32_t line, bool in_isr);
 You can register a callback to handle assertion failures (see `libxr_assert.hpp` for details).
 
 ## Generic Template Utilities
+
+Besides enums and constants, current mainline also exposes:
+
+- `OffsetOf(member)` for member-offset computation via a member pointer;
+- `ContainerOf(ptr, member)` for recovering the owning object pointer from a member pointer;
+- concepts such as `MemberObjectPointer` and `CommonOrdered`.
+
+These interfaces are currently used mainly by low-level containers, driver glue, and RTTI-free object backtracking paths.
 
 ```cpp
 template <typename T1, typename T2>

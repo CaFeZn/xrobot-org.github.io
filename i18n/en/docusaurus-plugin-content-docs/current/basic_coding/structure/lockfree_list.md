@@ -42,8 +42,7 @@ ErrorCode Foreach(Func func);
 
 - Traverses all nodes in the list and calls `func(Data&)` on the data.
 - Uses `SizeLimitMode` to check data type match.
-  - If lambda returns `ErrorCode::OK`, traversal continues.
-  - If `ErrorCode::ERROR`, traversal stops.
+  - Traversal continues while the callback returns `ErrorCode::OK`; any non-`OK` code stops traversal immediately and is returned to the caller.
 
 ### Get Size
 
@@ -70,6 +69,7 @@ list.Foreach<int>([](int& val) {
 
 - This list does not support node deletion, making it ideal for "add-only" scenarios.
 - Node lifetime is managed by the user; avoid duplicate additions or premature destruction.
+- The current `BaseNode` destructor asserts that the node has already been detached from the list. If a node object may be destroyed before the list itself, the caller must ensure the list has already been torn down or the node is no longer linked.
 - Do not modify the list structure during traversal.
 
 ## Typical Use Cases

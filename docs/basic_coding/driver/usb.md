@@ -6,4 +6,4 @@ sidebar_position: 13
 
 # USB
 
-查看XRUSB[仓库](https://github.com/Jiu-xiao/XRUSB)和[文档](../../xrusb)。
+XRUSB 的当前使用说明优先看[文档](../../xrusb)；如果需要查看实现源码，再去对应的仓库或主线代码目录定位。

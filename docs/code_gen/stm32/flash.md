@@ -37,7 +37,7 @@ constexpr size_t FLASH_SECTOR_NUMBER = sizeof(FLASH_SECTORS) / sizeof(LibXR::Fla
 
 ## 创建Flash对象
 
-第一个参数是 Flash 地址映射表，第二个参数是 Flash 的总扇区数，第三个参数是数据库的起始扇区编号。第三个参数可以省略，默认取最后两个扇区。
+第一个参数是 Flash 地址映射表，第二个参数是 Flash 的总扇区数，第三个参数是数据库的起始扇区编号。第三个参数可以省略；当前主线的二参数构造会转发为 `start_sector = sector_count - 1`。
 
 ```cpp
   // app_main.cpp
@@ -47,10 +47,10 @@ constexpr size_t FLASH_SECTOR_NUMBER = sizeof(FLASH_SECTORS) / sizeof(LibXR::Fla
 
 ## 创建数据库对象
 
-对于STM32F1/F4等型号，使用DatabaseRaw。模板参数代表了flash的最小写入粒度。
+对于STM32F1/F4等型号，使用 `DatabaseRaw<MinWriteSize>`。模板参数代表这条 raw 数据库后端所要求的最小写入单元大小。
 
 ```cpp
-LibXR::DatabaseRaw<4> database(flash);
+LibXR::DatabaseRaw<4> database(flash, 128);
 ```
 
 对于STM32G4/L4等flash不支持逆序写入的型号，请使用DatabaseRawSequential。第二个参数为可选，代表最大缓冲区大小。

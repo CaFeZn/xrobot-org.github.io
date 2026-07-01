@@ -21,7 +21,7 @@ PlatformInit();
 For RTOS environments, you need to provide thread priority and stack depth:
 
 ```cpp
-PlatformInit(2, 512);
+PlatformInit(2, 1024);
 ```
 
 The first parameter is the thread priority, and the second is the stack depth.
@@ -47,7 +47,7 @@ For non-bare-metal systems, the following configuration will be generated in `Us
 ```yaml
 software_timer:
   priority: 2
-  stack_depth: 512
+  stack_depth: 1024
 ```
 
 You can modify this file directly. To apply updated settings, run `xr_cubemx_cfg -d .` or  

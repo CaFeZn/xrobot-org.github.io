@@ -6,23 +6,9 @@ sidebar_position: 10
 
 # CAN 与 CAN FD
 
-LibXR 支持标准 CAN 和 CAN FD。在 STM32CubeMX 中需要启用相应的外设和中断，并至少为标准帧和扩展帧分配一个过滤器。
+LibXR 支持标准 CAN 和 CAN FD。对代码生成器而言，这一页主要覆盖的是**实例生成与队列配置**；至于过滤器、FIFO 或消息 RAM 的更细节初始化，属于 CubeMX 工程本身和底层驱动侧的职责，不应被扩大理解成当前 generator 直接生成的一套统一策略。
 
-## 默认过滤器与FIFO配置
-
-LibXR会为每个CAN/CANFD的标准帧和扩展帧各配置一个默认过滤器，允许所有数据帧通过。
-
-对于不同CAN/CANFD数量的平台，FIFO的配置如下：
-
-| 经典CAN | CAN1 | CAN1+CAN2 | CAN1+CAN2+CAN3 |
-| ------- | ---- | --------- | -------------- |
-| FIFO0   | CAN1 | CAN1      | CAN1+CAN2      |
-| FIFO1   | N/A  | CAN2      | CAN3           |
-
-| CAN FD | CANFD1 | CANFD1+CANFD2 | CANFD1+CANFD2+CANFD3 |
-| ------ | ------ | ------------- | -------------------- |
-| FIFO0  | CANFD1 | CANFD1        | CANFD1               |
-| FIFO1  | N/A    | CANFD2        | CANFD2+CANFD3        |
+在 STM32CubeMX 中，仍然需要先把对应外设与中断配置完整；如果目标工程依赖特定过滤器或 FIFO 分配，也应在 CubeMX / HAL 初始化侧确认，而不是假定 generator 会替你统一生成这一层策略。
 
 ## 示例
 
@@ -48,6 +34,15 @@ FDCAN:
 ```
 
 - `queue_size`：发送队列的大小，用于缓存待发送的 CAN/FDCAN 数据帧。
+
+## 当前 generator 覆盖范围
+
+就当前 `GeneratorCodeSTM32.py` 而言，这一项生成逻辑主要做两件事：
+
+- 从 `CAN.<instance>.queue_size` 或 `FDCAN.<instance>.queue_size` 读取配置；
+- 生成 `STM32CAN` / `STM32CANFD` 的实例构造代码。
+
+也就是说，当前 generator 在这一页对应的核心契约是“实例名 + 队列大小”，而不是统一替你生成一套跨芯片一致的过滤器/FIFO 拓扑。
 
 可直接修改该配置文件。如需应用更改，请执行以下命令重新生成代码：  
 `xr_cubemx_cfg -d .`  

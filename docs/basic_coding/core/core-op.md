@@ -63,8 +63,8 @@ void MarkAsRunning();
 
 - `UpdateStatus(...)` 会根据操作类型触发回调、解除阻塞或更新轮询状态：
   - CALLBACK：调用 `cb.Run(in_isr, status)`，其中 `status` 作为 `T` 类型的完成状态传递给回调。
-  - BLOCK：调用信号量的 `PostFromCallback(in_isr)` 解除阻塞等待（完成状态本身不参与阻塞唤醒语义）。
-  - POLLING：更新轮询状态变量 `OperationPollingStatus`：当 `status` 表示成功时置为 `DONE`，否则置为 `ERROR`。该规则对任意 `T` 一致；约定以 “0” 表示成功（例如 `ErrorCode::OK == 0` 或其它状态类型的 0 值）。
+  - BLOCK：调用信号量的 `PostFromCallback(in_isr)` 解除阻塞等待；当前完成值本身不会通过 `Operation` 内部保存给阻塞等待者，具体最终 `ErrorCode` 由拥有该 `Operation` 的端口侧 handoff 状态保存。
+  - POLLING：当前实现直接按 `status == ErrorCode::OK` 判断成功并置为 `DONE`，否则置为 `ERROR`。因此这条路径在当前主线里实际上是面向 `Operation<ErrorCode>` 使用最自然的；若把它推广到其它 `T`，并不能自动得到一套独立于 `ErrorCode` 的通用成功判定语义。
 - `MarkAsRunning()` 在 POLLING 模式下设置状态为 `RUNNING`。
 - 这两个函数通常由驱动/端口在合适的时机调用；用户侧只需选择合适的 `OperationType` 并传入即可。
 
@@ -108,3 +108,25 @@ if (status == LibXR::ReadOperation::OperationPollingStatus::DONE) {
 ---
 
 `Operation` 是 LibXR I/O 操作的基础机制，适用于串口、网络、定时器等模块，统一管理完成行为，确保线程与中断上下文均安全。
+
+## 当前主线中的补充角色：`AsyncBlockWait`
+
+在 `operation.hpp` 中，`Operation<T>` 之外还定义了一个当前主线内部使用的辅助类：
+
+```cpp
+class AsyncBlockWait;
+```
+
+它的职责不是替代 `Operation`，而是为同步驱动路径提供一个共享的 BLOCK waiter handoff：
+
+- `Start(Semaphore&)`
+- `Wait(timeout)`
+- `TryPost(in_isr, ErrorCode)`
+- `Cancel()`
+
+当前语义要点：
+
+- 超时等待者会与后续迟到完成脱钩（detached）；
+- 迟到完成仍然可以把内部 in-flight 状态清干净，但结果不再属于那个已经超时返回的调用方。
+
+这也是为什么上文 BLOCK 路径只强调“信号量唤醒”，而不把最终错误码归因到 `Operation` 自身内部存储。

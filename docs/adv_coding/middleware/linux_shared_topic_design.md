@@ -10,7 +10,7 @@ sidebar_position: 2
 
 ## 1. 为什么不是直接改 `Topic`
 
-`LinuxSharedTopic<T>` 解决的是 Linux / Webots 主机进程间通信、大 payload 共享、零拷贝读取以及多订阅者队列策略；原始 `Topic` 更像是进程内发布订阅，语义偏 MCU 和轻量系统，用缓存、回调、同步/异步订阅者去组织数据流。这两条路径的约束根本不同，所以共享内存语义没有继续塞回 `Topic` 本体，而是单独做成 `LibXR::LinuxSharedTopic<T>`。这样 `Topic` 仍然保持轻量，Linux 主机 IPC 也可以沿着共享内存模型单独演化。
+`LinuxSharedTopic<T>` 解决的是 Linux / Webots 主机进程间通信、大 payload 共享、零拷贝读取以及多订阅者队列策略；原始 `Topic` 更像是进程内发布订阅，语义偏 MCU 和轻量系统，用精确类型分发、回调、同步/异步订阅者去组织数据流。这两条路径的约束根本不同，所以共享内存语义没有继续塞回 `Topic` 本体，而是单独做成 `LibXR::LinuxSharedTopic<T>`。这样 `Topic` 仍然保持轻量，Linux 主机 IPC 也可以沿着共享内存模型单独演化。
 
 ## 2. 数据面和控制面分离
 

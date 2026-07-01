@@ -114,7 +114,7 @@ extern "C" void app_main(void) {
   
   /* User Code End 2 */
   STM32TimerTimebase timebase(&htim2);
-  PlatformInit(2, 2048);
+  PlatformInit(2, 1024);
   STM32PowerManager power_manager;
 
   /* GPIO Configuration */
@@ -171,6 +171,9 @@ Make sure to adjust the initial thread stack size in STM32CubeMX to avoid stack 
 | `-d`       | Specify STM32 project root directory    |
 | `-t`       | Set terminal peripheral (e.g. `usart1`) |
 | `--xrobot` | Generate glue code for XRobot modules   |
+| `--commit` | Pin the LibXR submodule to a specific commit |
+| `--git-source` | Select the preferred Git source or base URL for LibXR |
+| `--git-mirrors` | Provide additional mirror URLs for auto source selection |
 
 ---
 
@@ -207,8 +210,10 @@ By default, the generated CMake configuration applies the `-O2` optimization opt
 
 | Tool                        | Description                                    |
 | --------------------------- | ---------------------------------------------- |
+| `xr_cubemx_generate`        | Run STM32CubeMX script-mode generation only    |
 | `xr_parse_ioc`              | Parses `.ioc` and generates `.config.yaml`     |
 | `xr_gen_code_stm32`         | Generates `app_main.cpp` from the YAML config  |
+| `xr_stm32_flash`            | Generates the STM32 flash layout table         |
 | `xr_stm32_cmake`            | Integrates LibXR into the project build system |
 | `xr_stm32_toolchain_switch` | Switch toolchain and standard library          |
 

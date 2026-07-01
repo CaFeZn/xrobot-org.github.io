@@ -3,16 +3,18 @@ const path = require('path');
 const axios = require('axios');
 
 const repos = {
-  XRobot: 'xrobot-org/XRobot',
-  LibXR: 'Jiu-xiao/libxr',
-  CodeGen: 'Jiu-xiao/LibXR_CppCodeGenerator',
+  XRobot: {repo: 'xrobot-org/XRobot', ref: 'XRobot2.0'},
+  LibXR: {repo: 'Jiu-xiao/libxr', ref: 'master'},
+  CodeGen: {repo: 'Jiu-xiao/LibXR_CppCodeGenerator', ref: 'master'},
 };
 
 (async () => {
   const result = {};
-  for (const [name, repo] of Object.entries(repos)) {
+  for (const [name, info] of Object.entries(repos)) {
     try {
-      const res = await axios.get(`https://api.github.com/repos/${repo}/commits/master`);
+      const res = await axios.get(
+        `https://api.github.com/repos/${info.repo}/commits/${info.ref}`
+      );
       result[name] = res.data.sha.substring(0, 7);
     } catch {
       result[name] = 'Error';

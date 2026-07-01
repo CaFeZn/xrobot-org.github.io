@@ -44,12 +44,12 @@ STM32ADC类并不是由ADC基类的派生，而是包含了多个由ADC基类派
 ```yaml
 ADC:
   adcX:
-    buffer_size: 128 # 默认大小为通道/Rank数量*32
+    buffer_size: 32 # 默认基础缓冲大小；实际生成的 uint16_t 缓冲区会按启用通道/Rank 数量展开
     dma_section: ''
     vref: 3.3
 ```
 
-其中`buffer_size`为ADC缓冲区大小，`dma_section`为缓冲区所在的内存区域，`vref`为ADC参考电压，单位为V。
+其中`buffer_size`为ADC基础缓冲大小，实际生成的 `uint16_t` 缓冲区会根据启用的通道/Rank 数量展开；`dma_section`为缓冲区所在的内存区域，`vref`为ADC参考电压，单位为V。
 
 可直接修改该文件。如需应用更新配置，请执行以下任一命令以重新生成代码：  
 `xr_cubemx_cfg -d .`  

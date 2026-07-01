@@ -55,7 +55,7 @@ virtual ErrorCode SetConfig(Configuration config) = 0;
 
 ```cpp
 virtual bool Read() = 0;              // Read pin level
-virtual ErrorCode Write(bool value) = 0; // Write pin level
+virtual void Write(bool value) = 0;   // Write pin level
 ```
 
 ### Interrupt Control
@@ -71,6 +71,12 @@ virtual ErrorCode DisableInterrupt() = 0;  // Disable interrupt
 using Callback = LibXR::Callback<>;
 ErrorCode RegisterCallback(Callback callback); // Register interrupt handler
 ```
+
+Current implementation semantics:
+
+- `RegisterCallback(...)` only stores the callback into `callback_` and returns `ErrorCode::OK`;
+- it does **not** configure the pin direction for you and does not automatically call `EnableInterrupt()`;
+- to actually receive interrupt callbacks, the platform implementation still needs the correct `SetConfig(...)` and `EnableInterrupt()` sequence.
 
 ## Feature Summary
 

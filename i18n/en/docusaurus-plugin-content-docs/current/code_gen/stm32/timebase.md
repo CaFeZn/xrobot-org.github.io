@@ -1,37 +1,47 @@
 ---
 id: stm32-code-gen-timebase
-title: Timebase
+title: Time Base
 sidebar_position: 2
 ---
 
-# Timebase
+# Time Base
 
-By default, STM32CubeMX uses the Systick timer as the system timebase, but other timers can be manually selected as well.
+STM32CubeMX uses SysTick as the default time base, but other timers can also be selected manually.
 
-For bare-metal systems, it is recommended to keep Systick as the timebase, but the interrupt priority of Systick should be set to the highest.
+For bare-metal projects, keeping SysTick as the time base is usually fine, although raising SysTick interrupt priority is generally recommended.
 
-For RTOS-based systems, it is advisable to assign a different timer as the timebase and also set its interrupt priority to the highest.
+For RTOS-based projects, using another timer as the time base is usually preferable, and the selected timer interrupt should typically be kept at the highest practical priority.
+
+From the current generator’s perspective, this page mainly determines the shape of the single timebase instance constructed before `PlatformInit(...)`.
 
 ## Example
 
-The code generator will produce the following based on the timebase configuration in STM32CubeMX:
+The generator emits one of the following shapes according to the CubeMX timebase configuration:
 
 ```cpp
-// Using Systick as the timebase
-STM32Timebase timebase();
+// SysTick as the time base
+STM32Timebase timebase;
 ```
 
 ```cpp
-// Using a hardware timer as the timebase
-STM32TimerTimebase timebase(&htimX); // X refers to the configured timer used as the timebase
+// A timer as the time base
+STM32TimerTimebase timebase(&htimX); // X is the selected timebase timer
 ```
+
+## Current generator coverage
+
+In current `GeneratorCodeSTM32.py`, the timebase generation path mainly does the following:
+
+- when `Timebase.Source == SysTick`, emit `STM32Timebase timebase;`
+- when `Timebase.Source` is `TIMx / LPTIMx / HRTIMx`, emit `STM32TimerTimebase timebase(&hxxx);`
+- after that, whether `PlatformInit(...)` is emitted with no arguments or with software-timer priority / stack arguments depends on the current `SYSTEM` setting (`None / FreeRTOS / ThreadX`).
 
 ## Usage
 
 ```cpp
-// Get microsecond-level timestamp
+// Get microsecond timestamps
 LibXR::Timebase::GetMicroseconds();
 
-// Get millisecond-level timestamp
+// Get millisecond timestamps
 LibXR::Timebase::GetMilliseconds();
 ```

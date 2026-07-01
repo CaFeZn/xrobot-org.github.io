@@ -40,11 +40,11 @@ XXXUSBDevice usb(
     /* EP0 Packet Size */
     USB::DeviceDescriptor::PacketSize0::SIZE_8,
     /* Vendor ID */
-    0x483,
+    0x1D50,
     /* Product ID */
-    0x5740,
+    0x6199,
     /* BcdDevice */
-    0xF407,
+    0x0100,
     /* Language Pack */
     LANG_PACK,
     /* Classes */

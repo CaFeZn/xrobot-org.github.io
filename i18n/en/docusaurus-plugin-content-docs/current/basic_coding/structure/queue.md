@@ -4,73 +4,118 @@ title: Queue
 sidebar_position: 1
 ---
 
-# Queue
+# Queue (ordinary FIFO queue)
 
-`LibXR::Queue` is an efficient circular queue designed for embedded systems. It is implemented using a fixed-size ring buffer and supports type safety and batch operations. It is ideal for use cases such as data stream buffering and I/O caching.
+`LibXR::Queue<T>` is the most basic member of the current public queue family: a fixed-capacity FIFO without built-in concurrency semantics. It is suitable for single-threaded code or for cases where synchronization is already handled externally.
 
-## Class Structure
+The current public queue family is:
 
-The LibXR queue has two layers:
+- `Queue<T>`: ordinary FIFO;
+- `SPSCQueue<T>`: single-producer / single-consumer lock-free queue;
+- `MPMCQueue<T>`: bounded multi-producer / multi-consumer queue.
 
-- `BaseQueue`: The low-level queue class implementing a generic circular buffer based on `uint8_t*`. It supports push, pop, peek, and batch operations.
-- `Queue<T>`: A type-safe template wrapper built on top of `BaseQueue`. It supports type-safe access, negative indexing, and casting.
+If you just need a general ring queue, start here. If you need concurrency semantics, choose `SPSCQueue` or `MPMCQueue` explicitly.
 
-## Key Features
+## Structure Layers
 
-- Fixed-capacity circular queue with support for full/empty status checks.
-- Supports standard queue operations: `Push`, `Pop`, `Peek`.
-- Supports batch operations: `PushBatch`, `PopBatch`, `PeekBatch`.
-- Provides negative index access (from the tail) and head/tail index querying.
-- Supports internal or external buffer allocation, suitable for no-dynamic-memory scenarios.
-- Includes features like data overwrite, reset, and capacity querying.
+The implementation is split into two layers:
 
-## Usage Example
+- `QueueBase`: the byte-level ring buffer base;
+- `Queue<T>`: the typed wrapper built on top of `QueueBase`.
+
+So `Queue<T>` is still fundamentally a fixed-size FIFO byte queue with typed `Push/Pop/Peek` helpers.
+
+## Basic Usage
 
 ```cpp
-LibXR::Queue<int> q(16);
+LibXR::Queue<int> queue(16);
 
-q.Push(42);
-int x;
-q.Pop(x);  // x == 42
+queue.Push(42);
+
+int value = 0;
+queue.Pop(value);
 ```
 
-## Notes
+## Main Interfaces
 
-- The queue has a fixed size and cannot be resized after initialization.
-- If using the default constructor, an internal buffer will be allocated. To avoid dynamic memory, pass in an external buffer.
-- For multithreaded environments, use external locking or switch to `LockFreeQueue`.
+### Single-item operations
 
-## Interface Overview
+- `Push(const T&)`
+- `Pop(T&)`
+- `Pop()`
+- `Peek(T&)`
 
-### Constructor and Destructor
-
-- `Queue(size_t length)`
-- `Queue(size_t length, uint8_t* buffer)`
-- `~Queue()`
-
-### Push and Pop
-
-- `ErrorCode Push(const T&)`
-- `ErrorCode Pop(T&)`
-- `ErrorCode Pop()`
-- `ErrorCode Peek(T&)`
-
-### Batch Operations
+### Batch operations
 
 - `PushBatch(const T* data, size_t size)`
 - `PopBatch(T* data, size_t size)`
 - `PeekBatch(T* data, size_t size)`
 
-### Helper Functions
+### Queue state
 
-- `int GetFirstElementIndex()`
-- `int GetLastElementIndex()`
-- `T& operator[](int32_t index)` (supports negative indexing)
+- `Size()`
+- `MaxSize()`
+- `EmptySize()`
+- `Reset()`
 
-## Application Scenarios
+### Extra helpers
 
-- UART/serial receive buffering
-- Inter-task data queues
-- Circular buffer data acquisition
+- `Overwrite(const T&)`
+- `operator[](int32_t index)` with negative indexing support
 
-For thread-safe or interrupt-safe usage, consider using [`LockFreeQueue`](lockfree_queue.md).
+## Current Behavior Boundaries
+
+### 1. Fixed capacity
+
+Capacity is decided at construction time and does not grow automatically:
+
+```cpp
+LibXR::Queue<uint32_t> queue(5);
+```
+
+### 2. Capacity 1 is valid
+
+Current mainline tests explicitly cover `Queue<T>(1)`. This is not a special unsupported corner case.
+
+### 3. Non-default-constructible payloads are supported
+
+As long as the payload still fits the current byte-moving queue contract, it can work without a default constructor:
+
+```cpp
+struct NoDefaultPayload
+{
+    explicit NoDefaultPayload(uint32_t value_in) : value(value_in) {}
+    uint32_t value;
+};
+
+LibXR::Queue<NoDefaultPayload> queue(1);
+```
+
+### 4. `Overwrite()` replaces the queue contents with exactly one new element
+
+Current mainline tests verify that `Overwrite()` leaves the queue containing only the new item, rather than partially replacing old contents.
+
+## When to Use `Queue<T>`
+
+Good fit:
+
+- single-threaded state machines;
+- local FIFO buffering;
+- business queues without interrupt or multi-thread contention;
+- cases where you want a plain data structure without concurrency semantics.
+
+Not a good fit:
+
+- ISR-to-thread lock-free transfer;
+- two threads concurrently pushing/popping;
+- shared multi-producer ingress.
+
+## How to Choose Between the Queue Types
+
+| Queue | Concurrency shape | Notes |
+|------|-------------------|------|
+| `Queue<T>` | none | ordinary FIFO |
+| `SPSCQueue<T>` | one producer / one consumer | lock-free single-channel queue |
+| `MPMCQueue<T>` | multiple producers / multiple consumers | bounded concurrent queue |
+
+So the old advice "use `LockFreeQueue` for multithreaded code" is no longer accurate. Current mainline expects you to choose between `SPSCQueue` and `MPMCQueue` based on the actual producer/consumer topology.

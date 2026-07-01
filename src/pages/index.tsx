@@ -524,11 +524,11 @@ export default function Home(): JSX.Element {
               <div className="homeRecentItem">
                 <span className="homeRecentTag">Platform</span>
                 <h3>
-                  <Translate id="homepage.recent.core.title">MSPM0 / HPM5301 支持正在推进</Translate>
+                  <Translate id="homepage.recent.core.title">平台驱动已覆盖 MSPM0、HPM、ESP、CH32、STM32</Translate>
                 </h3>
                 <p>
                   <Translate id="homepage.recent.core.desc">
-                    新平台适配已经启动，后续会逐步补齐 GPIO、UART、PWM 等基础驱动能力。
+                    当前主线已经包含多平台驱动目录；查看具体平台前，先按仓库和目标芯片确认自己实际落在哪一条实现线上。
                   </Translate>
                 </p>
               </div>
@@ -536,11 +536,11 @@ export default function Home(): JSX.Element {
               <div className="homeRecentItem">
                 <span className="homeRecentTag">XRUSB</span>
                 <h3>
-                  <Translate id="homepage.recent.linux.title">XRUSB 设备协议栈继续扩展</Translate>
+                  <Translate id="homepage.recent.linux.title">XRUSB 已覆盖 CDC、DAP、DFU、GSUSB、HID、UAC</Translate>
                 </h3>
                 <p>
                   <Translate id="homepage.recent.linux.desc">
-                    现有设备侧协议栈能力继续完善，更多设备通信与链路支持正在补齐。
+                    设备侧能力已经不只是一条单一协议线。进入 XRUSB 文档前，先确认你要看的是哪一类 device class。
                   </Translate>
                 </p>
               </div>
@@ -548,11 +548,11 @@ export default function Home(): JSX.Element {
               <div className="homeRecentItem">
                 <span className="homeRecentTag">Debug</span>
                 <h3>
-                  <Translate id="homepage.recent.usb.title">SWD 适配扩展，DapLink 正在推进 JTAG</Translate>
+                  <Translate id="homepage.recent.usb.title">调试链路以 SWD 为主，相关实现已分层整理</Translate>
                 </h3>
                 <p>
                   <Translate id="homepage.recent.usb.desc">
-                    推挽 / 开漏两套 SWD 实现正在适配更多硬件，同时 DapLink 侧也在继续推进 JTAG 支持。
+                    当前文档和代码里与调试最相关的是 SWD、GPIO 时序实现和 CMSIS-DAP 设备类；不要先假定存在完整 JTAG 业务路径。
                   </Translate>
                 </p>
               </div>

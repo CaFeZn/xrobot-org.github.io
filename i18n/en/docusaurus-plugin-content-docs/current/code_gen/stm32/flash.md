@@ -38,22 +38,22 @@ constexpr size_t FLASH_SECTOR_NUMBER = sizeof(FLASH_SECTORS) / sizeof(LibXR::Fla
 
 ## Creating a Flash Object
 
-The first parameter is the Flash address mapping table, the second parameter is the total number of flash sectors, and the third parameter is the starting sector index for the database. The third parameter is optional and defaults to the last two sectors.
+The first parameter is the Flash address mapping table, the second parameter is the total number of flash sectors, and the third parameter is the starting sector index for the database. The third parameter is optional; in current mainline, the 2-argument constructor forwards `start_sector = sector_count - 1`.
 
 ```cpp
   // app_main.cpp
   /* User Code Begin 3 */
-  STM32Flash flash(FLASH_SECTORS， FLASH_SECTOR_NUMBER);
+  STM32Flash flash(FLASH_SECTORS, FLASH_SECTOR_NUMBER);
 ```
 
 ---
 
 ## Creating a Database Object
 
-For STM32F1/F4 series devices, use `DatabaseRaw`. The template parameter indicates the flash write granularity in bytes.
+For STM32F1/F4 series devices, use `DatabaseRaw<MinWriteSize>`. The template parameter represents the minimum write-unit size required by that raw database backend.
 
 ```cpp
-LibXR::DatabaseRaw<4> database(flash);
+LibXR::DatabaseRaw<4> database(flash, 128);
 ```
 
 For chips like STM32G4/L4 that do not support reverse overwrite in flash, use `DatabaseRawSequential`. The second parameter (optional) specifies the maximum buffer size.

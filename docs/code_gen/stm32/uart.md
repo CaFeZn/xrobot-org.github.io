@@ -124,8 +124,8 @@ Timer::Start(terminal_task);
 
 // 方式二：作为线程运行（独立线程）
 LibXR::Thread terminal_thread;
-terminal_thread.Create(&terminal, terminal.ThreadFun, "terminal", 512,
-                       LibXR::Thread::Priority::MEDIUM);
+terminal_thread.Create(&terminal, terminal.ThreadFun, "terminal", 1024,
+                       static_cast<LibXR::Thread::Priority>(3));
 ```
 
 ## 配置文件说明

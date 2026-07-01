@@ -80,7 +80,7 @@ Terminal(RamFS &ramfs,
 ## 内部使用的类与结构
 
 - `Stack<char> input_line_`: 输入缓冲；
-- `Queue<LibXR::String<MAX_LINE_SIZE>> history_`: 命令历史；
+- `Queue<HistoryLine> history_`: 命令历史；
 - `arg_tab_[]`: 解析后的参数数组；
 - `Path2Dir`, `Path2File`: 路径解析工具；
 - `AutoComplete()`: 补全处理；

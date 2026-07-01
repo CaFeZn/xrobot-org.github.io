@@ -17,11 +17,15 @@ sidebar_position: 2
 
 ## 目录
 
-- [Queue（队列）](./queue.md)
-- [LockFreeQueue（无锁队列）](./lockfree_queue.md)
+- [Queue（普通 FIFO 队列）](./queue.md)
+- [SPSCQueue（单生产者单消费者无锁队列）](./spsc_queue.md)
+- [MPMCQueue（多生产者多消费者有界队列）](./mpmc_queue.md)
+- [LockFreeQueue（历史兼容说明）](./lockfree_queue.md)
 - [Stack（栈）](./stack.md)
 - [List（链表）](./list.md)
 - [LockFreeList（无锁链表）](./lockfree_list.md)
+- [ObjectPool（RAII 对象池）](./object_pool.md)
+- [LockFreePool（无锁无序槽池）](./lockfree_pool.md)
 - [RBTree（红黑树）](./rbt.md)
 - [DoubleBuffer（双缓冲区）](./double_buffer.md)
 

@@ -22,10 +22,10 @@ A generic data wrapper that stores a pointer and size in bytes.
 
 - `RawData(void* addr, size_t size)` – Specify address and size directly.
 - `RawData()` – Default constructor for empty data.
-- `RawData(const T&)` – Construct from any data object, referencing its address.
-- `RawData(char*)` – Construct from a C-style string (excluding trailing `\0`).
-- `RawData(const char (&str)[N])` – Construct from a char array, with automatic size detection.
-- `RawData(const std::string&)` – Construct from a `std::string`.
+- `RawData(T&)` – Construct from a **writable** object, referencing its address.
+- `RawData(char*)` – Construct from a C-style string (excluding the trailing `\0`).
+- `RawData(char (&str)[N])` – Construct from a writable char array, trimming at most one trailing `\0`.
+- `RawData(std::string&)` – Construct from a **writable** `std::string`.
 
 ### Fields
 
@@ -44,8 +44,13 @@ Read-only data wrapper, similar to `RawData` but with an immutable address:
 
 ### Constructors
 
-- Same as `RawData`, supports construction from `RawData` or `const char*`.
-- Ensures `addr_` is of type `const void*`, suitable for protecting data from modification.
+- Supports construction from arbitrary objects, `RawData`, `char* / const char*`, `std::string`, `std::string_view`, and char arrays.
+- Ensures `addr_` is of type `const void*`, suitable for read-only views.
+
+Additional notes:
+
+- Char-array construction currently trims **at most one trailing `\0`**, not every zero byte in the array.
+- `char* / const char*` construction uses `std::strlen(...)`, so it expects a NUL-terminated string.
 
 ### Fields
 
@@ -69,7 +74,7 @@ template <typename T>
 static TypeID::ID GetID();
 ```
 
-Returns a globally unique address (`const void*`) for each type:
+Returns one process-local static address (`const void*`) for each type:
 
 ```cpp
 auto id1 = LibXR::TypeID::GetID<int>();

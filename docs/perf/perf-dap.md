@@ -30,11 +30,11 @@ static constexpr auto USB_OTG_HS_LANG_PACK =
 
 LibXR::USB::CDCUart cdc(128, 128, 3);
 
-LibXR::Debug::SwdGeneralGPIO swd(PA0, PA4, 0);
+LibXR::Debug::SwdGeneralGPIO<decltype(PA0), decltype(PA4)> swd(PA0, PA4, 0);
 
-USB::DapLinkV2Class dap(swd);
+LibXR::USB::DapLinkV2Class<decltype(swd)> dap(swd);
 
-LibXR::CH32USBDeviceHS usb_dev_hs(
+LibXR::CH32USBOtgHS usb_dev_hs(
     ...
     /* config */
     {{&dap, &cdc}},

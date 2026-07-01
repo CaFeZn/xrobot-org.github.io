@@ -6,7 +6,7 @@ sidebar_position: 4
 
 # Mutex (Mutual Exclusion Lock)
 
-`LibXR::Mutex` provides a lightweight, cross-platform **thread mutual exclusion** mechanism for protecting critical sections in a multitasking environment. It currently supports **POSIX pthread**, **FreeRTOS**, and **ThreadX**. In bare-metal environments, it can degrade into a no-op implementation (e.g., spinlock or disabling interrupts).
+`LibXR::Mutex` provides a lightweight, cross-platform **thread mutual exclusion** mechanism for protecting critical sections in a multitasking environment. It currently supports **POSIX pthread**, **FreeRTOS**, and **ThreadX**. In bare-metal-style `none` / `webasm` paths, the current implementation degrades into a minimal busy-wait lock around a scalar handle and periodically calls `Timer::RefreshTimerInIdle()` while waiting.
 
 > **⚠️ Note**: Mutex **must only** be used in thread context. It is **not supported** in interrupt service routines (ISRs).
 
@@ -16,7 +16,7 @@ sidebar_position: 4
 |--------------------|-----------------------------------------------------------------------------|
 | **Cross-platform** | Hides differences like `pthread_mutex`, `xSemaphoreHandle`, `TX_MUTEX`, etc.|
 | **RAII-friendly**  | Built-in `LockGuard` to prevent forgetting `Unlock()`.                      |
-| **Priority Inheritance** | Enables priority inheritance on supported RTOS to reduce priority inversion risk. |
+| **RTOS Mutex Semantics** | Current FreeRTOS path uses the kernel mutex type with priority inheritance, while the current ThreadX path is created with `TX_NO_INHERIT`. |
 | **Lightweight**    | Call path is close to low-level system calls for minimal overhead.          |
 
 ## Core Interface

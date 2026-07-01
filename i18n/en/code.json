@@ -111,22 +111,22 @@
     "message": "This section shows directions that have recently started or are actively moving, so you can quickly see which capabilities are being expanded."
   },
   "homepage.recent.core.title": {
-    "message": "MSPM0 / HPM5301 support is underway"
+    "message": "Platform drivers already cover MSPM0, HPM, ESP, CH32, and STM32"
   },
   "homepage.recent.core.desc": {
-    "message": "New platform adaptation has started, and basic drivers such as GPIO, UART, and PWM will be filled in step by step."
+    "message": "The current mainline already contains multiple platform-driver directories. Before diving in, identify which implementation line your repository and target chip actually use."
   },
   "homepage.recent.linux.title": {
-    "message": "XRUSB device protocol stacks continue to expand"
+    "message": "XRUSB already covers CDC, DAP, DFU, GSUSB, HID, and UAC"
   },
   "homepage.recent.linux.desc": {
-    "message": "Existing device-side protocol stack support is still being completed, with more device communication and transport support on the way."
+    "message": "Device-side support is no longer a single protocol path. Before entering the XRUSB docs, confirm which device class you actually need."
   },
   "homepage.recent.usb.title": {
-    "message": "SWD support is expanding, and DapLink is moving toward JTAG"
+    "message": "The debug path is centered on SWD, with the implementation already split into clearer layers"
   },
   "homepage.recent.usb.desc": {
-    "message": "Both push-pull and open-drain SWD implementations are being adapted to more hardware, while the DapLink side continues to move toward JTAG support."
+    "message": "In the current docs and code, the most relevant pieces are SWD, GPIO timing implementations, and the CMSIS-DAP device class. Do not assume there is already a complete JTAG workflow."
   },
   "homepage.focus.eyebrow": {
     "message": "Focus Areas"

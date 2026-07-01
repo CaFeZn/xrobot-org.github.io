@@ -6,7 +6,7 @@ sidebar_position: 2
 
 # Assertions and Error Handling
 
-This module provides runtime error checking, fatal error handling, and size validation during debugging. At its core are the `LibXR::Assert` class and the `ASSERT` / `ASSERT_FROM_CALLBACK` macros, often used together with `libxr_def`.
+This module provides runtime error checking and fatal-error callback management. In current mainline, the public surface is centered on the `LibXR::Assert` namespace together with the `ASSERT` / `ASSERT_FROM_CALLBACK` macros.
 
 ## Fatal Error Handling Interface
 
@@ -14,36 +14,26 @@ This module provides runtime error checking, fatal error handling, and size vali
 extern "C" void libxr_fatal_error(const char *file, uint32_t line, bool in_isr);
 ```
 
-This function is used to terminate program execution and can be called from both normal and callback contexts. It is automatically invoked on assertion failure and can be handled via callbacks registered with the `Assert` class.
+This function is used to terminate program execution and can be called from both normal and callback contexts. It is automatically invoked on assertion failure and can be handled through callbacks registered in the `LibXR::Assert` namespace.
 
-## `LibXR::Assert` Class
+## `LibXR::Assert` Namespace
 
-Used to register fatal error callbacks and perform size checks in debug mode.
+The current public surface mainly includes:
+
+- `using FatalCallback = LibXR::Callback<const char*, uint32_t>`
+- `RegisterFatalErrorCallback(cb)`
+- `FatalErrorCallback()`
+- `RunFatalErrorCallback(in_isr, file, line)`
 
 ### Registering Callbacks
 
 ```cpp
-LibXR::Assert::RegisterFatalErrorCB(cb);
+LibXR::Assert::RegisterFatalErrorCallback(cb);
 ```
 
-Accepts any function or object of type `Callback<const char*, uint32_t>` to handle fatal error events.
+Accepts `LibXR::Assert::FatalCallback`, that is, `LibXR::Callback<const char*, uint32_t>`, to handle fatal error events.
 
-### Size Limit Checks
-
-Enabled in debug mode (with `LIBXR_DEBUG_BUILD` defined):
-
-```cpp
-template <SizeLimitMode mode>
-static void SizeLimitCheck(size_t limit, size_t size);
-```
-
-Supports three modes:
-
-- `EQUAL`: size must be equal to the limit  
-- `MORE`: size must be greater than or equal to the limit  
-- `LESS`: size must be less than or equal to the limit  
-
-This function is a no-op in release builds.
+Note: the size-relation predicate itself is currently exposed from `libxr_def.hpp` as `constexpr bool SizeLimitCheck(...)`, rather than as a separate debug-only static class API here.
 
 ## Macros: Assertion Checks
 
@@ -55,14 +45,21 @@ These macros are enabled or disabled by `LIBXR_DEBUG_BUILD` and are recommended 
 ## Usage Example
 
 ```cpp
-auto err_cb = LibXR::Assert::Callback::Create(
+using Arg = int;
+Arg arg = 0;
+
+auto err_cb = LibXR::Assert::FatalCallback::Create(
     [](bool in_isr, Arg arg, const char *file, uint32_t line)
     {
+    (void)in_isr;
+    (void)arg;
+    (void)file;
+    (void)line;
     // do something
     },
     arg);
 
-LibXR::Assert::RegisterFatalErrorCB(err_cb);
+LibXR::Assert::RegisterFatalErrorCallback(err_cb);
 ASSERT(buffer != nullptr);
 ASSERT_FROM_CALLBACK(buffer != nullptr, in_isr);
 ```

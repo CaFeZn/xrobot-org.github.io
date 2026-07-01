@@ -8,6 +8,8 @@ sidebar_position: 3
 
 当前默认使用 GNU Arm Embedded Toolchain，编译器前缀为 `arm-none-eabi-`。目前没有验证在 TI Arm Clang 工具链下的兼容性。
 
+另外要注意：当前 `libxr master` 的 MSPM0 代码并不是“所有驱动都已经接进默认构建”。按当前 `driver/mspm0/CMakeLists.txt`，默认接入构建的是 `GPIO / PWM / Timebase / UART`；`SPI / I2C` 源文件已经存在，但这条主线里还没有默认加入 MSPM0 驱动目录的构建列表。
+
 如果只是想快速开始，推荐直接使用 XRobot 的 MSPM0 Docker 镜像：`ghcr.io/xrobot-org/docker-image-mspm0:main`。
 
 ## CMake 配置
@@ -90,6 +92,26 @@ CMake 侧通常需要能找到这些文件：
 * 编译宏，例如 `__MSPM0xxxx__`
 
 MSPM0 工程里，很多编译问题本质上都是“芯片型号相关文件没有同步替换”。
+
+## 当前主线已接入的 MSPM0 驱动范围
+
+按当前主线代码，MSPM0 目录下已经有这些实现文件：
+
+- `mspm0_gpio.*`
+- `mspm0_pwm.*`
+- `mspm0_timebase.*`
+- `mspm0_uart.*`
+- `mspm0_spi.*`
+- `mspm0_i2c.*`
+
+但默认构建列表当前只包含：
+
+- `GPIO`
+- `PWM`
+- `Timebase`
+- `UART`
+
+因此如果你要在 MSPM0 项目里直接使用 `SPI` 或 `I2C`，先确认你的工程侧 `LibXR.CMake` 或上层构建脚本是否已经把对应源文件显式纳入构建；不要只看到源码目录里有文件，就默认当前主线已经把它们作为默认 MSPM0 驱动能力接通了。
 
 ## 工具链要求
 

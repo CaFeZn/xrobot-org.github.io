@@ -52,6 +52,12 @@ sidebar_position: 8
 > - `ErrorCode::FULL`：无可写槽
 > - `ErrorCode::EMPTY`：无可读槽
 
+## 当前接口边界
+
+- 当前 `Put(const Data&, uint32_t& start_index)` / `Get(Data&, uint32_t& start_index)` 都只从给定起始槽位向后线性扫描；若想重新从头找，需要调用方自己把 `start_index` 重新置回 `0`。
+- `RecycleSlot(index)` 当前只在槽状态为 `READY` 时成功；如果槽位已经被 `Get*()` 取走并进入 `RECYCLE`，再次调用 `RecycleSlot()` 不会成功。
+- 这类池的核心语义是“无序 slot state machine”，不是 FIFO 队列；因此不应把它当成顺序传输或顺序公平性的抽象。
+
 ## 使用示例
 
 ### 基本存取

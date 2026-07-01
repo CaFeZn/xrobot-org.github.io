@@ -6,27 +6,13 @@ sidebar_position: 10
 
 # CAN & CAN FD
 
-LibXR supports both standard CAN and CAN FD. You need to enable the respective peripherals and interrupts in STM32CubeMX, and allocate at least one filter for both standard and extended frames.
+LibXR supports both classic CAN and CAN FD. From the generator's point of view, this page mainly covers **instance emission and queue-size configuration**. More detailed topics such as filters, FIFO layout, or message RAM partitioning still belong to the CubeMX project and the lower-level driver side; they should not be over-read as a unified strategy generated directly by the current generator.
 
-## Default Filters and FIFO Configuration
-
-LibXR configures one default filter for each CAN/CAN FD controller, separately for standard and extended frames, allowing all data frames to pass through.
-
-The FIFO configuration for different numbers of CAN/CAN FD controllers is as follows:
-
-| Classic CAN | CAN1 | CAN1+CAN2 | CAN1+CAN2+CAN3 |
-| ----------- | ---- | --------- | -------------- |
-| FIFO0       | CAN1 | CAN1      | CAN1+CAN2      |
-| FIFO1       | N/A  | CAN2      | CAN3           |
-
-| CAN FD | CANFD1 | CANFD1+CANFD2 | CANFD1+CANFD2+CANFD3 |
-| ------ | ------ | ------------- | -------------------- |
-| FIFO0  | CANFD1 | CANFD1        | CANFD1               |
-| FIFO1  | N/A    | CANFD2        | CANFD2+CANFD3        |
+You still need to configure the peripheral instances and interrupts correctly in STM32CubeMX first. If the target project depends on a specific filter setup or FIFO assignment, confirm that on the CubeMX / HAL side rather than assuming the generator will synthesize that policy for you.
 
 ## Example
 
-The second parameter represents the transmission queue size, which buffers outgoing messages.
+The second constructor argument is the transmit queue size used to buffer outgoing CAN frames.
 
 ```cpp
 STM32CAN can1(&hcan1, 5);
@@ -35,7 +21,7 @@ STM32CANFD fdcan1(&hfdcan1, 5);
 
 ## Configuration File
 
-After code generation, the following CAN-related configuration will be added to `User/libxr_config.yaml`:
+After code generation, the following configuration will appear in `User/libxr_config.yaml`:
 
 ```yaml
 CAN:
@@ -47,9 +33,18 @@ FDCAN:
     queue_size: 5
 ```
 
-- `queue_size`: The size of the transmit queue for the CAN/FDCAN interface.
+- `queue_size`: size of the transmit queue used to buffer pending CAN/FDCAN frames.
 
-To apply changes, modify this file directly and run:  
-`xr_cubemx_cfg -d .`  
-or  
+## Current Generator Scope
+
+In current `GeneratorCodeSTM32.py`, the generation logic here mainly does two things:
+
+- read `CAN.<instance>.queue_size` or `FDCAN.<instance>.queue_size` from the config;
+- emit the corresponding `STM32CAN` / `STM32CANFD` constructor code.
+
+In other words, the current generator contract on this page is primarily “instance name + queue size”, not a chip-independent filter/FIFO topology generator.
+
+You can edit the config file directly. To apply the changes, rerun:
+`xr_cubemx_cfg -d .`
+or
 `xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp`

@@ -6,35 +6,36 @@ sidebar_position: 11
 
 # Timebase
 
-`LibXR::Timebase` is a cross-platform abstract class provided by LibXR for accessing high-precision microsecond and millisecond timestamps. It serves as the foundation for all time-based scheduling or delay control modules in the system.
+`LibXR::Timebase` provides the common timebase contract used by LibXR to access microsecond and millisecond timestamps. It is the foundation for timeout handling, periodic scheduling, and timestamped middleware paths such as Topic and USB-related timing.
 
 ## Interface Definition
 
 ```cpp
 class Timebase {
 public:
-  Timebase(uint64_t max_valid_us = UINT64_MAX, uint32_t max_valid_ms = UINT32_MAX);
+  Timebase() = default;
+  Timebase(const Timebase&) = delete;
+  Timebase& operator=(const Timebase&) = delete;
 
-  // Get current time in microseconds
-  static TimestampUS GetMicroseconds();
+  static MicrosecondTimestamp GetMicroseconds();
+  static MillisecondTimestamp GetMilliseconds();
+  [[nodiscard]] static bool IsReady() noexcept;
+  static void DelayMicroseconds(uint32_t us);
 
-  // Get current time in milliseconds
-  static TimestampMS GetMilliseconds();
-
-  // Must be implemented by subclass: get microsecond-level timestamp
-  virtual TimestampUS _get_microseconds() = 0;
-
-  // Must be implemented by subclass: get millisecond-level timestamp
-  virtual TimestampMS _get_milliseconds() = 0;
-
-  static inline Timebase *timebase = nullptr;
+protected:
+  static void SetReady(bool ready = true) noexcept;
+  static void ConfigureWrapRange(uint64_t max_valid_us,
+                                 uint32_t max_valid_ms) noexcept;
+  [[nodiscard]] static uint64_t GetConfiguredWrapRangeUs() noexcept;
+  [[nodiscard]] static uint32_t GetConfiguredWrapRangeMs() noexcept;
 };
 ```
 
 ## Usage Notes
 
-- Upon instantiation, it is automatically registered as the global `timebase`;  
-- All static methods access the current `timebase` instance;  
-- Subclasses must provide a concrete time source (e.g., timer registers, system tick, etc.);  
-- Provides both millisecond and microsecond timestamps for use in timers, timeout detection, etc.;  
-- After initialization, you can directly call `Timebase::GetMilliseconds()` to get the current system time.
+- `GetMicroseconds()` and `GetMilliseconds()` return `MicrosecondTimestamp` and `MillisecondTimestamp`, defined in `core/libxr_time.hpp`.
+- Timestamp subtraction is wrap-aware. Backend code can set the valid wrap range with `ConfigureWrapRange(...)`.
+- `IsReady()` reports whether the active platform backend has finished initialization.
+- `DelayMicroseconds()` provides a small busy-wait helper built on the microsecond timebase.
+- Platform backends such as `LinuxTimebase`, `STM32Timebase`, `CH32Timebase`, and `ESP32Timebase` typically initialize hardware state in their constructors, call `ConfigureWrapRange(...)`, then mark the backend ready with `SetReady()`.
+- The static timestamp getters are implemented by platform source files. The current public contract does not use the old global-instance plus virtual `_get_*()` model.

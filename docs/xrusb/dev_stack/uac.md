@@ -43,7 +43,7 @@ sidebar_position: 3
 - `sample_rate_hz`：采样率（Hz）
 - `vol_min / vol_max / vol_res`：音量范围与步进，单位 **1/256 dB**
 - `speed`：USB 速度（`Speed::FULL` / `Speed::HIGH`）
-- `queue_bytes`：PCM 队列容量（字节，默认 8192）
+- `queue_bytes`：PCM 队列容量（字节，默认 2048）
 - `interval`：Iso IN 端点 `bInterval`
   - Full-Speed：**必须为 1**（代码中强制）
   - High-Speed：允许 1..16（规范含义为微帧指数调度）
@@ -54,7 +54,7 @@ sidebar_position: 3
 - `streaming_`：AS Alt=1 时为 `true`（正在流式输出）
 - `sr_hz_`：当前采样率（可由主机 SET_CUR 动态修改）
 - `w_max_packet_size_`：运行期计算得到的 `wMaxPacketSize`（受 FS/HS 上限约束）
-- `pcm_queue_`：PCM 字节队列（`LibXR::LockFreeQueue<uint8_t>`）
+- `pcm_queue_`：PCM 字节队列（当前主线为 `LibXR::SPSCQueue<uint8_t>`）
 
 ---
 
@@ -82,7 +82,7 @@ void ResetQueue();
 
 - 估算：`bytes_per_ms ≈ sample_rate_hz * CHANNELS * K_SUBFRAME_SIZE / 1000`
 - 示例：48kHz / 2ch / 16-bit → `48000 * 2 * 2 / 1000 = 192 bytes/ms`  
-  8192 bytes ≈ 42 ms 缓冲
+  2048 bytes ≈ 10.7 ms 缓冲
 
 ---
 
@@ -95,7 +95,7 @@ void ResetQueue();
 
 实现约束：
 
-- `GetInterfaceNum()` 返回 `2`
+- `GetInterfaceCount()` 返回 `2`
 - `HasIAD()` 返回 `true`
 
 ### 4.1 实体拓扑（Entity Graph）
@@ -222,7 +222,13 @@ rem_bytes_per_service  = bytes_per_sec_ % service_hz_
 
 ### 8.2 欠载行为（Underflow）
 
-当前实现 **实际提交长度为 `take`**，当队列不足时将发送 **短包（short packet）**。
+当前实现会先计算目标发送长度 `to_send`，再从队列中尽量取出 `take = min(queue_size, to_send)` 字节。
+
+- 当 `take == to_send` 时，整包都来自 PCM 队列；
+- 当 `take < to_send` 时，剩余的 `to_send - take` 字节会在端点缓冲区中**补零**；
+- 最终提交给端点的长度仍是 `to_send`，而不是按 `take` 发送 short packet。
+
+也就是说，当前主线的欠载策略更接近“零填充保持等时节拍”，而不是“直接缩短本次传输长度”。
 
 ---
 
@@ -288,7 +294,7 @@ using Mic = LibXR::USB::UAC1MicrophoneQ<2, 16>; // 2ch, 16-bit
 Mic mic(/*sample_rate*/48000,
         /*vol_min*/-90*256, /*vol_max*/0, /*vol_res*/256,
         /*speed*/LibXR::USB::Speed::FULL,
-        /*queue_bytes*/8192,
+        /*queue_bytes*/2048,
         /*interval*/1);
 
 // USB Device 初始化时将 &mic 放入 class 列表：{{&mic}}

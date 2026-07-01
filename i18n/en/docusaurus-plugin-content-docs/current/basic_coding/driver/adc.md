@@ -6,7 +6,7 @@ sidebar_position: 6
 
 # ADC (Analog-to-Digital Conversion)
 
-`LibXR::ADC` provides a platform-independent interface for analog-to-digital conversion (ADC), used to read analog input voltage values. It is suitable for applications such as voltage monitoring and sensor data acquisition.
+`LibXR::ADC` provides a platform-independent abstract interface for analog-to-digital conversion (ADC), used to read a floating-point value corresponding to the analog input. It is suitable for applications such as voltage monitoring and sensor data acquisition.
 
 ## Interface Definition
 
@@ -15,10 +15,11 @@ class ADC {
 public:
   ADC() = default;
 
-  // Reads the ADC voltage value in volts (float type)
+  // Reads the ADC floating-point value
   virtual float Read() = 0;
 };
 ```
 
 - `Read()` is a pure virtual function, and must be implemented by subclasses to provide specific sampling logic;  
-- The return value is typically within the range of 0 to 3.3V, or other ranges supported by the chip;  
+- the base interface only guarantees a `float` return value, and does not define one universal physical unit, reference voltage, or calibration rule;
+- in many concrete implementations this value is organized as a voltage reading, but the actual unit and range still depend on the backend and upper-layer convention.

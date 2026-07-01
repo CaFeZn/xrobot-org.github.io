@@ -6,14 +6,16 @@ sidebar_position: 11
 
 # Timebase（时间基准）
 
-`LibXR::Timebase` 是 LibXR 提供的跨平台时间基准抽象类，用于提供高精度的微秒/毫秒时间戳访问接口。它是系统中所有基于时间调度或延迟控制模块的基础。
+`LibXR::Timebase` 提供 LibXR 统一使用的时间基准契约，用于访问微秒级和毫秒级时间戳。它是超时处理、周期调度，以及 Topic、USB 等带时间语义模块的基础。
 
 ## 接口定义
 
 ```cpp
 class Timebase {
 public:
-  Timebase(uint64_t max_valid_us = UINT64_MAX, uint32_t max_valid_ms = UINT32_MAX);
+  Timebase() = default;
+  Timebase(const Timebase&) = delete;
+  Timebase& operator=(const Timebase&) = delete;
 
   // 获取当前时间（微秒）
   static MicrosecondTimestamp GetMicroseconds();
@@ -21,23 +23,26 @@ public:
   // 获取当前时间（毫秒）
   static MillisecondTimestamp GetMilliseconds();
 
+  // 检查后端是否已完成初始化
+  [[nodiscard]] static bool IsReady() noexcept;
+
   // 微秒级忙等待
   static void DelayMicroseconds(uint32_t us);
 
-  // 派生类需实现：获取微秒级时间戳
-  virtual MicrosecondTimestamp _get_microseconds() = 0;
-
-  // 派生类需实现：获取毫秒级时间戳
-  virtual MillisecondTimestamp _get_milliseconds() = 0;
-
-  static inline Timebase *timebase = nullptr;
+protected:
+  static void SetReady(bool ready = true) noexcept;
+  static void ConfigureWrapRange(uint64_t max_valid_us,
+                                 uint32_t max_valid_ms) noexcept;
+  [[nodiscard]] static uint64_t GetConfiguredWrapRangeUs() noexcept;
+  [[nodiscard]] static uint32_t GetConfiguredWrapRangeMs() noexcept;
 };
 ```
 
 ## 使用说明
 
-- 实例化时会自动注册为全局 `timebase`；
-- 所有静态接口均通过当前 `timebase` 实例访问；
-- 派生类需提供具体的时间来源（如定时器寄存器、系统 tick 等）；
-- 提供毫秒与微秒级时间戳，用于定时器、超时检测等模块；
-- 初始化后可直接调用静态方法 `Timebase::GetMilliseconds()` 获取当前系统时间。
+- `GetMicroseconds()` 与 `GetMilliseconds()` 返回 `MicrosecondTimestamp`、`MillisecondTimestamp`，其定义位于 `core/libxr_time.hpp`。
+- 时间戳做减法时会按当前配置的回绕范围处理；后端可通过 `ConfigureWrapRange(...)` 指定有效上界。
+- `IsReady()` 用于检查当前平台时间基后端是否已经初始化完成。
+- `DelayMicroseconds()` 提供基于微秒时间基的忙等待辅助函数。
+- `LinuxTimebase`、`STM32Timebase`、`CH32Timebase`、`ESP32Timebase` 等平台后端通常在构造时完成硬件相关初始化、设置回绕范围，并通过 `SetReady()` 标记就绪。
+- 当前公共契约不再使用旧版“全局实例 + 虚函数 `_get_*()`”模型；静态取时接口由各平台源文件直接实现。

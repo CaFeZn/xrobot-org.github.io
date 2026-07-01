@@ -6,7 +6,7 @@ sidebar_position: 2
 
 # SWD GPIO Implementation
 
-`LibXR::Debug::SwdGeneralGPIO<SwclkGpioType, SwdioGpioType>` is a GPIO polling (bit-bang) SWD probe implementation. It inherits from `LibXR::Debug::Swd`, provides SWD link-layer capability, and is typically used by upper layers such as a CMSIS-DAP processor or debugger.
+`LibXR::Debug::SwdGeneralGPIO<SwclkGpioType, SwdioGpioType, SwdIoDriveMode>` is a GPIO polling (bit-bang) SWD probe implementation. It inherits from `LibXR::Debug::Swd`, provides SWD link-layer capability, and is typically used by upper layers such as a CMSIS-DAP processor or debugger.
 
 The focus here is on practical usage and on choosing/calibrating the delay parameter `loops_per_us`, not on implementation details.
 
@@ -32,7 +32,8 @@ Recommended external circuitry (strongly recommended):
 Class definition:
 
 ```cpp
-template <typename SwclkGpioType, typename SwdioGpioType>
+template <typename SwclkGpioType, typename SwdioGpioType,
+          SwdIoDriveMode IO_DRIVE_MODE = SwdIoDriveMode::PUSH_PULL>
 class SwdGeneralGPIO final : public Swd;
 ```
 
@@ -41,9 +42,11 @@ Minimum expected capabilities from the GPIO types (abstractly):
 - `Write(bool)`
 - `Read() -> bool`
 
-SWDIO must support two configurations:
-- Output drive: `OUTPUT_PUSH_PULL`
+SWDIO must support:
 - Input sampling: `INPUT + PULL_UP`
+- Output drive selected by `IO_DRIVE_MODE`
+  - `SwdIoDriveMode::PUSH_PULL` -> `OUTPUT_PUSH_PULL`
+  - `SwdIoDriveMode::OPEN_DRAIN` -> `OUTPUT_OPEN_DRAIN`
 
 ---
 
@@ -66,7 +69,8 @@ Typical usage flow:
 Example:
 
 ```cpp
-using Probe = LibXR::Debug::SwdGeneralGPIO<MyGpio, MyGpio>;
+using Probe = LibXR::Debug::SwdGeneralGPIO<
+    MyGpio, MyGpio, LibXR::Debug::SwdIoDriveMode::PUSH_PULL>;
 
 MyGpio swclk, swdio;
 

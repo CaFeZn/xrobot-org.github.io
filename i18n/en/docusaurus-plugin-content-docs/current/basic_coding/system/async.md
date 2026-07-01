@@ -44,9 +44,9 @@ public:
 ## Usage Example
 
 ```cpp
-#include <libxr/async.hpp>
+#include <libxr.hpp>
 
-LibXR::ASync async_worker(2048, LibXR::Thread::Priority::NORMAL);
+LibXR::ASync async_worker(2048, LibXR::Thread::Priority::MEDIUM);
 
 void HeavyCalc(bool, int *, LibXR::ASync*)
 {
@@ -59,7 +59,7 @@ auto async_job = LibXR::ASync::Job::Create(HeavyCalc, &arg);
 void SensorISR()
 {
   // Submit task in interrupt after sampling is done
-  async_worker.AssignJobFromCallback(HeavyCalc, true);
+  async_worker.AssignJobFromCallback(async_job, true);
 }
 
 void Loop()

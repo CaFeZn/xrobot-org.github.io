@@ -13,7 +13,7 @@ The common properties of these device interfaces are:
 - **Platform Independent**: Abstract interfaces use unified naming and behavior, independent of low-level hardware registers or driver structures.
 - **Asynchronous Operation Support**: The common operation model is based on `ReadPort` / `WritePort`, and fits interrupt- and DMA-driven implementations.
 - **Type Safety**: Interface parameters and configuration structures use strong typing.
-- **Minimal Dependencies**: Core modules rely only on C++17 features and basic LibXR components.
+- **Minimal Dependencies**: Core modules currently rely on C++20 features and basic LibXR components.
 - **Flexible Extension**: Each peripheral can be implemented according to platform capabilities, including shared-resource cases such as shared buses.
 
 ## Contents
@@ -34,12 +34,13 @@ The common properties of these device interfaces are:
 
 ## Interface structure
 
-Each peripheral abstraction class typically includes:
+Many peripheral abstraction classes include some of the following building blocks, but not every driver exposes the full set:
 
-- a `Configuration` structure
-- a `SetConfig()` interface
-- `Read()` / `Write()` data transfer interfaces
-- `Enable()` / `Disable()` control interfaces, when applicable
-- `Callback` registration for event handling, such as interrupts
+- a `Configuration` structure and a matching `SetConfig()` interface
+- `Read()` / `Write()` style data-transfer interfaces where the peripheral is stream- or transaction-oriented
+- control interfaces such as `Enable()` / `Disable()` when the hardware model requires them
+- callback registration for event-driven paths such as interrupts or asynchronous completions
+
+Counterexamples in current mainline include `ADC`, `DAC`, `PowerManager`, `Timebase`, and `Flash`, which intentionally expose narrower, device-specific contracts.
 
 Users do not need to care whether the backend is STM32UART, ESP32UART, or LinuxUART. Use the base class interface directly.

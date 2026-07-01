@@ -6,7 +6,7 @@ sidebar_position: 6
 
 # RamFS 内存文件系统
 
-`RamFS` 是 LibXR 提供的轻量级内存文件系统模块，支持统一管理文件、目录和设备节点，适用于嵌入式系统中的文件访问与调试模拟。
+`RamFS` 是 LibXR 提供的轻量级内存文件系统模块，支持统一管理文件、目录和自定义节点，适用于嵌入式系统中的文件访问与调试模拟。
 
 ---
 
@@ -14,8 +14,8 @@ sidebar_position: 6
 
 - 基于红黑树结构组织文件与目录；
 - 支持只读 / 读写 / 可执行文件类型；
-- 支持设备节点，绑定 `ReadPort` / `WritePort`；
-- 文件系统支持递归查找文件、目录与设备；
+- 支持自定义节点（`Custom`），可由上层自行扩展节点语义；
+- 文件系统支持递归查找文件、目录与自定义节点；
 - 文件数据访问具备类型安全校验；
 - 所有数据完全驻留内存，适合运行时构建与模拟。
 
@@ -28,7 +28,7 @@ sidebar_position: 6
 所有节点的基类，具有统一接口字段：
 
 - `name`：节点名
-- `type`：节点类型（FILE / DIR / DEVICE）
+- `type`：节点类型（FILE / DIR / CUSTOM）
 - `parent`：所属目录
 
 ### File
@@ -43,12 +43,12 @@ sidebar_position: 6
 
 目录类支持添加 / 查找：
 
-- 添加：`Add(file)`、`Add(dir)`、`Add(device)`
-- 查找：`FindFile(name)`、`FindDir(name)`、`FindDevice(name)`，均支持 `Rev` 递归版
+- 添加：`Add(file)`、`Add(dir)`、`Add(custom)`
+- 查找：`FindFile(name)`、`FindDir(name)`、`FindCustom(name)`，均支持 `Rev` 递归版
 
-### Device
+### Custom
 
-设备类支持绑定 `ReadPort` / `WritePort`，并通过 `Read()` / `Write()` 接口访问数据。
+`Custom` 节点用于挂接用户自定义元数据或扩展语义。当前 `RamFS` 只负责命名、挂接和查找，不替自定义节点定义额外 I/O 约束。
 
 ---
 
@@ -74,15 +74,15 @@ auto exec_file = RamFS::CreateFile<int*>(
 // 创建读写文件
 auto data_file = RamFS::CreateFile("value", counter);
 
-// 创建目录和设备
+// 创建目录和自定义节点
 auto dir = RamFS::CreateDir("mydir");
-auto dev = RamFS::Device("mydev");
+auto custom = RamFS::Custom("mycustom");
 
 // 构建文件系统结构
 fs.Add(data_file);  // 添加到根目录
 fs.Add(dir);
 dir.Add(exec_file);
-dir.Add(dev);
+dir.Add(custom);
 
 // 多次运行 exec 文件，修改计数值
 for (int i = 1; i <= 5; ++i) {
@@ -102,10 +102,10 @@ for (int i = 1; i <= 5; ++i) {
 | `CreateFile(name, data)` | 创建只读或读写文件 |
 | `CreateFile(name, exec, arg)` | 创建可执行文件 |
 | `CreateDir(name)` | 创建目录 |
-| `Add(file/dir/dev)` | 添加节点到根目录 |
+| `Add(file/dir/custom)` | 添加节点到根目录 |
 | `FindFile(name)` | 在整个文件系统中查找文件（递归） |
 | `FindDir(name)` | 查找目录 |
-| `FindDevice(name)` | 查找设备 |
+| `FindCustom(name)` | 查找自定义节点 |
 
 ### File 接口
 
@@ -118,20 +118,13 @@ for (int i = 1; i <= 5; ++i) {
 
 | 方法 | 功能 |
 |------|------|
-| `Add(node)` | 添加文件、目录或设备 |
+| `Add(node)` | 添加文件、目录或自定义节点 |
 | `FindFile(name)` | 查找文件（当前目录） |
 | `FindFileRev(name)` | 递归查找文件 |
 | `FindDir(name)` | 查找子目录 |
 | `FindDirRev(name)` | 递归查找目录 |
-| `FindDevice(name)` | 查找设备 |
-| `FindDeviceRev(name)` | 递归查找设备 |
-
-### Device 接口
-
-| 方法 | 功能 |
-|------|------|
-| `Read(op, data)` | 读取数据 |
-| `Write(op, data)` | 写入数据 |
+| `FindCustom(name)` | 查找自定义节点 |
+| `FindCustomRev(name)` | 递归查找自定义节点 |
 
 ---
 
@@ -140,7 +133,7 @@ for (int i = 1; i <= 5; ++i) {
 - 嵌入式平台中模拟文件系统；
 - 调试模式下的虚拟文件访问；
 - 使用内存构建临时配置、日志、参数节点；
-- 模拟设备的输入输出接口；
+- 挂接用户自定义节点与调试元数据；
 
 ---
 
@@ -150,4 +143,4 @@ for (int i = 1; i <= 5; ++i) {
 
 - 可执行文件运行
 - 类型安全数据访问
-- 文件、目录、设备的添加与查找
+- 文件、目录、自定义节点的添加与查找

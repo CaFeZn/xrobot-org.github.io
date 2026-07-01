@@ -110,7 +110,7 @@ extern "C" void app_main(void) {
   
   /* User Code End 2 */
   STM32TimerTimebase timebase(&htim2);
-  PlatformInit(2, 2048);
+  PlatformInit(2, 1024);
   STM32PowerManager power_manager;
 
   /* GPIO Configuration */
@@ -165,6 +165,9 @@ int main() {
 | `-d`       | 指定 STM32 工程根目录       |
 | `-t`       | 设置终端外设（如 `usart1`） |
 | `--xrobot` | 生成 XRobot 模块 glue 代码  |
+| `--commit` | 显式指定 LibXR 子模块 commit |
+| `--git-source` | 选择 LibXR 的 Git 源或 base URL |
+| `--git-mirrors` | 为自动选源提供额外镜像 URL |
 
 ---
 
@@ -201,8 +204,10 @@ xr_stm32_toolchain_switch clang --picolibc
 
 | 工具名                      | 功能说明                          |
 | --------------------------- | --------------------------------- |
+| `xr_cubemx_generate`        | 仅执行 STM32CubeMX 脚本模式生成   |
 | `xr_parse_ioc`              | 解析 `.ioc`，生成 `.config.yaml`  |
 | `xr_gen_code_stm32`         | 根据 YAML 配置生成 `app_main.cpp` |
+| `xr_stm32_flash`            | 生成 STM32 Flash 布局表           |
 | `xr_stm32_cmake`            | 修改 CMake 构建文件，集成 LibXR   |
 | `xr_stm32_toolchain_switch` | 切换工具链和标准库                |
 

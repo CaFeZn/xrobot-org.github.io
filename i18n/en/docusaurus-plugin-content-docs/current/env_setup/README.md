@@ -10,7 +10,7 @@ This chapter covers local environment setup for LibXR, CodeGenerator, and XRobot
 
 ## Supported Platforms
 
-LibXR itself is a C++ library that does not depend on a specific operating system. It requires C++17 and the standard C++ library, and can run on bare metal or with an RTOS.
+LibXR itself is a C++ library that does not depend on a specific operating system. The current mainline requires C++20 and the standard C++ library, and can run on bare metal or with an RTOS.
 
 CodeGenerator and XRobot are Python-based packages and require Python 3 plus a working `pip3` environment.
 

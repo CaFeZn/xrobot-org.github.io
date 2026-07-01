@@ -72,6 +72,12 @@ using Callback = LibXR::Callback<>;
 ErrorCode RegisterCallback(Callback callback); // 注册中断处理函数
 ```
 
+当前实现语义：
+
+- `RegisterCallback(...)` 只负责把回调保存到 `callback_` 中，并返回 `ErrorCode::OK`；
+- 它本身**不会**替你配置引脚方向，也不会自动调用 `EnableInterrupt()`；
+- 若要真正收到中断回调，仍需要由平台实现完成 `SetConfig(...)` 与 `EnableInterrupt()` 的正确组合。
+
 ## 特性总结
 
 - 支持输入/输出/中断等多种模式配置；

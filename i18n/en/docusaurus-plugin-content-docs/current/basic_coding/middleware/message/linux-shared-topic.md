@@ -191,7 +191,7 @@ This path is useful when the payload is large and you want to avoid an extra cop
 
 - normal `Topic` is for in-process publish-subscribe
 - `LinuxSharedTopic<T>` is for Linux host inter-process transport
-- normal `Topic` cache is optional ordinary memory
+- normal `Topic` is an in-process exact-typed dispatch path and no longer stores a built-in latest payload cache
 - `LinuxSharedTopic<T>` payloads live in fixed shared-memory slots
 - normal `Topic` focuses on subscription semantics
 - `LinuxSharedTopic<T>` adds per-subscriber queue policy and `BALANCE_RR`

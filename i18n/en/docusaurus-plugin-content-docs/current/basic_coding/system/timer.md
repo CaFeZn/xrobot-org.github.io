@@ -6,7 +6,7 @@ sidebar_position: 7
 
 # Timer
 
-`LibXR::Timer` implements **cross-platform periodic task scheduling**, supporting high-precision timed execution across multiple tasks. It provides unified interfaces for creating, starting, stopping, deleting, and adjusting timers. Internally, it uses `Thread::SleepUntil` for precise scheduling, working in both multithreaded and bare-metal environments. It is suitable for timed callbacks, periodic control, asynchronous tasks, and more.
+`LibXR::Timer` implements **cross-platform periodic task scheduling**, supporting high-precision timed execution across multiple tasks. It provides unified interfaces for creating, starting, stopping, adding, and adjusting timers. Internally, it uses `Thread::SleepUntil` for precise scheduling, working in both multithreaded and bare-metal environments. It is suitable for timed callbacks, periodic control, asynchronous tasks, and more.
 
 ## Design Highlights
 
@@ -16,7 +16,7 @@ sidebar_position: 7
 | **Multitasking**     | Supports concurrent periodic tasks with independent registration and control. |
 | **High Precision**   | 1ms precision using `Thread::SleepUntil`.                                 |
 | **Flexible Interface** | Supports dynamic period changes and full task lifecycle operations.         |
-| **Thread-safe and Optional** | Manages its own thread in RTOS; auto-refresh in bare-metal without user intervention. |
+| **Thread-safe and Optional** | Manages its own thread in RTOS; in bare-metal, refresh hooks are integrated into Thread/Mutex/Semaphore wait paths. |
 
 ## Public Interface Overview
 
@@ -26,11 +26,11 @@ sidebar_position: 7
 | `static void Start(TimerHandle handle)`                                                                | Start specified task.                               |
 | `static void Stop(TimerHandle handle)`                                                                 | Stop specified task.                                |
 | `static void SetCycle(TimerHandle handle, uint32_t cycle)`                                             | Modify task cycle.                                  |
-| `static void Add(TimerHandle handle)`                                                                  | Add task to scheduler (automatically starts thread).|
+| `static void Add(TimerHandle handle)`                                                                  | Add task to the scheduler; in multithreaded builds, the first add also creates the manager thread. |
 | `static void Refresh()`                                                                                | Manually refresh tasks (usually auto-called).       |
 | `static void RefreshTimerInIdle()`                                                                     | In bare-metal: auto-called during Thread/Mutex/Semaphore waits. |
 
-> **Note**: All timer periods are in **milliseconds**. Timers are scheduled automatically by a management thread or the main loop. In bare-metal scenarios, timers are refreshed automatically with no user intervention.
+> **Note**: All timer periods are in **milliseconds**. Timers are scheduled automatically by a management thread in multithreaded systems. In bare-metal scenarios, timer refresh is integrated into `Thread` delays and current `Mutex` / `Semaphore` wait paths.
 
 ## Typical Usage
 
@@ -73,5 +73,5 @@ To port to a new platform, ensure only that Thread and Timebase are supported—
 * First `Add` auto-creates task list and management thread (in RTOS).
 * `Refresh` iterates enabled tasks and triggers them by cycle—no manual traversal.
 * In bare-metal mode, delay/wait calls auto-refresh timers.
-* Supports dynamic cycle change, task start/stop/delete during runtime.
-* Asserts guard against invalid operations (e.g., double add or invalid remove).
+* Supports dynamic cycle change plus task start/stop during runtime.
+* Asserts guard against invalid operations such as adding the same task handle more than once.

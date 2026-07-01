@@ -8,6 +8,8 @@ sidebar_position: 13
 
 在 STM32 H7/F7 等带 Cache 的系列中，LibXR 已经处理了 Cache 同步。用户只需要在 CubeMX 中开启 I-Cache 和 D-Cache，不需要再手工补一套 Cache 维护逻辑，也不需要为了 DMA 缓冲区再额外写一套 Cache 维护代码。
 
+从当前 generator 的角度，这一页真正对应的可配置抓手主要是 **`dma_section`**：也就是把不同外设的 DMA 缓冲区放到你指定的 section，而不是在代码生成阶段直接生成一套 MPU/Cache 策略代码。
+
 ## Cache 配置基础
 
 * 参考 `ST AN4839`：MPU 关闭时，SRAM 区域默认是 `WBWA (Write-Back, Write-Allocate)`。
@@ -85,6 +87,12 @@ ADC:
     dma_section: '.ram_d3'
     vref: 3.3
 ```
+
+当前生成逻辑要点：
+
+- `GeneratorCodeSTM32.py` 会按外设类别读取对应实例的 `dma_section`；
+- 若用户未显式填写，当前 generator 会按 DMA 类型走内置默认 section 选择逻辑；
+- 这一页更准确的作用是“让生成出来的缓冲区声明落在合适 section”，而不是在代码生成阶段替你完成所有 Cache/MPU 架构设计。
 
 ## 生成结果
 

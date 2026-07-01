@@ -6,7 +6,7 @@ sidebar_position: 6
 
 # RamFS In-Memory File System
 
-`RamFS` is a lightweight in-memory file system module provided by LibXR. It supports unified management of files, directories, and device nodes, and is suitable for file access and debugging simulations in embedded systems.
+`RamFS` is a lightweight in-memory file system module provided by LibXR. It supports unified management of files, directories, and custom nodes, and is suitable for file access and debugging simulations in embedded systems.
 
 ---
 
@@ -14,8 +14,8 @@ sidebar_position: 6
 
 - Organized using a red-black tree structure for files and directories;
 - Supports read-only, read-write, and executable file types;
-- Supports device nodes that bind to `ReadPort` / `WritePort`;
-- Supports recursive search of files, directories, and devices;
+- Supports custom nodes (`Custom`) for user-defined metadata or extension points;
+- Supports recursive search of files, directories, and custom nodes;
 - Type-safe data access for all files;
 - All data resides entirely in memory, ideal for runtime construction and simulation.
 
@@ -28,7 +28,7 @@ sidebar_position: 6
 The base class for all nodes, with a unified interface:
 
 - `name`: node name
-- `type`: node type (FILE / DIR / DEVICE)
+- `type`: node type (FILE / DIR / CUSTOM)
 - `parent`: parent directory
 
 ### File
@@ -43,12 +43,12 @@ Created using `CreateFile()`, supporting:
 
 Directory class supports adding and finding:
 
-- Add: `Add(file)`, `Add(dir)`, `Add(device)`
-- Find: `FindFile(name)`, `FindDir(name)`, `FindDevice(name)`, and their recursive variants with `Rev`
+- Add: `Add(file)`, `Add(dir)`, `Add(custom)`
+- Find: `FindFile(name)`, `FindDir(name)`, `FindCustom(name)`, and their recursive variants with `Rev`
 
-### Device
+### Custom
 
-Device class supports binding to `ReadPort` / `WritePort`, and accessing data through `Read()` / `Write()` methods.
+`Custom` nodes are used to attach user-defined metadata or extension semantics. Current `RamFS` is responsible only for naming, attachment, and lookup; it does not impose extra I/O behavior on custom nodes.
 
 ---
 
@@ -74,15 +74,15 @@ auto exec_file = RamFS::CreateFile<int*>(
 // Create read/write file
 auto data_file = RamFS::CreateFile("value", counter);
 
-// Create directory and device
+// Create directory and custom node
 auto dir = RamFS::CreateDir("mydir");
-auto dev = RamFS::Device("mydev");
+auto custom = RamFS::Custom("mycustom");
 
 // Build file system structure
 fs.Add(data_file);  // Add to root directory
 fs.Add(dir);
 dir.Add(exec_file);
-dir.Add(dev);
+dir.Add(custom);
 
 // Run exec file multiple times and verify count
 for (int i = 1; i <= 5; ++i) {
@@ -102,10 +102,10 @@ for (int i = 1; i <= 5; ++i) {
 | `CreateFile(name, data)` | Create a read-only or read-write file |
 | `CreateFile(name, exec, arg)` | Create an executable file |
 | `CreateDir(name)` | Create a directory |
-| `Add(file/dir/dev)` | Add node to root directory |
+| `Add(file/dir/custom)` | Add node to root directory |
 | `FindFile(name)` | Recursively search for a file |
 | `FindDir(name)` | Search for a directory |
-| `FindDevice(name)` | Search for a device |
+| `FindCustom(name)` | Search for a custom node |
 
 ### File Interface
 
@@ -118,20 +118,13 @@ for (int i = 1; i <= 5; ++i) {
 
 | Method | Description |
 |--------|-------------|
-| `Add(node)` | Add a file, directory, or device |
+| `Add(node)` | Add a file, directory, or custom node |
 | `FindFile(name)` | Find file in current directory |
 | `FindFileRev(name)` | Recursively find file |
 | `FindDir(name)` | Find subdirectory |
 | `FindDirRev(name)` | Recursively find directory |
-| `FindDevice(name)` | Find device |
-| `FindDeviceRev(name)` | Recursively find device |
-
-### Device Interface
-
-| Method | Description |
-|--------|-------------|
-| `Read(op, data)` | Read data |
-| `Write(op, data)` | Write data |
+| `FindCustom(name)` | Find custom node |
+| `FindCustomRev(name)` | Recursively find custom node |
 
 ---
 
@@ -140,7 +133,7 @@ for (int i = 1; i <= 5; ++i) {
 - Simulate file systems in embedded platforms;
 - Virtual file access in debug mode;
 - Build temporary config, log, or parameter nodes in memory;
-- Simulate input/output interfaces of devices;
+- Attach user-defined nodes and debug metadata;
 
 ---
 
@@ -150,4 +143,4 @@ See [`test_ramfs.cpp`] for coverage of:
 
 - Executable file execution
 - Type-safe data access
-- Adding and finding files, directories, and devices
+- Adding and finding files, directories, and custom nodes

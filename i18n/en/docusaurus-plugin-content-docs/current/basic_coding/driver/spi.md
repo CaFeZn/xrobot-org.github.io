@@ -6,7 +6,7 @@ sidebar_position: 4
 
 # SPI (Serial Peripheral Interface)
 
-`LibXR::SPI` provides a platform-agnostic abstraction for SPI bus communication. It supports full‑duplex transfers, register read/write, and communication parameter configuration, making it suitable for drivers of peripherals such as sensors and displays.
+`LibXR::SPI` provides a platform-agnostic abstraction for SPI bus communication. It supports full-duplex transfers, register read/write operations, prescaler selection, and optional double-buffer helpers, making it suitable for peripherals such as sensors and displays.
 
 ## Interface Overview
 
@@ -60,7 +60,7 @@ Prescaler CalcPrescaler(uint32_t target_max_bus_speed,
                         uint32_t target_min_bus_speed,
                         bool increase);
 
-// Buffer management (zero-copy & double buffering)
+// Buffer management and double-buffer helpers
 RawData GetRxBuffer();
 RawData GetTxBuffer();
 void SwitchBuffer();
@@ -98,6 +98,7 @@ virtual ErrorCode MemRead(uint16_t reg,
 
 - `OperationRW` is an alias of `WriteOperation` (SPI read/write completion reports `ErrorCode` uniformly).
 - `in_isr` indicates whether this SPI operation is initiated/progressed in ISR context (forwarded to the underlying implementation).
+- `GetConfig()` returns the currently stored configuration reference; `IsDoubleBuffer()` only reflects whether `config_.double_buffer` is currently enabled.
 
 ### Operation Struct
 
@@ -113,5 +114,12 @@ struct ReadWriteInfo {
 
 - Supports configuration of SPI clock **polarity** and **phase**.
 - **Prescaler** and **bus-rate calculation**: choose an appropriate prescaler within a target speed range.
-- Provides full‑duplex transfer APIs and **zero‑copy `Transfer`**, with **double buffering** to reduce jitter and improve throughput.
+- Provides full-duplex transfer APIs together with buffer helpers such as `GetRxBuffer()` / `GetTxBuffer()`, `SwitchBuffer()`, and `SetActiveLength()` when double-buffered paths are used.
 - A generic operation model (`OperationRW = WriteOperation`) supporting synchronous, callback, and polling modes.
+
+## Semantic boundaries
+
+- `ReadAndWrite(...)`, `Transfer(...)`, `MemRead(...)`, and `MemWrite(...)` are abstract behaviors that platform implementations must provide; this page does not assume all backends share the same register protocol or DMA organization.
+- In the current implementation, `GetRxBuffer()` / `GetTxBuffer()` return the constructor-provided `rx_buffer_ / tx_buffer_` when double buffering is disabled, and the current active half when it is enabled.
+- `SwitchBuffer()` only changes internal `DoubleBuffer` state when `double_buffer == true`; otherwise it is a no-op.
+- `SetActiveLength()` / `GetActiveLength()` currently operate only on the transmit-side `double_buffer_tx_` auxiliary length field; they do not imply a standalone universal transfer-length metadata protocol.

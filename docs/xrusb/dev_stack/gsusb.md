@@ -15,7 +15,7 @@ sidebar_position: 4
 - **经典 CAN（Classic CAN）**：最大 8 字节数据
 - **CAN FD（可选）**：最大 64 字节数据区，DLC 映射遵循 FD 表
 - **TX echo**：回送 `echo_id`，用于主机侧 TX buffer 跟踪
-- **可选硬件时间戳**：`timestamp_us`（4 字节）追加在 wire frame 末尾
+- **可选时间戳字段**：`timestamp_us`（4 字节）追加在 wire frame 末尾，数值来自 `LibXR::Timebase::GetMicroseconds()` 的低 32 位
 - **多通道**：通道数由模板参数 `CanChNum` 编译期固定
 
 ---
@@ -210,7 +210,7 @@ Classic CAN 的错误包可转换为主机可识别的 SocketCAN 错误帧（`CA
 
 ### 8.2 时间戳
 
-当通道启用时间戳且系统时间基准可用时，设备会在 wire frame 尾部追加 `timestamp_us`（4 字节，微秒，低 32 位）；否则为 0 或不追加（取决于通道开关）。
+当通道启用时间戳时，设备会在 wire frame 尾部追加 `timestamp_us`（4 字节，微秒，低 32 位）；当前实现直接取 `LibXR::Timebase::GetMicroseconds()` 的低 32 位。若该通道未启用时间戳，则该字段不追加。
 
 ---
 

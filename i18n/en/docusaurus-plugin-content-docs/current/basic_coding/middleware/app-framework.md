@@ -19,16 +19,10 @@ The `Application` framework is one of the core middleware components in LibXR. I
 ## HardwareContainer: Device Registration and Lookup
 
 ```cpp
-template <typename T>
-struct Entry {
-  T& object;
-  std::initializer_list<const char*> aliases;
-};
-
-HardwareContainer container({
+HardwareContainer container(
   Entry<UART>{uart1, {"uart1", "console"}},
-  Entry<Motor>{gpio1, {"gpio1", "LED"}}
-});
+  Entry<GPIO>{gpio1, {"gpio1", "LED"}}
+);
 ```
 
 Features:
@@ -50,6 +44,7 @@ class MyApp : public Application {
 };
 
 MyApp app;
+LibXR::ApplicationManager manager;
 manager.Register(app);
 manager.MonitorAll();  // Periodically calls OnMonitor() of all modules
 ```

@@ -191,7 +191,7 @@ if (topic.CreateData(data) == ErrorCode::OK) {
 
 - 普通 `Topic` 面向进程内发布订阅；
 - `LinuxSharedTopic<T>` 面向 Linux 主机进程间通信；
-- 普通 `Topic` 的缓存是可选的普通内存；
+- 普通 `Topic` 是进程内精确类型分发路径，本体不再保存 latest payload 缓存；
 - `LinuxSharedTopic<T>` 的 payload 固定驻留在共享内存槽位中；
 - 普通 `Topic` 的订阅模型强调回调/同步/异步语义；
 - `LinuxSharedTopic<T>` 额外引入了每订阅者队列策略和 `BALANCE_RR`。

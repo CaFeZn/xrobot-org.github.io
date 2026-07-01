@@ -4,6 +4,22 @@ title: Code Generation
 sidebar_position: 5
 ---
 
-# CodeGenerator
+# Code Generation
 
-The `CodeGenerator` essentially generates corresponding source code based on the SDK's project files. For example, it can use an STM32CubeMX IOC file to generate the relevant C++ peripheral initialization code. This chapter mainly discusses the usage of code generation and configuration, and does not include the usage of specific APIs.
+The core purpose of CodeGenerator is to generate LibXR-side initialization and integration code from SDK or project description files. A typical example is reading STM32CubeMX IOC files and generating matching C++ peripheral initialization code plus a `libxr_config.yaml` configuration skeleton.
+
+This chapter mainly explains:
+
+- how the generator recognizes project inputs;
+- how YAML configuration affects generated output;
+- which parameters and constraints matter during generation for different peripherals / platforms;
+- how the generated skeleton is integrated back into the project.
+
+It does not attempt to document the full runtime API semantics. For runtime behavior, return to `basic_coding` and the corresponding platform pages.
+
+## Current coverage
+
+- [STM32 Code Generation](./stm32/README.md)
+- [XRobot Integration Code Generation](./xrobot_inter.md)
+
+The `STM32` directory currently covers generation topics such as GPIO, UART, SPI, I2C, ADC, DAC, CAN, PWM, Flash, Cache, Watchdog, and Timebase.

@@ -13,7 +13,7 @@ sidebar_position: 3
 | 目标         | 说明                                                                                  |
 | ---------- | ----------------------------------------------------------------------------------- |
 | **跨平台**    | 统一 API 隐藏 `pthread`, `xTask`, `TX_THREAD` 等差异。 |
-| **轻量可裁剪**  | 仅依赖 C++17 与可选 RTOS 头文件；可在无 OS 场景开启。                            |
+| **轻量可裁剪**  | 当前主线依赖 C++20 与可选 RTOS 头文件；可在无 OS 场景开启。                            |
 | **优先级枚举**  | 采用 `enum class Priority { IDLE…REALTIME }`，由每个移植层映射到本地优先级区间，避免直接暴露 OS 常量。           |
 | **时间基准统一** | 所有 `Sleep` / `SleepUntil` 以 **毫秒** 为单位，`GetTime()` 返回系统启动后的毫秒计数，方便跨平台超时逻辑。          |
 
@@ -61,10 +61,10 @@ int main() {
 
 | 平台                       | 头/源文件                       | 关键映射                                                          |
 | ------------------------ | --------------------------- | ------------------------------------------------------------- |
-| **Linux / POSIX**        | `system/Linux/thread.hpp` + `thread.cpp`    | `pthread_create`, `clock_nanosleep`, `sched_yield`            |
-| **FreeRTOS**             | `system/FreeRTOS/thread.hpp` + `thread.cpp` | `xTaskCreate`, `vTaskDelay`, `xTaskGetTickCount`              |
-| **ThreadX (Azure RTOS)** | `system/ThreadX/thread.hpp` + `thread.cpp`  | `tx_thread_create`, `tx_thread_sleep`, `tx_thread_relinquish` |
-| **None（单线程/裸机）**   | `system/None/thread.hpp` + `thread.cpp`     | 轮询 `Timebase` + `Timer::RefreshTimerInIdle` 实现软延时      |
+| **Linux / POSIX**        | `system/linux/thread.hpp` + `thread.cpp`    | `pthread_create`, `clock_nanosleep`, `sched_yield`            |
+| **FreeRTOS**             | `system/freertos/thread.hpp` + `thread.cpp` | `xTaskCreate`, `vTaskDelay`, `xTaskGetTickCount`              |
+| **ThreadX (Azure RTOS)** | `system/threadx/thread.hpp` + `thread.cpp`  | `tx_thread_create`, `tx_thread_sleep`, `tx_thread_relinquish` |
+| **None（单线程/裸机）**   | `system/none/thread.hpp` + `thread.cpp`     | 轮询 `Timebase` + `Timer::RefreshTimerInIdle` 实现软延时      |
 
 移植新平台时，仅需：
 
@@ -76,4 +76,4 @@ int main() {
 
 * POSIX 版本优先尝试 `SCHED_FIFO` 并根据可用优先级范围映射 `Priority`；否则回退默认策略并给出日志警告。
 * FreeRTOS/ThreadX 版本通过 `configMAX_PRIORITIES` 或 `TX_MAX_PRIORITIES` 动态计算优先级步长，确保与内核配置一致。
-* Bare-metal 版本创建线程时会直接开始运行线程函数，无法返回主线程。
+* 当前 `none` 实现更像一次性直调占位：`Create()` 会立即调用目标函数，并通过内部保护限制只走一次创建路径，而不是真正提供带调度器的线程模型。

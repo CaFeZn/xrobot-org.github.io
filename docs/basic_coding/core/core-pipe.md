@@ -38,6 +38,9 @@ public:
 ```
 
 - `buffer_size`：共享队列总容量（字节），用于承载写入的数据。创建后不可更改。
+- 当前实现内部实际构造成 `ReadPort(0)` 与 `WritePort(1, buffer_size)`：
+  - 读端自身不持有独立数据队列容量；
+  - 写端元信息队列固定为 `1` 槽，数据字节队列容量为 `buffer_size`。
 - `Pipe` 不直接暴露 `Size()/Reset()` 等方法——请通过 `GetReadPort()` / `GetWritePort()` 使用对应端口接口。
 
 ---
@@ -63,3 +66,4 @@ w({some_data, some_len}, wop);        // 写入后会推进 r.ProcessPendingRead
 
 > 备注：`Pipe` 的读侧是“被动推进”的：需要写侧触发（或外部主动调用 `ProcessPendingReads`）才能完成挂起读请求；这一点与 `ReadPort` 的模型保持一致。
 
+> 另一个当前实现边界是：`WriteFun` 会从写端的 `queue_info_` 中弹出一个 `WriteInfoBlock`，若弹出失败当前实现会断言并返回 `ErrorCode::EMPTY`。这说明 `Pipe` 依赖的并不是“任意写端回调协议”，而是当前 `WritePort` 的既有入队/完成语义。

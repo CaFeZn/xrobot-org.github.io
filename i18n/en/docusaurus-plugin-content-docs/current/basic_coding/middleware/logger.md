@@ -51,7 +51,7 @@ Logs below the set level will be optimized out during compilation.
 
 - All logs are encapsulated in the `LogData` structure and published via `Logger::Publish()`.
 - Registered callback functions automatically format and print logs to the terminal via `STDIO::write_`.
-- Supports interrupt-safe invocation to meet logging needs in embedded contexts.
+- The current log path is primarily designed for thread-context use; if you want to place it on a hot ISR path, evaluate formatting and output cost explicitly first.
 
 ---
 

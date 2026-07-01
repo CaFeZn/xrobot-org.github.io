@@ -43,7 +43,7 @@ Constructor (core parameters):
 - `sample_rate_hz`: sampling rate (Hz)
 - `vol_min / vol_max / vol_res`: volume range and step, unit **1/256 dB**
 - `speed`: USB speed (`Speed::FULL` / `Speed::HIGH`)
-- `queue_bytes`: PCM queue capacity (bytes, default 8192)
+- `queue_bytes`: PCM queue capacity (bytes, default 2048)
 - `interval`: Iso IN endpoint `bInterval`
   - Full-Speed: **must be 1** (enforced by code)
   - High-Speed: allowed 1..16 (spec meaning: microframe exponent scheduling)
@@ -54,7 +54,7 @@ Key runtime state after initialization:
 - `streaming_`: `true` when AS Alt=1 is selected (actively streaming)
 - `sr_hz_`: current sampling rate (can be changed by host via SET_CUR)
 - `w_max_packet_size_`: runtime-computed `wMaxPacketSize` (bounded by FS/HS limits)
-- `pcm_queue_`: PCM byte queue (`LibXR::LockFreeQueue<uint8_t>`)
+- `pcm_queue_`: PCM byte queue (current mainline uses `LibXR::SPSCQueue<uint8_t>`)
 
 ---
 
@@ -82,7 +82,7 @@ To reduce underflow caused by short-term jitter, it is recommended that `queue_b
 
 - Estimate: `bytes_per_ms ≈ sample_rate_hz * CHANNELS * K_SUBFRAME_SIZE / 1000`
 - Example: 48 kHz / 2ch / 16-bit → `48000 * 2 * 2 / 1000 = 192 bytes/ms`  
-  8192 bytes ≈ 42 ms buffering
+  2048 bytes ≈ 10.7 ms buffering
 
 ---
 
@@ -95,7 +95,7 @@ The device exposes **two interfaces** and associates them with an IAD:
 
 Implementation constraints:
 
-- `GetInterfaceNum()` returns `2`
+- `GetInterfaceCount()` returns `2`
 - `HasIAD()` returns `true`
 
 ### 4.1 Entity Topology (Entity Graph)
@@ -222,7 +222,13 @@ Steps:
 
 ### 8.2 Underflow Behavior
 
-The current implementation **submits `take` as the transfer length**. When the queue is insufficient, it sends a **short packet**.
+The current implementation first computes the target transfer length `to_send`, then pops at most `take = min(queue_size, to_send)` bytes from the PCM queue.
+
+- When `take == to_send`, the whole packet comes from queued PCM data.
+- When `take < to_send`, the remaining `to_send - take` bytes in the endpoint buffer are **zero-filled**.
+- The final length submitted to the endpoint is still `to_send`, not a short packet based only on `take`.
+
+So in current mainline, underflow behavior is closer to “zero-fill while keeping the isochronous cadence” than to “shrink this service to a short packet”.
 
 ---
 
@@ -288,7 +294,7 @@ using Mic = LibXR::USB::UAC1MicrophoneQ<2, 16>; // 2ch, 16-bit
 Mic mic(/*sample_rate*/48000,
         /*vol_min*/-90*256, /*vol_max*/0, /*vol_res*/256,
         /*speed*/LibXR::USB::Speed::FULL,
-        /*queue_bytes*/8192,
+        /*queue_bytes*/2048,
         /*interval*/1);
 
 // Add &mic to the USB Device class list during initialization: {{&mic}}

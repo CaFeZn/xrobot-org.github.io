@@ -6,75 +6,112 @@ sidebar_position: 6
 
 # Terminal Colors and Formatting
 
-This module defines common formatting enums and ANSI escape sequences for terminal output. It supports text styles like bold, colored text, and background color, making it suitable for serial debug terminals, logging systems, and colored output.
+This page maps to `libxr_color.hpp`, which provides the current mainline enums and ANSI escape-string tables for terminal text styles, control sequences, foreground colors, background colors, and a few commonly used presets. It mainly serves terminal output, Logger, serial debug terminals, and similar text-oriented paths.
 
-## Text Format: `Format`
+## Text Style `TextStyle`
 
 ```cpp
-enum class Format : uint8_t {
-  NONE = 0, RESET, BOLD, DARK, UNDERLINE, BLINK, REVERSE, CONCEALED, CLEAR_LINE, COUNT
+enum class TextStyle : uint8_t {
+  NONE = 0,
+  BOLD,
+  DIM,
+  UNDERLINE,
+  BLINK,
+  REVERSE,
+  CONCEALED,
+  COUNT
 };
 ```
 
-- `NONE`: No formatting
-- `RESET`: Reset all styles
-- `BOLD`: Bold text
-- `DARK`: Dim text
-- `UNDERLINE`: Underlined text
-- `BLINK`: Blinking text
-- `REVERSE`: Inverted foreground/background
-- `CONCEALED`: Hidden text
-- `CLEAR_LINE`: Clear entire line
+- `BOLD`: bold text
+- `DIM`: dim text
+- `UNDERLINE`: underlined text
+- `BLINK`: blinking text
+- `REVERSE`: inverted foreground/background
+- `CONCEALED`: hidden text
 
-Corresponding ANSI strings: `LIBXR_FORMAT_STR[]`
+Corresponding ANSI strings: `LIBXR_TEXT_STYLE_STR[]`
 
-## Font Color: `Font`
+## Terminal Control `TerminalControl`
 
 ```cpp
-enum class Font : uint8_t {
-  NONE = 0, BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE, COUNT
+enum class TerminalControl : uint8_t {
+  NONE = 0,
+  RESET,
+  ERASE_LINE,
+  COUNT
 };
 ```
 
-Corresponding ANSI strings: `LIBXR_FONT_STR[]`
+- `RESET`: reset current styles
+- `ERASE_LINE`: clear the current line
 
-## Background Color: `Background`
+Corresponding ANSI strings: `LIBXR_TERMINAL_CONTROL_STR[]`
+
+## Foreground Color `Foreground`
+
+```cpp
+enum class Foreground : uint8_t {
+  NONE = 0,
+  BLACK,
+  RED,
+  GREEN,
+  YELLOW,
+  BLUE,
+  MAGENTA,
+  CYAN,
+  WHITE,
+  COUNT
+};
+```
+
+Corresponding ANSI strings: `LIBXR_FOREGROUND_STR[]`
+
+## Background Color `Background`
 
 ```cpp
 enum class Background : uint8_t {
-  NONE = 0, BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE, COUNT
+  NONE = 0,
+  BLACK,
+  RED,
+  GREEN,
+  YELLOW,
+  BLUE,
+  MAGENTA,
+  CYAN,
+  WHITE,
+  COUNT
 };
 ```
 
 Corresponding ANSI strings: `LIBXR_BACKGROUND_STR[]`
 
-## Bold Style: `Bold`
+## Common Presets `Preset`
 
 ```cpp
-enum class Bold : uint8_t {
-  NONE = 0, YELLOW, RED, ON_RED, COUNT
+enum class Preset : uint8_t {
+  NONE = 0,
+  YELLOW_BOLD,
+  RED_BOLD,
+  BOLD_ON_RED,
+  COUNT
 };
 ```
 
-Simplified bold color styles, e.g.:
+- `YELLOW_BOLD`: yellow bold text
+- `RED_BOLD`: red bold text
+- `BOLD_ON_RED`: bold text on red background
 
-- `YELLOW`: Bold yellow
-- `RED`: Bold red
-- `ON_RED`: Bold white on red background
-
-Corresponding ANSI strings: `LIBXR_BOLD_STR[]`
+Corresponding ANSI strings: `LIBXR_PRESET_STR[]`
 
 ## Example
 
 ```cpp
-std::cout << LIBXR_FORMAT_STR[(int)Format::BOLD]
-          << LIBXR_FONT_STR[(int)Font::GREEN]
-          << "This is bold green text!"
-          << LIBXR_FORMAT_STR[(int)Format::RESET];
+std::cout
+    << LIBXR_TEXT_STYLE_STR[static_cast<uint8_t>(LibXR::TextStyle::BOLD)]
+    << LIBXR_FOREGROUND_STR[static_cast<uint8_t>(LibXR::Foreground::GREEN)]
+    << "This is bold green text!"
+    << LIBXR_TERMINAL_CONTROL_STR[static_cast<uint8_t>(LibXR::TerminalControl::RESET)];
 ```
 
-This prints bold green text.
-
----
-
-This module can be combined with terminal utilities, debug output, or logging systems to create clear and readable colored output.
+The current Logger path also uses this surface directly: it selects a foreground color from `LIBXR_FOREGROUND_STR[]` by log level, then appends `TerminalControl::RESET` at the end of the rendered line.

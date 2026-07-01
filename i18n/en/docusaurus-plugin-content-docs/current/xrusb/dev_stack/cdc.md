@@ -52,7 +52,7 @@ These hooks are triggered by endpoint transfer completion, and dispatched after 
 - `Write()`: sends IN data to the host
 - `SetConfig()`: maps UART configuration to CDC Line Coding, and sends one Serial State notification
 
-Internally it uses `LibXR::ReadPort` / `LibXR::WritePort` as a software RX buffer and TX queue manager, and performs enqueue/dequeue in endpoint callbacks. It also implements backpressure and a pending-cache mechanism: when RX queue space is insufficient, it pauses OUT re-arming and resumes once the upper layer consumes data.
+Internally it uses `LibXR::ReadPort` / `LibXR::WritePort` as a software RX buffer and TX queue manager, and performs enqueue/dequeue in endpoint callbacks. It also implements backpressure and a pending-cache mechanism: when RX queue space is insufficient, it pauses OUT re-arm and resumes once the upper layer consumes data.
 
 ### `LibXR::USB::CDCToUart`
 
@@ -74,7 +74,7 @@ Notes:
 Both derive from `CDCBase` and are used to validate link throughput and driver stability:
 
 - `CDCWriteTest`: ignores host OUT data; when DTR is asserted, continuously returns data through Data IN (tests device → host path)
-- `CDCReadTest`: continuously arms the OUT endpoint and immediately restarts it upon completion (tests host → device path)
+- `CDCReadTest`: on top of the `CDCBase` initial `MaxPacketSize()` OUT arm, it immediately re-arms the OUT endpoint with `MaxTransferSize()` and keeps restarting with `MaxTransferSize()` on each completion (tests host → device path)
 
 ---
 
@@ -270,22 +270,24 @@ Optional: listen to host changes for Line Coding and DTR/RTS:
 
 ```cpp
 cdc_uart.SetOnSetLineCodingCallback(
-  LibXR::Callback<LibXR::UART::Configuration>(
-    [](bool in_isr, LibXR::UART::Configuration cfg) {
+  LibXR::Callback<LibXR::UART::Configuration>::Create(
+    [](bool in_isr, int, LibXR::UART::Configuration cfg) {
       (void)in_isr;
       // You can synchronize this to a real UART peripheral here
       // (do not block in ISR context)
-    }
+    },
+    0
   )
 );
 
 cdc_uart.SetOnSetControlLineStateCallback(
-  LibXR::Callback<bool, bool>(
-    [](bool in_isr, bool dtr, bool rts) {
+  LibXR::Callback<bool, bool>::Create(
+    [](bool in_isr, int, bool dtr, bool rts) {
       (void)in_isr;
       (void)rts;
       // dtr=true indicates the host has opened the serial port and you can start transmitting
-    }
+    },
+    0
   )
 );
 ```

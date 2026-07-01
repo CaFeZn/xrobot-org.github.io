@@ -6,47 +6,55 @@ sidebar_position: 1
 
 # STM32 Environment Setup
 
-This page will guide you on how to configure your STM32 development environment for use with **LibXR**, **CodeGenerator**, and **XRobot**.
+This page applies to **CMake projects exported by `STM32CubeMX`**. `VS Code` is the recommended editor flow. `STM32CubeMX2 / HAL2` is currently out of scope.
+
+The video tutorial list is still a useful companion:
+
+- [Bilibili tutorial list](https://space.bilibili.com/339766655/lists/5028472)
 
 ## Basic Environment
 
-Windows installation:
+Windows:
 
-* [git](https://git-scm.com/)
-* [python](https://www.python.org/downloads/)
+- [git](https://git-scm.com/)
+- [python](https://www.python.org/downloads/)
 
-For Linux, install with apt:
+Linux:
 
 ```bash
 sudo apt update
-sudo apt install -y git python3 python3-pip cmake tar xz-utils wget pipx
+sudo apt install -y git python3 python3-pip cmake tar xz-utils wget pipx ninja-build
 ```
 
----
+## VS Code Workflow
 
-## Based on GCC/Clang (New STM32 VSCode Extension)
+Create the project in `STM32CubeMX` first and export it as a **CMake** project. In `Project Manager`, choose `gcc` or `starm-clang` as `Default Compiler/Linker`. CubeMX writes that choice into `CMakePresets.json`, typically through `${sourceDir}/cmake/gcc-arm-none-eabi.cmake` or `${sourceDir}/cmake/starm-clang.cmake`.
 
-Since **STM32CubeMX (>=15.0)**, CMake configurations for Clang toolchains are already integrated.  
-In the `Project Manager`, select `Default Compiler/Linker` as **gcc** or **starm-clang**. No extra setup is required.  
-`LibXR_CppCodeGenerator` provides the helper script `xr_stm32_toolchain_switch` for switching compilers and standard libraries.
+Recommended extensions:
 
-In VSCode, install the  extension `STMicroelectronics.stm32-vscode-extension`. The extension will automatically download toolchains and required resources.
+- `STMicroelectronics.stm32-vscode-extension`
+- [`XRobot.xrobot`](https://marketplace.visualstudio.com/items?itemName=XRobot.xrobot)
 
-When setting up a new STM32Cube project, it is recommended to use the **hybrid mode (gcc + starm-clang)** for maximum compatibility.
+`XRobot.xrobot` provides a GUI view for code-generation configuration inside the workspace.
 
----
+## Toolchain Choice
 
-### stm32cube-clangd Extension Issues
+Current recommended compiler choices are still:
 
-* Still does **not** recognize ST-ARM-CLANG’s `--multi-lib-config` option.  
-  → Avoid using **Hybrid (STARM_HYBRID)** mode with starm-clang.  
-  → `gcc`, `starm-clang+newlib` and `starm-clang+picolibc` modes work correctly. **Recommended: starm-clang + picolibc**.
+- `gcc`
+- `starm-clang`
 
----
+If you want to cooperate with `clangd`, `CLion`, or command-line-driven builds, prefer **pure gcc** or **pure starm-clang**. Do not default to the mixed `Hybrid` mode.
 
-### CLion / Command-Line Compilation
+`clangd` is still not reliable with ST-ARM-CLANG's `--multi-lib-config`. In `Hybrid` mode, `compile_commands.json` often ends up carrying extra arguments that make IDE behavior worse.
 
-On Windows, you need to add toolchains to your `PATH`. Installing **STM32CubeCLT** can simplify some of these settings.
+If you explicitly choose `starm-clang`, `picolibc` is the current recommended standard-library configuration. The available `STARM_TOOLCHAIN_CONFIG` values remain `STARM_HYBRID`, `STARM_NEWLIB`, and `STARM_PICOLIBC`, but current docs do not recommend staying on `STARM_HYBRID` by default.
+
+## CLion / Command-Line Builds
+
+If you are not using the VS Code plugin flow and want to drive the build yourself in `CLion` or the shell, configure the environment like this.
+
+On Windows, you usually need relevant toolchain paths in `PATH`. Installing `STM32CubeCLT` can simplify some of this.
 
 ```bash
 # gcc
@@ -56,76 +64,43 @@ set PATH=%PATH%;C:\Users\$env:USERNAME\AppData\Local\stm32cube\bundles\gnu-tools
 set PATH=%PATH%;C:\Users\$env:USERNAME\AppData\Local\stm32cube\bundles\st-arm-clang\${version}\bin;
 ```
 
-You also need to set environment variables:
+Environment variables:
 
-**Windows:**
+Windows:
 
 ```powershell
 $env:GCC_TOOLCHAIN_ROOT = "C:\Users\$env:USERNAME\AppData\Local\stm32cube\bundles\gnu-tools-for-stm32\${version}\bin"
 $env:CLANG_GCC_CMSIS_COMPILER = "C:\Users\$env:USERNAME\AppData\Local\stm32cube\bundles\st-arm-clang\${version}"
 ```
 
-**Linux:**
+Linux:
 
 ```bash
 export GCC_TOOLCHAIN_ROOT=/opt/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi/bin
 export CLANG_GCC_CMSIS_COMPILER=/opt/st-arm-clang
 ```
 
-During compilation, specify:
+Select the toolchain with `-DCMAKE_TOOLCHAIN_FILE="cmake/gcc-arm-none-eabi.cmake"` or `-DCMAKE_TOOLCHAIN_FILE="cmake/starm-clang.cmake"`. For `starm-clang.cmake`, you can also keep using `-DSTARM_TOOLCHAIN_CONFIG=STARM_NEWLIB` or `-DSTARM_TOOLCHAIN_CONFIG=STARM_PICOLIBC` to choose the C library.
 
-```bash
--DCMAKE_TOOLCHAIN_FILE="cmake/gcc-arm-none-eabi.cmake"
-```
+## Common Problems
 
-or
+### Legacy CubeMX projects fail to link `ob`
 
-```bash
--DCMAKE_TOOLCHAIN_FILE="cmake/starm-clang.cmake"
-```
-
----
-
-### `Migrating Legacy CubeMX Projects (<15.0) to New Compilation`
-
-If you encounter a link error with the `ob` library, add this to your root `CMakeLists.txt`:
+If the build complains about library `ob`, add this to the root `CMakeLists.txt`:
 
 ```cmake
 # Remove wrong libob.a library dependency when using cpp files
 list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)
 ```
 
----
+### Switching toolchains
 
-## Based on GCC (Legacy STM32 VSCode Extension) — *Not Recommended*
-
-### Windows Environment Setup
-
-Install [STM32CubeCLT](https://www.st.com/en/development-tools/stm32cubeclt.html)
-
-### Linux Environment Setup
-
-Install required packages:
+If you already use the code-generation toolchain, `xr_stm32_toolchain_switch` can switch the toolchain and C library directly:
 
 ```bash
-sudo apt update
-sudo apt install -y git python3 python3-pip cmake tar xz-utils wget pipx ninja-build
+xr_stm32_toolchain_switch gcc
+xr_stm32_toolchain_switch clang --newlib
+xr_stm32_toolchain_switch clang --picolibc
 ```
 
-Download the appropriate compiler from the [ARM official website](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads).  
-For example, on x64 Linux, download the `AArch32 bare-metal target (arm-none-eabi)` under `x86_64 Linux hosted cross toolchains`:  
-`arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz`
-
-Extract and move it to `/opt`, then create a symlink:
-
-```bash
-sudo ln -s /opt/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi /usr/local/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi
-```
-
-You can now use commands like `arm-none-eabi-gcc`.
-
-For convenience, link binaries:
-
-```bash
-sudo ln -s /opt/arm-gun-toolchain-xx.x/bin/* /usr/bin
-```
+That command edits `CMakePresets.json` and `cmake/starm-clang.cmake` directly. Restart `VS Code` afterwards so the new configuration is picked up cleanly.

@@ -17,11 +17,15 @@ This module summarizes the general-purpose data structures used in LibXR for tas
 
 ## Contents
 
-- [Queue](./queue.md)
-- [LockFreeQueue](./lockfree_queue.md)
+- [Queue (ordinary FIFO)](./queue.md)
+- [SPSCQueue](./spsc_queue.md)
+- [MPMCQueue](./mpmc_queue.md)
+- [LockFreeQueue (historical compatibility note)](./lockfree_queue.md)
 - [Stack](./stack.md)
 - [List](./list.md)
 - [LockFreeList](./lockfree_list.md)
+- [ObjectPool](./object_pool.md)
+- [LockFreePool](./lockfree_pool.md)
 - [RBTree](./rbt.md)
 - [DoubleBuffer](./double_buffer.md)
 

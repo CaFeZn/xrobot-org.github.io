@@ -21,7 +21,7 @@ PlatformInit();
 对于RTOS环境，需要传入线程优先级和堆栈深度:
 
 ```cpp
-PlatformInit(2, 512);
+PlatformInit(2, 1024);
 ```
 
 第一个参数为线程优先级，第二个参数为堆栈深度。
@@ -47,7 +47,7 @@ PlatformInit(2, 512);
 ```yaml
 software_timer:
   priority: 2
-  stack_depth: 512
+  stack_depth: 1024
 ```
 
 可直接修改该文件。如需应用更新配置，请执行以下任一命令以重新生成代码：  

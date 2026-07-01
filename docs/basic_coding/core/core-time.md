@@ -71,14 +71,18 @@ class MillisecondTimestamp {
 
 时间差计算中已考虑时间戳回绕（如溢出），可用于嵌入式平台上的系统时钟处理。
 
-为适配不同平台/时间基，本模块额外暴露两个时间基配置量（由实现层使用）：
+为适配不同平台/时间基，当前主线在 `LibXR::Detail` 命名空间中维护时间基回绕上界配置：
 
 ```cpp
-extern uint64_t libxr_timebase_max_valid_us;
-extern uint32_t libxr_timebase_max_valid_ms;
+uint64_t TimebaseMaxValidUs();
+uint32_t TimebaseMaxValidMs();
+void ConfigureTimebaseWrapRange(uint64_t max_valid_us,
+                                uint32_t max_valid_ms) noexcept;
 ```
 
-它们用于指定“时间基最大有效值”（微秒/毫秒），以便在回绕场景下进行差值计算与合法性判定。
+这些接口/内部存储用于指定“时间基最大有效值”（微秒/毫秒），以便在回绕场景下进行差值计算与合法性判定。
+
+也就是说，当前主线已经不再通过旧式的外部全局变量暴露这一组配置量。
 
 ---
 

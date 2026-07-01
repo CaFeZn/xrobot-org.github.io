@@ -44,12 +44,12 @@ After the code is generated, an ADC configuration section will appear in the `Us
 ```yaml
 ADC:
   adcX:
-    buffer_size: 128 # Default size = number of channels/Ranks * 32
+    buffer_size: 32 # Default per-channel buffer size; generated uint16_t storage scales with active channel/Rank count
     dma_section: ''
     vref: 3.3
 ```
 
-- `buffer_size`: The size of the ADC buffer.  
+- `buffer_size`: Base ADC buffer size. The generated `uint16_t` storage is expanded according to the number of active DMA channels/Ranks.
 - `dma_section`: The memory section where the DMA buffer is located.
 - `vref`: The reference voltage for the ADC, in volts.
 

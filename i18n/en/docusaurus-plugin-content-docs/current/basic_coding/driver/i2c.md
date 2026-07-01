@@ -52,7 +52,7 @@ virtual ErrorCode MemWrite(uint16_t slave_addr, uint16_t mem_addr,
                            bool in_isr = false) = 0;
 ```
 
-- `slave_addr`: I2C slave **8-bit address**.
+- `slave_addr`: target I2C slave address, **without the R/W bit**.
 - `in_isr`: whether this I2C operation is initiated/progressed in ISR context (default `false`).
 
 ## Feature Summary

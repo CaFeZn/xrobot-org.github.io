@@ -67,6 +67,12 @@ reuse scenarios.
 > - `ErrorCode::FULL`: no writable slots\
 > - `ErrorCode::EMPTY`: no readable slots
 
+## Current interface boundaries
+
+- The current `Put(const Data&, uint32_t& start_index)` / `Get(Data&, uint32_t& start_index)` paths only scan linearly forward from the supplied starting slot; if you want to restart from the beginning, the caller must reset `start_index` to `0` explicitly.
+- `RecycleSlot(index)` currently succeeds only when the slot is still in `READY`; if a slot has already been consumed by `Get*()` and moved to `RECYCLE`, calling `RecycleSlot()` again does not succeed.
+- The core abstraction here is an unordered slot-state machine, not a FIFO queue, so it should not be treated as a transport abstraction with ordering or fairness guarantees.
+
 ## Usage Example
 
 ### Basic Put/Get

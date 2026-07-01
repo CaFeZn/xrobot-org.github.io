@@ -69,7 +69,7 @@ Where:
 
 ## Allowed Usage
 
-As long as you follow this document, **you may reuse VID/PID = 16D0:1492 for any commercial or personal project**.  
+As long as you follow this document, **you may reuse VID/PID = 1D50:6199 for any commercial or personal project**.
 The XRUSB project does not provide any guarantees regarding compatibility, driver behavior, or how different operating systems treat this VID/PID.
 
 Although any `(VID, PID, Serial)` combination that respects these rules should be globally unique,  

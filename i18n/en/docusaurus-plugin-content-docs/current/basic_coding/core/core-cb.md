@@ -6,7 +6,7 @@ sidebar_position: 3
 
 # General Callback
 
-This module provides a lightweight and ISR-safe general callback system, including the `Callback` and `CallbackBlock` template classes, commonly used for asynchronous notifications, event handling, and error callbacks.
+This module provides a lightweight and ISR-safe general callback system. The main public interface is `Callback`; its implementation is built on `CallbackBlock` plus the optional `GuardedCallbackBlock`, and is commonly used for asynchronous notifications, event handling, and error callbacks.
 
 ## CallbackBlock
 
@@ -15,18 +15,24 @@ template <typename ArgType, typename... Args>
 class CallbackBlock;
 ```
 
-Encapsulates a concrete callback function together with its first bound argument, and adds a reentrancy guard so it can be triggered safely from ISR or task contexts:
+Encapsulates a concrete callback function together with its first bound argument, and provides the erased invocation entry used from ISR or task contexts:
 
 - `FunctionType`: Callback function signature: `void(bool in_isr, ArgType arg, Args... args)`.
-- `Call(bool in_isr, Args... args)`: Triggers the callback and forwards extra arguments.
+- Actual invocation is routed through the internal `InvokeThunk(...)` / `Invoke(...)` path.
 
-Binding is completed during construction. Supports move construction and assignment, copy is disabled.
+Binding is completed during construction. Copy is explicitly disabled, and the block should not be treated as a small ordinary value object.
 
-### Reentrancy Guard Semantics
+### Reentrancy Guard Semantics of `GuardedCallbackBlock`
 
-The guard prevents callback chains from blowing up the stack when they form loops (for example A → B → C → A, re-triggering the same callback while it is still running).
+In current mainline, reentrancy protection is not enabled by default in `CallbackBlock`. It is implemented by `GuardedCallbackBlock`, and the user-facing entry is:
 
-If the same `CallbackBlock` is triggered again while it is executing:
+```cpp
+LibXR::Callback<Args...>::CreateGuarded(fun, bound_arg);
+```
+
+This guard prevents callback chains from blowing up the stack when they form loops (for example A → B → C → A, re-triggering the same callback while it is still running).
+
+If the same guarded callback is triggered again while it is executing:
 
 - No new nested stack frame is created (the callback is **not** invoked recursively).
 - Only one pending request is cached (a snapshot of the latest arguments overwrites previous pending arguments).
@@ -41,7 +47,7 @@ template <typename... Args>
 class Callback;
 ```
 
-A further abstraction of `CallbackBlock`, providing a unified interface, type erasure, and factory methods.
+A further abstraction over the underlying callback blocks, providing a unified interface, type erasure, and factory methods.
 
 ### Creating a callback
 
@@ -54,6 +60,14 @@ LibXR::Callback<Args...> cb = LibXR::Callback<Args...>::Create(fun, bound_arg);
 
 > `Create` currently performs `new CallbackBlock<BoundArgType, Args...>`, so it **allocates dynamically** and `Callback` itself does not manage deallocation.
 
+If you need the guarded variant:
+
+```cpp
+LibXR::Callback<Args...> cb = LibXR::Callback<Args...>::CreateGuarded(fun, bound_arg);
+```
+
+That path currently allocates `GuardedCallbackBlock<...>`.
+
 ### Running a callback
 
 ```cpp
@@ -64,7 +78,7 @@ Any number of additional arguments can be passed. `in_isr` indicates if the call
 
 ### Other interfaces
 
-- `Empty()`: Checks if the callback is empty (`cb_block_ == nullptr`).
+- `Empty()`: Checks if the callback is empty (current implementation: `cb_block_ == &empty_cb_block_`).
 - Supports default constructor, copy constructor, move constructor, and assignment.
   - Copying is shallow: multiple `Callback` instances share the same block pointer and entry point.
 
@@ -87,7 +101,7 @@ ISR=0 context=42 msg=Hello
 
 ## Design Features
 
-- **Reentrancy guard**: Re-entrant triggers collapse into a pending request and are replayed at the current call site (trampoline flattening).
+- **Optional reentrancy guard**: trampoline-style flattening is enabled only on the `CreateGuarded(...)` path; ordinary `Create(...)` builds a plain `CallbackBlock`.
 - **ISR-friendly**: Every interface explicitly carries `in_isr`, making it safe to run inside interrupts.
 - **Type-safe encapsulation**: Templates and type deduction perform binding and invocation in a type-safe manner.
 - **Lightweight & embeddable**: Minimal structure suitable for IO, timers, event buses, and other callback-based modules.

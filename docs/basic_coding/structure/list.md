@@ -47,12 +47,13 @@ class Node : public BaseNode {
 
 - `void Add(BaseNode& node)`：将节点加入链表头部。
 - `ErrorCode Delete(BaseNode& node)`：从链表中移除指定节点。
+  - 若节点不在当前链表中，当前实现返回 `ErrorCode::NOT_FOUND`。
 
 ### 查询与遍历
 
 - `uint32_t Size()`：获取链表中节点数。
 - `ErrorCode Foreach(Func func)`：遍历所有节点并调用函数。
-  - lambda中返回 `ErrorCode::OK` 时继续遍历，返回 `ErrorCode::ERROR` 时中断遍历。
+  - 回调返回 `ErrorCode::OK` 时继续遍历；返回任意非 `OK` 错误码时立即中断并把该错误码返回给调用方。
 
 ### Foreach 使用示例
 
@@ -70,7 +71,8 @@ list.Foreach<int>([](int& data) {
 ## 注意事项
 
 - 节点由用户申请与释放，`List` 不负责内存管理。
-- 每个节点只能同时存在于一个链表中。
+- 每个节点只能同时存在于一个链表中，也不应在仍处于链接状态时重复 `Add()` 到任意链表。
+- 当前 `BaseNode` 析构时会断言该节点已经从链表中脱离；如果节点对象比链表更早析构，调用方应先显式 `Delete()`。
 - `Foreach` 支持结构校验，确保类型匹配。
 
 ## 典型应用

@@ -8,7 +8,7 @@ sidebar_position: 8
 
 This module defines the generic `ReadPort` and `WritePort` interface classes for cross-platform encapsulation of various I/O behaviors such as asynchronous, blocking, and polling. It binds completion feedback mechanisms via the `Operation` model. To adapt to different underlying drivers, simply implement the corresponding read/write functions and assign them to the port object to gain full asynchronous I/O capability.
 
-`ReadPort`, `WritePort`, and `WritePort::Stream` are implemented using atomic operations and lock-free data structures, enabling the entire read and write process to be performed without any system calls, while still ensuring thread safety. The "locks" mentioned below are purely logical abstractions and do not involve any actual mutex operations.
+The current mainline implementation of `ReadPort`, `WritePort`, and `WritePort::Stream` mainly uses atomic state machines and lock-free structures such as `SPSCQueue` for the **software-side queuing and completion handoff**. That should not be over-expanded into a claim that the entire read/write path can never involve system calls; actual syscalls, DMA starts, or hardware accesses still depend on the concrete driver bound through `ReadFun / WriteFun`.
 
 > Note: the default constructors of `ReadPort` / `WritePort` create internal lock-free queues and buffers (one-time allocation/initialization during construction) to hold data and write metadata.
 
@@ -108,7 +108,7 @@ ErrorCode operator()(ConstRawData data, WriteOperation &op, bool in_isr = false)
 
 Adds data to the write queue and handles completion based on the behavior of `op`.
 
-- `WritePort` uses an atomic lock state (`lock_`) to ensure there is only one submitter at a time; if the port is already occupied, this call returns `ErrorCode::BUSY`.
+- `WritePort` currently uses an atomic `BusyState` state machine to ensure there is only one submitter at a time; if the port is already occupied, this call returns `ErrorCode::BUSY`.
 - When `data.size_ == 0`, the write completes immediately with success (BLOCK mode will not wait).
 
 ### State Check
@@ -135,10 +135,10 @@ LibXR provides a global `STDIO` interface that can be bound to `ReadPort` / `Wri
 
 ```cpp
 LibXR::STDIO::write_ = &uart.write_port_;
-LibXR::STDIO::Printf("Hello, %d", 123);
+LibXR::STDIO::Printf<"Hello, %d">(123);
 ```
 
-Implementation note: when `LIBXR_PRINTF_BUFFER_SIZE` is enabled, `Printf` uses an internal mutex (only for formatting and serializing output), and chooses between the normal write path and the stream/bulk write path depending on whether `STDIO::write_stream_` is configured.
+Implementation note: the current `Printf` path uses the shared STDIO write session and an internal mutex for formatting/serialization, and chooses between the normal write path and the stream/bulk write path depending on whether `STDIO::write_stream_` is configured.
 
 ## Usage Examples
 
@@ -199,3 +199,9 @@ Semantics highlights:
 ---
 
 `ReadPort` and `WritePort` are the core interfaces of the LibXR I/O abstraction layer. They provide unified data buffering and completion feedback mechanisms, suitable for data stream scenarios such as UART, network, and file systems.
+
+## Current implementation boundaries
+
+- `ReadPort(buffer_size)` creates its internal `SPSCQueue<uint8_t>` only when `buffer_size > 0`; with a zero capacity, the current implementation allows `queue_data_ == nullptr`, so APIs such as `Size()` / `EmptySize()` must not be used blindly.
+- `WritePort(queue_size, buffer_size)` currently constructs `queue_info_` and `queue_data_` separately; `queue_data_` is likewise allowed to be null when `buffer_size == 0`.
+- The “thread-safe” claim for `ReadPort` / `WritePort` mainly describes the current software-side queue, busy-state, and completion-handoff logic. Whether the bound `ReadFun / WriteFun` is re-entrant or ISR-safe still depends on the concrete backend implementation.

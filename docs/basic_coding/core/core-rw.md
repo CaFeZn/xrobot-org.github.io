@@ -8,7 +8,7 @@ sidebar_position: 8
 
 本模块定义了通用的 `ReadPort` 与 `WritePort` 接口类，用于跨平台封装异步、阻塞、轮询等多种 I/O 行为，并通过 `Operation` 模型绑定完成反馈机制。适配不同底层驱动时，只需实现对应的读写函数并赋值给端口对象，即可获得完整的异步 I/O 能力。
 
-`ReadPort`、`WritePort` 和 `WritePort::Stream` 本身由原子操作与无锁数据结构实现，可以做到整个读写过程不进行任何系统调用，同时保证线程安全。下文的锁都只是逻辑抽象，不涉及到实际的互斥锁操作。
+`ReadPort`、`WritePort` 和 `WritePort::Stream` 的当前主线实现主要由原子状态机与 `SPSCQueue` 这类无锁数据结构组织其**软件侧排队与完成交接**。但它们只是 I/O 抽象层本身的实现方式，不应被扩大表述成“整个读写路径绝不会发生系统调用”这样的跨后端保证；真正的系统调用、DMA 启动或硬件访问仍取决于具体驱动绑定的 `ReadFun / WriteFun`。
 
 > 注意：`ReadPort` / `WritePort` 的默认构造会在内部创建无锁队列与缓存（构造期一次性分配/初始化），用于承载数据与写入元信息。
 
@@ -108,7 +108,7 @@ ErrorCode operator()(ConstRawData data, WriteOperation &op, bool in_isr = false)
 
 将数据加入写入队列，并根据 `op` 的行为等待或回调。
 
-- `WritePort` 内部使用一个原子锁状态（`lock_`）保证同一时刻只有一个写入提交者；若端口已被占用，直接返回 `ErrorCode::BUSY`。
+- `WritePort` 当前内部使用的是一个原子 `BusyState` 状态机来保证同一时刻只有一个写入提交者；若端口已被占用，直接返回 `ErrorCode::BUSY`。
 - 当 `data.size_ == 0` 时，写入会直接返回成功（阻塞模式不会等待）。
 
 ### 状态检查
@@ -135,10 +135,10 @@ LibXR 提供了一个全局 `STDIO` 接口，可绑定 `ReadPort` / `WritePort` 
 
 ```cpp
 LibXR::STDIO::write_ = &uart.write_port_;
-LibXR::STDIO::Printf("Hello, %d", 123);
+LibXR::STDIO::Printf<"Hello, %d">(123);
 ```
 
-实现上，`Printf` 在启用 `LIBXR_PRINTF_BUFFER_SIZE` 时会使用内部互斥（仅用于格式化与串行化输出），并根据是否配置 `STDIO::write_stream_` 决定走普通写入或流式批量写入路径。
+当前实现里，`Printf` 通过共享的 STDIO 写会话和内部互斥来完成格式化与串行化输出，并根据是否配置 `STDIO::write_stream_` 决定走普通写入或流式批量写入路径。
 
 ## 用例示例
 
@@ -199,3 +199,9 @@ public:
 ---
 
 `ReadPort` 与 `WritePort` 是 LibXR IO 抽象层的核心接口，提供统一的数据缓冲与完成反馈机制，适用于串口、网络、文件系统等多种数据流场景。
+
+## 当前实现边界
+
+- `ReadPort(buffer_size)` 在 `buffer_size > 0` 时才创建内部 `SPSCQueue<uint8_t>`；若容量为 `0`，当前实现允许 `queue_data_ == nullptr`，此时 `Size()` / `EmptySize()` 等接口不应被无条件使用。
+- `WritePort(queue_size, buffer_size)` 当前会分别构造 `queue_info_` 与 `queue_data_`；其中 `queue_data_` 在 `buffer_size == 0` 时同样允许为空。
+- `ReadPort` / `WritePort` 的“线程安全”主要是指当前软件侧队列、busy 状态与完成交接逻辑；底层 `ReadFun / WriteFun` 是否可重入、是否能在 ISR 安全调用，仍取决于具体后端实现。

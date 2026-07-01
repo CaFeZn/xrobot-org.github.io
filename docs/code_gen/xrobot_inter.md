@@ -6,7 +6,7 @@ sidebar_position: 2
 
 # 与XRobot集成
 
-在代码生成时加入`--xrobot`选项，可以生成对应的硬件容器（[LibXR::HardwareContainer](https://jiu-xiao.github.io/libxr/class_lib_x_r_1_1_hardware_container.html)）以供XRobot初始化。
+在代码生成时加入`--xrobot`选项，可以生成对应的硬件容器（`LibXR::HardwareContainer`）以供 XRobot 初始化。
 
 ## 示例
 
@@ -23,7 +23,7 @@ xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp --xrobot
 
 ```cpp
   LibXR::HardwareContainer peripherals{
-    LibXR::Entry<LibXR::PowerManager>({power_manager, {"power_manager"}}),
+    LibXR::Entry<LibXR::PowerManager>{power_manager, {"power_manager"}},
     ...
   };
 

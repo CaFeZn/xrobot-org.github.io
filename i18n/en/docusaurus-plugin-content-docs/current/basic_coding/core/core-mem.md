@@ -1,10 +1,10 @@
 ---
 id: core-mem
 sidebar_position: 11
-title: Fast Memory Copy
+title: Fast Memory Operations
 ---
 
-# Memory FastCopy / FastSet / FastCmp
+# Memory FastCopy / FastMove / FastSet / FastCmp
 
 `LibXR::Memory` provides a set of alignment- and burst-optimized memory primitives intended to replace generic `memcpy / memset / memcmp` on hot paths (such as ring buffer moves, IO TX/RX packing, etc.). The implementation selects a better 8/4/2/1-byte granularity based on pointer alignment and uses loop unrolling to improve throughput.
 
@@ -23,6 +23,14 @@ class Memory {
    * @param size Number of bytes to copy
    */
   static void FastCopy(void* dst, const void* src, size_t size);
+
+  /**
+   * @brief Fast memory move (overlap-safe)
+   * @param dst  Destination address
+   * @param src  Source address
+   * @param size Number of bytes to move
+   */
+  static void FastMove(void* dst, const void* src, size_t size);
 
   /**
    * @brief Fast memory fill (memset-like)
@@ -53,6 +61,13 @@ class Memory {
   - Otherwise it falls back to byte-by-byte copying.
 - The tail that does not fill a full "wide copy" unit is completed byte-by-byte.
 
+## FastMove Semantics
+
+- The current implementation of `FastMove()` first checks whether `dst` and `src` overlap:
+  - if they do not overlap, it falls back directly to `FastCopy()`;
+  - if they do overlap, it uses the safe move path.
+- It is intended for “possibly overlapping” regions; if you already know the regions do not overlap, prefer `FastCopy()`.
+
 ## FastSet Semantics
 
 - Returns immediately if `size == 0`.
@@ -68,7 +83,7 @@ class Memory {
 ## Usage Example
 
 ```cpp
-#include "libxr_def.hpp"
+#include "libxr_mem.hpp"
 
 uint8_t src[256];
 uint8_t dst[256];
@@ -77,6 +92,9 @@ uint8_t dst[256];
 
 // Non-overlapping fast copy
 LibXR::Memory::FastCopy(dst, src, sizeof(src));
+
+// Overlap-safe move
+LibXR::Memory::FastMove(dst + 8, dst, 64);
 
 // Fast fill
 LibXR::Memory::FastSet(dst, 0x00, sizeof(dst));

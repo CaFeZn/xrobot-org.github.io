@@ -38,6 +38,9 @@ public:
 ```
 
 - `buffer_size`: total capacity of the shared queue (in bytes) used to hold written data. Immutable after creation.
+- In the current implementation, the object is actually constructed as `ReadPort(0)` plus `WritePort(1, buffer_size)`:
+  - the read side does not own an independent data-queue capacity of its own;
+  - the write side uses a fixed metadata queue depth of `1`, while the shared byte-queue capacity is `buffer_size`.
 - `Pipe` does not directly expose methods like `Size()` / `Reset()` - use the corresponding port interfaces via `GetReadPort()` / `GetWritePort()`.
 
 ---
@@ -62,3 +65,5 @@ w({some_data, some_len}, wop);        // this will drive r.ProcessPendingReads(.
 ```
 
 > Note: the read side of `Pipe` is "passively progressed": a pending read completes only when the write side triggers progress (or you explicitly call `ProcessPendingReads` from the outside). This matches the `ReadPort` model.
+
+> Another current implementation boundary is that `WriteFun` pops one `WriteInfoBlock` from the writer's `queue_info_`; if that pop fails, the implementation asserts and returns `ErrorCode::EMPTY`. So `Pipe` depends on the current `WritePort` queue/finish protocol rather than an arbitrary writer callback contract.

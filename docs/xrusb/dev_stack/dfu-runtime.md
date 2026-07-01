@@ -37,6 +37,8 @@ LibXR::USB::DfuRuntimeClass dfu_rt(
 
 如果传入了 `webusb_landing_page_url` 和 `webusb_vendor_code`，还会额外发布 WebUSB BOS capability。
 
+除此之外，Runtime DFU 还会通过共享的 `DfuInterfaceClassBase` 默认发布 **WinUSB MS OS 2.0** 描述符集，且当前 runtime 路径使用的是 function-scoped WinUSB 元数据。
+
 ---
 
 ## 2. 接口与描述符

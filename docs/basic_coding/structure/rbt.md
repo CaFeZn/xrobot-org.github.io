@@ -59,7 +59,16 @@ template <typename Data, typename Func>
 ErrorCode Foreach(Func func);
 ```
 
-- 中序遍历节点，对每个 `Node<Data>` 执行 func 回调
+- 中序遍历节点，对每个 `Node<Data>` 执行 `func` 回调。
+- 回调返回 `ErrorCode::OK` 时继续遍历；返回任意非 `OK` 错误码时立即中断并把该错误码返回给调用方。
+
+### 节点数量
+
+```cpp
+uint32_t GetNum();
+```
+
+- 返回当前树中的节点数量。
 
 ### 迭代接口
 
@@ -68,6 +77,8 @@ Node<Data>* ForeachDisc(Node<Data>* node);
 ```
 
 - 依次返回中序下一个节点，初始调用时传入 nullptr
+  - 传入 `nullptr` 时，从当前树中的最左节点开始。
+  - 之后每次传入上一次返回的节点，得到中序下一个节点；遍历结束时返回 `nullptr`。
 
 ### 节点定义示例
 
@@ -80,6 +91,7 @@ tree.Insert(n1, 42);
 ## 注意事项
 
 - 所有操作为线程安全，但需注意节点生命周期由用户控制
+- 当前公开接口假定节点由用户创建并持有；树本身不负责节点内存管理。
 - 节点类型需固定在使用前明确
 - 节点大小支持运行时校验，防止误类型访问
 

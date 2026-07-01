@@ -34,7 +34,7 @@ STM32USBDeviceOtgFS usb_fs(
     {usb_otg_fs_ep0_out_buf, usb_otg_fs_ep1_out_buf},
     {{usb_otg_fs_ep0_in_buf, 8}, {usb_otg_fs_ep1_in_buf, 128}, {usb_otg_fs_ep2_in_buf, 16}},
     USB::DeviceDescriptor::PacketSize0::SIZE_8,
-    0x483, 0x5740, 0xF407,
+    0x1D50, 0x6199, 0x0100,
     {&USB_OTG_FS_LANG_PACK},
     {{&usb_otg_fs_cdc}},
     /* Serial Number UID (12 bytes read from STM32 UID) */
@@ -60,7 +60,7 @@ STM32USBDeviceOtgHS usb_hs(
     {usb_otg_hs_ep0_out_buf, usb_otg_hs_ep1_out_buf},
     {{usb_otg_hs_ep0_in_buf, 8}, {usb_otg_hs_ep1_in_buf, 128}, {usb_otg_hs_ep2_in_buf, 16}},
     USB::DeviceDescriptor::PacketSize0::SIZE_8,
-    0x483, 0x5740, 0xF407,
+    0x1D50, 0x6199, 0x0100,
     {&USB_OTG_HS_LANG_PACK},
     {{&usb_otg_hs_cdc}},
     /* Serial Number UID (12 bytes read from STM32 UID) */
@@ -88,7 +88,7 @@ STM32USBDeviceDevFs usb_fs_dev(
         {usb_fs_ep2_in_buf, 16, true}
     },
     USB::DeviceDescriptor::PacketSize0::SIZE_8,
-    0x483, 0x5740, 0xF407,
+    0x1D50, 0x6199, 0x0100,
     {&USB_FS_LANG_PACK},
     {{&usb_fs_cdc}},
     /* Serial Number UID (12 bytes read from STM32 UID) */
@@ -122,8 +122,8 @@ Timer::Start(terminal_task);
 
 // Method 2: Run as a thread (independent thread)
 LibXR::Thread terminal_thread;
-terminal_thread.Create(&terminal, terminal.ThreadFun, "terminal", 512,
-                       LibXR::Thread::Priority::MEDIUM);
+terminal_thread.Create(&terminal, terminal.ThreadFun, "terminal", 1024,
+                       static_cast<LibXR::Thread::Priority>(3));
 ```
 
 ## Configuration File Explanation
@@ -155,33 +155,33 @@ USART:
 
 # USB CDC configuration
 USB:
-  USB_OTG_FS:
+  usb_otg_fs:
     enable: true
     # EP0 packet size (only 8/16/32/64 supported)
-    ep0_packet_size: 64
+    ep0_packet_size: 8
 
     # DMA buffer size (for EP1 IN/OUT user buffers)
-    tx_buffer_size: 256     # ep1_in_buf size
-    rx_buffer_size: 256     # ep1_out_buf size
+    tx_buffer_size: 128     # ep1_in_buf size
+    rx_buffer_size: 128     # ep1_out_buf size
 
     # Hardware FIFO (PCD/USB peripheral internal FIFO configuration)
     tx_fifo_size: 128
     rx_fifo_size: 256
 
     # CDC internal FIFO and queues
-    cdc_tx_fifo_size: 256
-    cdc_rx_fifo_size: 256
+    cdc_tx_fifo_size: 128
+    cdc_rx_fifo_size: 128
     cdc_queue_size: 3
 
     # Optional: put endpoint DMA buffers in a specific section
     dma_section: ""
 
     # Optional: USB device descriptors
-    vid: 0x0483
-    pid: 0x5740
-    bcd: 0x0200
+    vid: 0x1D50
+    pid: 0x6199
+    bcd: 0x0100
     manufacturer: "XRobot"
-    product: "STM32 XRUSB CDC"
+    product: "STM32 XRUSB USB_OTG_FS CDC Demo"
     serial: "XRUSB-DEMO-"
 ```
 

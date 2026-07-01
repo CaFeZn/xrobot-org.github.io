@@ -29,7 +29,7 @@ Template parameters:
 - `REPORT_DESC_LEN`: Report Descriptor length (bytes)
 - `TX_REPORT_LEN`: Maximum Input Report length (Interrupt IN endpoint max packet size)
 - `RX_REPORT_LEN`: Maximum Output Report length (Interrupt OUT endpoint max packet size)
-  - Set to `0` to disable the Interrupt OUT endpoint
+  - If you need the Interrupt OUT endpoint, you must provide a suitable `RX_REPORT_LEN` and also explicitly enable `enable_out_endpoint` in the constructor
 
 The base class provides:
 
@@ -83,7 +83,7 @@ During initialization, the class typically:
 
 1. Records the interface number and clears runtime flags
 2. Allocates Interrupt IN from `EndpointPool` and configures it with `TX_REPORT_LEN`
-3. If `RX_REPORT_LEN > 0`: allocates Interrupt OUT and configures it with `RX_REPORT_LEN`
+3. If `enable_out_endpoint` is enabled in the constructor: allocates Interrupt OUT and configures it with `RX_REPORT_LEN`
 4. Generates and submits the configuration-descriptor block (Interface + HID Descriptor + Endpoint Descriptors)
 5. Registers endpoint completion callbacks (IN required; OUT optional)
 6. If OUT is enabled: starts the first OUT receive (subsequent receives are re-armed automatically)
@@ -133,8 +133,10 @@ The base class supports common HID Class-Specific Requests:
 Recommended hooks to override as needed:
 
 - Report retrieval: `OnGetInputReport(...)` / `OnGetLastOutputReport(...)` / `OnGetFeatureReport(...)`
+  - The base implementation of `OnGetLastOutputReport(...)` returns empty data; if you need to return the last Output Report over control transfer, override it in the derived class
 - Report setting: `OnSetReport(...)` (Setup stage) and `OnSetReportData(...)` (Data stage)
 - Custom extensions: `OnCustomClassRequest(...)` / `OnCustomClassData(...)`
+  - Requests not handled directly by the base class return `NOT_SUPPORT` by default
 
 ---
 
@@ -191,11 +193,25 @@ After an IN transfer completes, `OnDataInComplete(in_isr, data)` is called. Typi
 - Optional OUT endpoint (e.g., 1-byte LED)
 - Can also support host LED updates via control endpoint (`SET_REPORT`)
 
+Current derived-class helpers also include:
+
+- `SetOnLedChangeCallback(...)`
+- `GetNumLock()`
+- `GetCapsLock()`
+- `GetScrollLock()`
+
 ### 7.3 `HIDGamepadT`
 
 - Template gamepad (e.g., 4 axes + 8 buttons)
 - Input Report and Report Descriptor are fixed at compile time
 - Typically provides convenience send APIs to update axes and button bitmap
+
+Current mainline also exports two ready-to-use aliases:
+
+- `HIDGamepad = HIDGamepadT<0, 2047, 1>`
+- `HIDGamepadBipolar = HIDGamepadT<-2048, 2047, 1>`
+
+`HIDGamepad` is suitable for unipolar ranges, while `HIDGamepadBipolar` is suitable for bipolar inputs centered around zero.
 
 ---
 
@@ -230,6 +246,17 @@ LibXR::USB::HIDKeyboard hid_kbd(true);
 hid_kbd.PressKey({LibXR::USB::HIDKeyboard::KeyCode::A},
                  LibXR::USB::HIDKeyboard::Modifier::LEFT_SHIFT);
 hid_kbd.ReleaseAll();
+
+// Optional: register a LED-state change callback
+hid_kbd.SetOnLedChangeCallback(
+    LibXR::Callback<bool, bool, bool>::Create(
+        [](bool in_isr, int, bool num_lock, bool caps_lock, bool scroll_lock) {
+          (void)in_isr;
+          (void)num_lock;
+          (void)caps_lock;
+          (void)scroll_lock;
+        },
+        0));
 ```
 
 ### 8.3 Gamepad
@@ -239,6 +266,9 @@ hid_kbd.ReleaseAll();
 
 LibXR::USB::HIDGamepad gamepad;
 gamepad.Send(1024, 1024, 1024, 1024, LibXR::USB::HIDGamepad::BTN1);
+
+LibXR::USB::HIDGamepadBipolar bipolar_gamepad;
+bipolar_gamepad.SendAxes(0, -512, 512, 0);
 ```
 
 ---
@@ -251,6 +281,6 @@ Implementing a new HID derived class typically requires:
 2. Define and manage the Input Report data structure (length must not exceed `TX_REPORT_LEN`)
 3. If Output/Feature is needed:
    - Control transfer: override `OnSetReport(...) / OnSetReportData(...)`
-   - Interrupt OUT endpoint: enable `RX_REPORT_LEN > 0` and override `OnDataOutComplete(...)`
+   - Interrupt OUT endpoint: reserve enough `RX_REPORT_LEN`, enable `enable_out_endpoint` in the constructor, and override `OnDataOutComplete(...)`
 
 If continuous sending or queueing is needed, implement “send next report” scheduling in `OnDataInComplete(...)`.

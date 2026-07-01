@@ -60,6 +60,12 @@ ErrorCode Read(RawData data, OperationType&& op, bool in_isr = false);
 - `OperationType` should be `WriteOperation` / `ReadOperation` (or a derived/equivalent type).
 - `in_isr` indicates whether the call happens in ISR context (forwarded to the port `operator()`).
 
+## Current interface boundaries
+
+- `UART::Parity` currently exposes only `NO_PARITY / EVEN / ODD`; the source still keeps `Mark / Space` as TODO comments, so the docs should not present those modes as already available generic interface capabilities.
+- `stop_bits` is currently only a raw `uint8_t` configuration field; the base interface does not define an additional unified enum or cross-platform contract for values such as `0.5 / 1.5` stop bits.
+- The `UART` base class currently only stores `read_port_` / `write_port_` pointers and forwards `Read()` / `Write()` to them. It does not create, own, or destroy the port objects; their lifetime remains managed by the caller or the concrete platform implementation.
+
 ## Feature Summary
 
 - Full configuration support for baud rate, data bits, stop bits, and parity;  

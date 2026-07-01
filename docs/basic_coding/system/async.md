@@ -44,7 +44,7 @@ public:
 ## 使用示例
 
 ```cpp
-#include <libxr/async.hpp>
+#include <libxr.hpp>
 
 LibXR::ASync async_worker(2048, LibXR::Thread::Priority::MEDIUM);
 

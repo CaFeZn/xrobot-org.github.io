@@ -218,7 +218,7 @@ Note: The numeric values depend on `DapLinkV2Def::CommandId`; this document uses
 ### 7.2 Key `DAP_Info` Fields
 
 - `CAPABILITIES`: `DAP_CAP_SWD`
-- `PACKET_COUNT`: `127`
+- `PACKET_COUNT`: `4` by default. The class advertises `8` as its template default packet-count input, but the current implementation clamps the effective host-visible count to `4`.
 - `PACKET_SIZE`: returns `MaxTransferSize()` of the IN endpoint
 - `TIMESTAMP_CLOCK`: `1,000,000` (matches a microsecond time base)
 
@@ -233,13 +233,13 @@ Note: The numeric values depend on `DapLinkV2Def::CommandId`; this document uses
 #include "usb/device.hpp"
 #include "debug/swd.hpp"
 
-LibXR::Debug::Swd swd(/* ... init ... */);
-LibXR::GPIO nreset(/* ... optional ... */);
+MySwdBackend swd(/* ... init ... */);   // concrete SWD backend implementation
+MyGpio nreset(/* ... optional ... */);  // concrete GPIO implementation
 
-LibXR::USB::DapLinkV2Class<LibXR::Debug::Swd> dap(swd, &nreset);
+LibXR::USB::DapLinkV2Class<MySwdBackend> dap(swd, &nreset);
 
 // Optional: override DAP_Info strings
-LibXR::USB::DapLinkV2Class<LibXR::Debug::Swd>::InfoStrings info;
+LibXR::USB::DapLinkV2Class<MySwdBackend>::InfoStrings info;
 info.vendor = "XRobot";
 info.product = "DAPLinkV2";
 info.serial = "00000001";

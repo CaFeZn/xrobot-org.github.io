@@ -60,6 +60,12 @@ ErrorCode Read(RawData data, OperationType&& op, bool in_isr = false);
 - `OperationType` 需要是 `WriteOperation` / `ReadOperation`（或其派生/等价类型）。
 - `in_isr` 指示是否在中断上下文中调用（会透传到端口的 `operator()`）。
 
+## 当前接口边界
+
+- `UART::Parity` 当前只有 `NO_PARITY / EVEN / ODD` 三种取值；源码里仍保留 `Mark / Space` 的 TODO 注释，因此文档不应把这些模式写成已存在的通用接口能力。
+- `stop_bits` 当前只是一个原始 `uint8_t` 配置字段；基类接口本身没有再定义 `0.5 / 1.5` 这类统一枚举或跨平台保证。
+- `UART` 基类当前只是保存 `read_port_` / `write_port_` 指针并把 `Read()` / `Write()` 转发过去，不负责创建、拥有或释放这些端口对象；端口生命周期仍由调用方或具体平台实现管理。
+
 ## 特性总结
 
 - 支持波特率、数据位、停止位、校验方式的完整配置；

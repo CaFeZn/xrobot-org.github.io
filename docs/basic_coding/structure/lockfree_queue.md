@@ -1,81 +1,40 @@
 ---
 id: lockfree_queue
-title: 无锁队列
-sidebar_position: 2
+title: LockFreeQueue（历史兼容说明）
+sidebar_position: 4
 ---
 
-# LockFreeQueue（无锁队列）
+# LockFreeQueue（历史兼容说明）
 
-`LibXR::LockFreeQueue<T>` 是一个高性能单生产者多消费者（SPMC）无锁队列，适用于实时性要求高、并发访问频繁的嵌入式系统中。
+旧版本 LibXR 文档里曾经把 `LockFreeQueue` 当作通用无锁队列来介绍，但当前 `libxr master` 的公开队列家族已经不是这套接口。
 
-## 类结构与原理
+当前主线公开的是：
 
-- 使用原子变量 `head_` 和 `tail_` 管理队列索引。
-- 所有操作使用 C++11 原子内存序保证线程安全。
-- 环形缓冲结构支持批量读写，避免频繁中断。
-- 多个消费者可以并发 Pop，生产者唯一。
+- `LibXR::Queue<T>`
+- `LibXR::SPSCQueue<T>`
+- `LibXR::MPMCQueue<T>`
 
-## 特性概览
+也就是说，如果你现在在写新代码，不应该再把这一页当成现行 API 使用说明。
 
-| 特性 | 支持 |
-|------|------|
-| 单生产者 | ✅ |
-| 多消费者 | ✅ |
-| 批量操作 | ✅ |
-| Peek/Pop 分离 | ✅ |
-| 动态容量 | ❌（固定容量） |
-| 无锁保证 | ✅（C++11 atomic） |
+## 旧代码迁移怎么判断
 
-## 接口函数
+### 1. 单生产者 / 单消费者
 
-### 构造与销毁
+如果原来的使用关系本质上是单生产者单消费者，迁到 `SPSCQueue<T>`。
 
-- `LockFreeQueue(size_t length)`（包含动态内存分配；`length` 会按 `LIBXR_ALIGN_SIZE` 做对齐修正，最终逻辑容量以 `MaxSize()` 为准）
-- `~LockFreeQueue()`
+### 2. 多生产者或多消费者
 
-### 数据操作
+如果原来的队列真的是公共并发队列，迁到 `MPMCQueue<T>`。
 
-- `ErrorCode Push(const T&)`
-- `ErrorCode Pop(T&)`
-- `ErrorCode Pop()`（丢弃头部元素）
-- `ErrorCode Peek(T&)`
-- `T* operator[](uint32_t index)`
+### 3. 其实不需要并发语义
 
-### 批量操作
+如果只是普通局部 FIFO，直接改成 `Queue<T>`。
 
-- `PushBatch(const T* data, size_t size)`
-- `PopBatch(T* data, size_t size)`
-- `PeekBatch(T* data, size_t size)`
+## 为什么保留这页
 
-### 工具接口
+保留这一页的目的只是为了：
 
-- `Size()`：当前元素数量
-- `EmptySize()`：剩余空间
-- `MaxSize()`：最大容量（元素个数）
-- `Reset()`：重置队列为空
+- 告诉你旧文档/旧模块里看到 `LockFreeQueue` 时，当前主线该往哪里对应；
+- 避免侧边栏里原链接直接消失，导致历史引用断链。
 
-## 使用示例
-
-```cpp
-LibXR::LockFreeQueue<int> q(128);
-q.Push(10);
-
-int value;
-if (q.Pop(value) == LibXR::ErrorCode::OK) {
-    // 使用 value
-}
-```
-
-## 注意事项
-
-- 仅适用于 **单生产者** 场景，多生产者需使用外部同步或其他队列方案。
-- 容量固定，构造时需明确所需大小。
-- 队列对象与 `head_ / tail_` 使用 cache line 对齐（`alignas(LIBXR_CACHE_LINE_SIZE)`），可减少伪共享带来的性能损失。
-- `operator[]` 返回的是底层数组槽位地址，主要用于调试或特殊用途。
-- 为满足对齐与实现需要，实际分配的队列容量可能**大于**构造入参 `length`；最终可用的逻辑容量以 `MaxSize()` 为准。
-
-## 适用场景
-
-- 中断与任务线程间的数据通信
-- 实时日志收集
-- 多线程传感器数据采样
+如果你正在人工核对代码，请把这页理解成“兼容导航页”，不要把它当作现行接口说明。

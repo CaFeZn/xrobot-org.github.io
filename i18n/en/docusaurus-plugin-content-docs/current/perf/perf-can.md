@@ -6,6 +6,8 @@ sidebar_position: 2
 
 # CAN/CAN FD Performance Test
 
+> This page records one specific board-level loopback benchmark. It should not be read as a universal current-mainline performance guarantee for every MCU, every transmit/receive path, or every bus-load shape.
+
 ## Test Environment
 
 * STM32H750VB @ 480MHz
@@ -87,4 +89,10 @@ Ideal case: `64 / 108 * 1Mbps / 105% = 0.564 Mbps`
 
 ## Summary
 
-This test demonstrates that on the STM32H750 (480 MHz) platform, the FDCAN driver wrapped by the LibXR framework performs with excellent stability and efficiency in high-frequency, bi-directional loopback communication. Whether using classic CAN or CAN FD frames, the system can consistently reach transmission rates close to the theoretical limits under a configuration of 1 Mbps arbitration and 2.5 Mbps data phases.
+This test shows that in the specific scenario of **STM32H750 (480 MHz) + board-level FDCAN1/FDCAN2 loopback + the exact callback-forwarding test shape shown above**, the current-mainline FDCAN driver can reach throughput close to the theoretical limit.
+
+Reading boundaries:
+
+- the result depends directly on the tested platform, HAL/FDCAN configuration, the “forward on receive” callback shape, and CPU clock;
+- it should not be extrapolated directly to other MCUs, other FIFO/filter setups, real application workloads, or multi-task contention scenarios;
+- if you need a performance conclusion for your own target, use this page as a test pattern and re-run it on the actual board.

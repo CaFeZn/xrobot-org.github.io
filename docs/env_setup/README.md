@@ -10,7 +10,7 @@ LibXR、CodeGenerator 和 XRobot 的本地环境配置见本章。
 
 ## 支持平台
 
-LibXR 本身是一个 C++ 库，不依赖特定操作系统，但要求 C++17 和标准 C++ 库，可用于裸机和 RTOS。
+LibXR 本身是一个 C++ 库，不依赖特定操作系统，但当前主线要求 C++20 和标准 C++ 库，可用于裸机和 RTOS。
 
 CodeGenerator 和 XRobot 是基于 Python 的包，需要 Python 3 和 `pip3` 环境。
 

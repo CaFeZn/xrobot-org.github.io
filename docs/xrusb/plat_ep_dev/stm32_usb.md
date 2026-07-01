@@ -9,18 +9,17 @@ sidebar_position: 1
 STM32一共有四种USB设备，如下所示。可以参考代码生成工具自动生成的CDC代码，了解USB设备的端点配置。  
 在 STM32 平台上，**设备序列号建议使用芯片内置 UID（Unique ID），在构造函数最后以十六进制数组形式传入。**
 
-| 名称          | 角色      | 端点是否为双向       | 双缓冲        | DMA支持 |
-| ------------- | --------- | -------------------- | ------------- | ------- |
-| USB_DEVICE_FS | 从机      | 硬件双缓冲不支持双向 | 软件/硬件实现 | 不支持  |
-| USB_DRV_FS    | 主机/从机 | 硬件双缓冲不支持双向 | 软件/硬件实现 | 不支持  |
-| USB_OTG_FS    | 主机/从机 | 双向                 | 支持          | 不支持  |
-| USB_OTG_HS    | 主机/从机 | 双向                 | 支持          | 支持    |
+| 当前主线路径 | 对应类 | 角色 | 说明 |
+| ------------ | ------ | ---- | ---- |
+| `USB_BASE / FSDEV` | `LibXR::STM32USBDeviceDevFs` | 从机 | FSDEV / DRD FS 的设备侧路径 |
+| `USB_OTG_FS` | `LibXR::STM32USBDeviceOtgFS` | 主机/从机中的设备侧 | OTG FS 设备路径 |
+| `USB_OTG_HS` | `LibXR::STM32USBDeviceOtgHS` | 主机/从机中的设备侧 | OTG HS 设备路径 |
 
 由于STM32的USB_DEVICE_FS不支持DMA，所以硬件双缓冲的加速作用并不高于LibXR的软件双缓冲区。而且会大量占用宝贵的PMA内存，不推荐使用硬件双缓冲。
 
-## USB_DEVICE_FS/USB_DRV_FS
+## `STM32USBDeviceDevFs`
 
-支持两种端点的声明方式，缓冲区端点号自动递增：
+`STM32USBDeviceDevFs` 支持两种端点声明方式，缓冲区端点号自动递增：
 
 1. `{usb_fs_ep0_in_buf, usb_fs_ep0_out_buf, 8, 8}`：声明一个双向端点，无法使用硬件双缓冲
     - usb_fs_ep0_in_buf: EP0 IN软件缓冲区数组
@@ -45,7 +44,7 @@ STM32USBDeviceDevFs usb_fs(
         {usb_fs_ep2_in_buf, 16, true}
     },
     USB::DeviceDescriptor::PacketSize0::SIZE_8,
-    0x483, 0x5740, 0xF407,
+    0x1D50, 0x6199, 0x0100,
     /* 语言包（内部包含可读 Serial Number 字符串前缀） */
     {&USB_FS_LANG_PACK},
     /* Classes */
@@ -76,7 +75,7 @@ STM32USBDeviceOtgFS usb_fs(
     /* In Endpoints */
     {{usb_otg_fs_ep0_in_buf, 8}, {usb_otg_fs_ep1_in_buf, 128}, {usb_otg_fs_ep2_in_buf, 16}},
     USB::DeviceDescriptor::PacketSize0::SIZE_8,
-    0x483, 0x5740, 0xF407,
+    0x1D50, 0x6199, 0x0100,
     /* 语言包（内部包含可读 Serial Number 字符串前缀） */
     {&USB_OTG_FS_LANG_PACK},
     /* Classes */

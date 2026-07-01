@@ -6,7 +6,7 @@ sidebar_position: 5
 
 # Database 闪存数据库
 
-LibXR 提供了两种轻量级的嵌入式键值数据库实现：`DatabaseRawSequential` 和 `DatabaseRaw<N>`。  
+LibXR 提供了两种轻量级的嵌入式键值数据库实现：`DatabaseRawSequential` 和 `DatabaseRaw<MinWriteSize>`。
 它们均继承自抽象接口类 `Database`，用于嵌入式 Flash 等顺序写入存储介质，具备主备冗余、断电保护、类型安全封装，适配不同的存储对齐约束。
 
 ---
@@ -16,8 +16,8 @@ LibXR 提供了两种轻量级的嵌入式键值数据库实现：`DatabaseRawSe
 - 支持主/备块数据冗余与校验，断电后可自动恢复；
 - 提供统一接口 `Database` 与模板封装 `Database::Key<T>`，支持类型安全读写；
 - 两种实现模式：
-  - `DatabaseRawSequential`：顺序写入，支持任意数据长度；
-  - `DatabaseRaw<N>`：页对齐写入，适用于 NOR Flash 等要求写入对齐的场景；
+  - `DatabaseRawSequential`：顺序写入，适用于不支持逆序写入的 Flash；
+  - `DatabaseRaw<MinWriteSize>`：面向最小写入单元受限的 Flash 后端，通过模板参数约束最小写入单元大小，并在构造时接收底层 `Flash` 与回收阈值；
 - 键值更新后会由数据库实现自动保存；`Restore()` 用于清空数据库并回到初始状态。
 
 ---
@@ -31,11 +31,11 @@ LinuxBinaryFileFlash<2048> flash("/tmp/flash.bin", 512, 8);
 DatabaseRawSequential db(flash);
 ```
 
-或使用页对齐版本：
+或使用 `DatabaseRaw<MinWriteSize>`：
 
 ```cpp
 LinuxBinaryFileFlash<2048> flash2("/tmp/flash2.bin", 512, 16);
-DatabaseRaw<16> db(flash2);
+DatabaseRaw<16> db(flash2, 128);
 ```
 
 ### 定义类型安全的键
@@ -82,7 +82,7 @@ cfg.Load();
 | 方法/操作                       | 功能描述                                                     |
 |----------------------------------|----------------------------------------------------------------|
 | `DatabaseRawSequential::Restore()` | 清空顺序写数据库并重新初始化                                 |
-| `DatabaseRaw<N>::Restore()`      | 清空页对齐数据库并重新初始化                                  |
+| `DatabaseRaw<MinWriteSize>::Restore()` | 清空 raw 数据库并重新初始化                              |
 | `Key<T>::Set(const T&)`          | 设置键值并写入数据库                                           |
 | `Key<T>::Load()`                 | 从数据库加载键值至变量                                         |
 | `Key<T>::operator=(const T&)`    | 设置键值（等效于 `Set()`）                                     |

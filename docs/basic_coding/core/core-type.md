@@ -22,10 +22,10 @@ class RawData;
 
 - `RawData(void* addr, size_t size)`：直接指定地址与大小。
 - `RawData()`：默认构造，空数据。
-- `RawData(const T&)`：从任意数据对象构造，指向其地址。
+- `RawData(T&)`：从**可写对象**构造，指向其地址。
 - `RawData(char*)`：从 C 字符串构造（不含结尾 `\0`）。
-- `RawData(const char (&str)[N])`：从字符数组构造，自动计算大小。
-- `RawData(const std::string&)`：从 `std::string` 构造。
+- `RawData(char (&str)[N])`：从可写字符数组构造，最多裁掉一个尾随 `\0`。
+- `RawData(std::string&)`：从**可写** `std::string` 构造。
 
 ### 字段
 
@@ -44,8 +44,13 @@ class ConstRawData;
 
 ### 构造方式
 
-- 同 `RawData`，支持从 `RawData` 或 `const char*` 构造。
-- 保证 `addr_` 为 `const void*` 类型，适合用于防止数据被修改的场景。
+- 支持从任意对象、`RawData`、`char* / const char*`、`std::string`、`std::string_view`、字符数组等构造。
+- 与 `RawData` 不同，`ConstRawData` 明确以 `const void*` 暴露地址，适合只读场景。
+
+补充说明：
+
+- 字符数组构造当前只会裁掉**一个尾随 `\0`**，其余字节保持原样；
+- `char* / const char*` 构造会以 `std::strlen(...)` 作为长度，因此要求文本本身是 NUL 结尾字符串。
 
 ### 字段
 
@@ -69,7 +74,7 @@ template <typename T>
 static TypeID::ID GetID();
 ```
 
-每种类型返回一个全局唯一的地址（`const void*`）：
+每种类型返回一个进程内唯一的静态地址（`const void*`）：
 
 ```cpp
 auto id1 = LibXR::TypeID::GetID<int>();

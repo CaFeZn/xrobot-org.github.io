@@ -47,7 +47,7 @@ evt.Active(0x10);  // Trigger in normal thread context
 // Obtain event list outside of callback
 auto list = evt.GetList(0x1234);
 // Trigger inside callback/ISR
-evt.ActiveFromCallback(list, 0x1234);
+evt.ActiveFromCallback(list, 0x1234, true);
 ```
 
 ### Event Binding
@@ -62,7 +62,7 @@ evt_dst.Bind(evt_src, 0xA, 0xB);  // Triggers evt_dst with event 0xB when evt_sr
 
 - `Event::Register(event, cb)`: Register a callback;
 - `Event::Active(event)`: Trigger from thread context;
-- `Event::ActiveFromCallback(list, event)`: Trigger safely from ISR;
+- `Event::ActiveFromCallback(list, event, in_isr)`: Trigger safely from callback/ISR paths;
 - `Event::GetList(event)`: Retrieve and cache event list;
 - `Event::Bind(src, id_src, id_dst)`: Set up event bridging;
 - Internally uses `RBTree<uint32_t>` to manage event mappings, and `LockFreeList` to store callbacks.
@@ -79,9 +79,9 @@ auto cb = Event::Callback::Create([](bool, int* a, uint32_t e) {
 
 Event e1, e2;
 e1.Register(0x1234, cb);
-e1.Active(0x1234);  // arg += 1
-e2.Bind(e1, 0x4321, 0x1234);
-e2.Active(0x4321);  // arg += 1
+e2.Register(0x4321, cb);
+e2.Bind(e1, 0x1234, 0x4321);
+e1.Active(0x1234);  // arg += 2
 ```
 
 ---

@@ -25,6 +25,7 @@ XRUSB 是 LibXR 中的 USB 设备协议栈。它由平台侧 USB 设备/端点�
 | HID | 支持 | 标准键盘/鼠标/手柄类可直接使用，其他类型需自行派生 |
 | UAC | 支持 | 当前主线主要是 UAC1 麦克风 |
 | GSUSB | 支持（CAN/FDCAN） | 面向 Linux SocketCAN |
+| DAPLinkV1 | 支持（仅 SWD） | 面向 CMSIS-DAP v1 HID 主机工具链 |
 | DFU Runtime | 支持 | 处理运行时 `DETACH` 并延后跳转 bootloader |
 | DFU Bootloader | 支持 | 支持 `DNLOAD / UPLOAD / GETSTATUS / ABORT / CLRSTATUS / manifest` 流程 |
 | DAPLinkV2 | 支持（仅 SWD） | 面向 CMSIS-DAP v2 Bulk 主机工具链 |
@@ -34,20 +35,24 @@ XRUSB 是 LibXR 中的 USB 设备协议栈。它由平台侧 USB 设备/端点�
 | 能力 | 支持状态 | 说明 |
 |------|----------|------|
 | WebUSB | 支持 | 用于 DFU runtime / bootloader 等场景 |
-| WinUSB MS OS 2.0 | 支持 | 主要用于 DAPLinkV2 在 Windows 下的免驱发现 |
+| WinUSB MS OS 2.0 | 支持 | 用于 DAPLinkV2 以及当前 DFU runtime / bootloader 路径在 Windows 下的免驱发现 |
+
+补充说明：
+
+- 这里描述的是当前主线中已经能从设备类或 BOS 相关实现直接看到的能力表面；
+- 是否真正对外发布某项 BOS capability，还取决于具体设备类构造参数，例如是否提供 WebUSB landing page URL、是否沿用默认 WinUSB 元数据作用域等。
 
 ## 平台支持
 
-| 平台 | PHY / 设备路径 | 支持情况 | 测试设备 |
-|------|-----------------|----------|----------|
-| STM32 | USB_DEVICE_FS | 支持 | STM32F103 |
-| STM32 | USB_DRV_FS | 支持（Device） | STM32G431 |
-| STM32 | USB_OTG_FS | 支持（Device） | STM32F401 / STM32F407 |
-| STM32 | USB_OTG_HS | 支持（Device） | STM32F407 / STM32H750 |
-| ESP32-S3 | USB_OTG_FS | 支持（Device） | ESP32-S3 |
-| CH32 | USB_DEVICE_FS | 支持 | CH32V203 |
-| CH32 | USB_OTG_FS | 支持（Device） | CH32V307 / CH32V203 / CH32V208 |
-| CH32 | USB_OTG_HS | 支持 | CH32V305 / CH32V307 |
+| 平台 | 当前主线设备类 / 控制器路径 | 支持情况 | 测试设备 |
+|------|------------------------------|----------|----------|
+| STM32 | `STM32USBDeviceDevFs` / FSDEV | 支持 | STM32F103 / STM32G431 |
+| STM32 | `STM32USBDeviceOtgFS` / `USB_OTG_FS` | 支持（Device） | STM32F401 / STM32F407 |
+| STM32 | `STM32USBDeviceOtgHS` / `USB_OTG_HS` | 支持（Device） | STM32F407 / STM32H750 |
+| ESP32-S3 | `ESP32USBDevice` / `USB_OTG_FS` | 支持（Device） | ESP32-S3 |
+| CH32 | `CH32USBDeviceFS` / `USB_DEVICE_FS` | 支持 | CH32V203 |
+| CH32 | `CH32USBOtgFS` / `USBFS` | 支持（Device） | CH32V307 / CH32V203 / CH32V208 |
+| CH32 | `CH32USBOtgHS` / `USBHS` | 支持（Device） | CH32V305 / CH32V307 |
 
 ## 目录
 
@@ -60,3 +65,4 @@ XRUSB 是 LibXR 中的 USB 设备协议栈。它由平台侧 USB 设备/端点�
 - 平台相关实现页主要讲不同 MCU/SoC 上的 USB 设备与端点实现方式；
 - 设备协议栈页主要讲各个 USB Device Class 的行为与接口；
 - `VID/PID` 页只讨论 XRUSB 通用默认约定，不覆盖像 CMSIS-DAP 兼容这种特殊设备标识策略。
+- 当前文档只覆盖设备侧（Device）路径；主机侧（Host）在当前主线中仍没有一组可对外展开的稳定公开栈页面。

@@ -6,11 +6,13 @@ sidebar_position: 9
 
 # I2C
 
-In STM32CubeMX, you should enable the DMA channels for I2C and configure the necessary interrupt settings.
+In STM32CubeMX, the matching I2C DMA channels and interrupts should be configured.
+
+From the current generator’s perspective, this page mainly covers two generated parameters: the **shared buffer size** and the **DMA enable threshold**.
 
 ## Example
 
-The last parameter specifies the minimum number of bytes to trigger DMA transfer. If the data size is below this threshold, DMA will not be used.
+The last constructor argument is the minimum transfer size required before DMA is enabled.
 
 ```cpp
 STM32I2C i2c1(&hi2c1, i2c1_buf, 3);
@@ -18,7 +20,7 @@ STM32I2C i2c1(&hi2c1, i2c1_buf, 3);
 
 ## Configuration File
 
-After code generation, an I2C configuration section will appear in the `User/libxr_config.yaml` file, formatted as follows:
+After code generation, the following I2C section appears in `User/libxr_config.yaml`:
 
 ```yaml
 I2C:
@@ -28,11 +30,12 @@ I2C:
     dma_enable_min_size: 3
 ```
 
-- `buffer_size`: Size of the I2C transmission/reception buffer.  
-- `dma_section`: The memory section where the DMA buffer is located.
-- `dma_enable_min_size`: Minimum data size required to enable DMA transfer.
+- `buffer_size`: shared I2C transfer / receive buffer size
+- `dma_section`: linker section for the generated buffer declaration
+- `dma_enable_min_size`: minimum transfer byte count to enable DMA
 
-You can directly modify this file. To apply the updated configuration, run one of the following commands to regenerate the code:  
-`xr_cubemx_cfg -d .`  
-or  
-`xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp`
+Current generation details:
+
+- the generator emits one shared buffer per I2C instance, for example `i2c1_buf`;
+- `dma_enable_min_size` is currently emitted directly as the last argument of `STM32I2C(..., dma_enable_min_size)`;
+- `dma_section` only affects where the buffer declaration is placed, and does not change the `STM32I2C` constructor shape itself.

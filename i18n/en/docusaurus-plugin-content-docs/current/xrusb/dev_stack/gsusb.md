@@ -15,7 +15,7 @@ Supported capabilities:
 - **Classic CAN**: up to 8 bytes of data
 - **CAN FD (optional)**: up to 64 bytes of data; DLC mapping follows the FD table
 - **TX echo**: echoes back `echo_id` for host-side TX buffer tracking
-- **Optional hardware timestamp**: `timestamp_us` (4 bytes) appended to the end of the wire frame
+- **Optional timestamp field**: `timestamp_us` (4 bytes) appended to the end of the wire frame, sourced from the low 32 bits of `LibXR::Timebase::GetMicroseconds()`
 - **Multi-channel**: the number of channels is fixed at compile time by the template parameter `CanChNum`
 
 ---
@@ -210,7 +210,7 @@ Classic CAN error packs can be converted to SocketCAN-compatible error frames (e
 
 ### 8.2 Timestamps
 
-When timestamps are enabled for a channel and a system timebase is available, the device appends `timestamp_us` to the end of the wire frame (4 bytes, microseconds, low 32 bits). Otherwise it is 0 or omitted (depending on the channel enable setting).
+When timestamps are enabled for a channel, the device appends `timestamp_us` to the end of the wire frame (4 bytes, microseconds, low 32 bits). The current implementation takes this value directly from the low 32 bits of `LibXR::Timebase::GetMicroseconds()`. If timestamps are not enabled for the channel, the field is omitted.
 
 ---
 

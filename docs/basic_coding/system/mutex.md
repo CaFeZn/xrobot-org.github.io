@@ -6,7 +6,7 @@ sidebar_position: 4
 
 # Mutex（互斥锁）
 
-`LibXR::Mutex` 提供轻量级、跨平台的 **线程互斥** 机制，用于保护多任务环境中的临界区。当前支持 **POSIX pthread** 与 **FreeRTOS/ThreadX** 实现，裸机环境可退化为空实现（自旋等待或禁用中断临界区）。
+`LibXR::Mutex` 提供轻量级、跨平台的 **线程互斥** 机制，用于保护多任务环境中的临界区。当前支持 **POSIX pthread** 与 **FreeRTOS/ThreadX** 实现；在 `none / webasm` 这类无线程路径里，当前实现会退化为围绕标量句柄的最小 busy-wait 锁，并在等待期间周期调用 `Timer::RefreshTimerInIdle()`。
 
 > **⚠️ 注意**：互斥锁 **只能** 在任务（线程）上下文调用，**不支持** 在中断服务程序（ISR）中加/解锁。
 
@@ -16,7 +16,7 @@ sidebar_position: 4
 | ---- | ---- |
 | **跨平台** | 隐藏 `pthread_mutex`, `xSemaphoreHandle`, `TX_MUTEX` 等差异。|
 | **RAII 友好** | 内置 `LockGuard`，避免忘记 Unlock。|
-| **优先级继承** | 在支持的 RTOS 上启用互斥量优先级继承，减小优先级反转风险。|
+| **RTOS 互斥语义** | 当前 FreeRTOS 路径使用带优先级继承的内核互斥量，而当前 ThreadX 路径明确以 `TX_NO_INHERIT` 创建。|
 | **轻量低开销** | 调用路径贴近底层系统调用。|
 
 ## 核心接口

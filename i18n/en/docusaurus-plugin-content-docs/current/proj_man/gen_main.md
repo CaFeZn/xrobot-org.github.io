@@ -16,7 +16,7 @@ sidebar_position: 3
 
 - Instantiates each module (based on MANIFEST parameters)
 - Builds dependency relationships between modules
-- Periodically calls each module's `Monitor()` method
+- Periodically calls each module's `OnMonitor()` method
 
 The generated file is standard C++ code and can be compiled and used directly.
 

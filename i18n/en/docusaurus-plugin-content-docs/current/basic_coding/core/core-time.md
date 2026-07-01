@@ -71,14 +71,18 @@ Represents a millisecond-level timestamp. Supports implicit conversion to `uint3
 
 Time difference computations handle timestamp wrap-around (e.g., overflow), making it suitable for system clock management on embedded platforms.
 
-To adapt to different platforms/timebases, this module also exposes two timebase configuration values (used by the implementation layer):
+To adapt to different platforms/timebases, current mainline keeps the wrap-range configuration in the `LibXR::Detail` namespace:
 
 ```cpp
-extern uint64_t libxr_timebase_max_valid_us;
-extern uint32_t libxr_timebase_max_valid_ms;
+uint64_t TimebaseMaxValidUs();
+uint32_t TimebaseMaxValidMs();
+void ConfigureTimebaseWrapRange(uint64_t max_valid_us,
+                                uint32_t max_valid_ms) noexcept;
 ```
 
-They specify the "maximum valid timebase value" (microseconds/milliseconds), so wrap-around difference calculations and validity checks can be performed correctly.
+These interfaces / internal storages define the "maximum valid timebase value" (microseconds/milliseconds), so wrap-around difference calculations and validity checks can be performed correctly.
+
+In other words, current mainline no longer exposes this configuration group as the older external global variables.
 
 ---
 

@@ -16,7 +16,7 @@ sidebar_position: 7
 | **多任务支持**   | 支持并发多个周期性任务调度，任务独立注册与管理。                  |
 | **高精度**     | 任务调度精度达 1ms，基于 `Thread::SleepUntil` 精确控制。 |
 | **灵活接口**    | 支持任务周期动态调整、启动/停止/添加等常用生命周期操作。           |
-| **线程安全可裁剪** | 内部自动管理任务线程，裸机模式下自动刷新，无需用户主动调用。            |
+| **线程安全可裁剪** | 多线程环境下自动管理任务线程；裸机模式下则通过现有等待路径集成刷新。            |
 
 ## 公开接口速览
 
@@ -26,11 +26,11 @@ sidebar_position: 7
 | `static void Start(TimerHandle handle)`                                                            | 启动指定任务。                                     |
 | `static void Stop(TimerHandle handle)`                                                             | 停止指定任务。                                     |
 | `static void SetCycle(TimerHandle handle, uint32_t cycle)`                                         | 修改任务周期。                                     |
-| `static void Add(TimerHandle handle)`                                                              | 将任务添加到调度列表（首次添加会自动启动管理线程）。                  |
+| `static void Add(TimerHandle handle)`                                                              | 将任务添加到调度列表；在多线程构建下，首次添加还会创建管理线程。                  |
 | `static void Refresh()`                                                                            | 主动刷新所有任务（轮询场景下调用，通常由定时线程自动执行）。              |
 | `static void RefreshTimerInIdle()`                                                                 | 在裸机下**由 Thread 延时/Mutex/信号量自动调用**，用户无需手动调用。 |
 
-> **提示**：所有定时任务周期单位均为**毫秒**，所有任务由 Timer 管理线程或主循环自动调度，无需手动管理任务遍历与时间计算。裸机场景下，Thread 延时、Mutex 和信号量等待时会自动刷新定时器，无需用户干预。
+> **提示**：所有定时任务周期单位均为**毫秒**。多线程场景下由 Timer 管理线程调度；裸机场景下，当前实现把定时器刷新集成在 `Thread` 延时以及 `Mutex` / `Semaphore` 等等待路径里。
 
 ## 典型用法
 
@@ -74,4 +74,4 @@ int main() {
 * Refresh 遍历所有已启用任务，按周期自动计数与触发，无需用户管理遍历与计时；
 * 裸机下，Thread 延时/Mutex/信号量等待自动刷新定时器，确保任务及时调度；
 * 支持任务周期动态调整与运行中启停，接口灵活安全；
-* 断言机制保证非法操作（如多次添加、错误删除）即时报错。
+* 断言机制保证非法操作（如同一个任务句柄被重复添加）即时报错。

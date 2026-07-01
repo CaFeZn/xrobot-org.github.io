@@ -52,7 +52,7 @@ virtual void OnDataInComplete(bool in_isr, ConstRawData& data) = 0;
 - `Write()`：向主机发送 IN 数据
 - `SetConfig()`：把 UART 配置映射到 CDC Line Coding，并发送一次 Serial State 通知
 
-它内部使用 `LibXR::ReadPort` / `LibXR::WritePort` 做软件缓冲与写队列管理，并在端点回调中完成数据入队/出队；同时包含背压与 pending 缓存机制，在 RX 队列空间不足时暂停 OUT rearm，待上层消费后恢复。
+它内部使用 `LibXR::ReadPort` / `LibXR::WritePort` 做软件缓冲与写队列管理，并在端点回调中完成数据入队/出队；同时包含背压与 pending 缓存机制，在 RX 队列空间不足时暂停 OUT re-arm，待上层消费后恢复。
 
 ### `LibXR::USB::CDCToUart`
 
@@ -74,7 +74,7 @@ virtual void OnDataInComplete(bool in_isr, ConstRawData& data) = 0;
 两者均派生自 `CDCBase`，用于验证链路吞吐与驱动稳定性：
 
 - `CDCWriteTest`：忽略主机发来的 OUT 数据；当 DTR 已置位时，持续通过 Data IN 回传数据（测试设备 → 主机通路）
-- `CDCReadTest`：持续预装 OUT 端点接收并在完成后立即重启（测试主机 → 设备通路）
+- `CDCReadTest`：在 `CDCBase` 已预装一次 `MaxPacketSize()` 接收的基础上，额外用 `MaxTransferSize()` 重新预装 OUT 端点，并在完成后立即以 `MaxTransferSize()` 重启（测试主机 → 设备通路）
 
 ---
 
@@ -270,21 +270,23 @@ LibXR::USB::CDCUart cdc_uart(/*rx*/256, /*tx*/256, /*tx_queue*/8);
 
 ```cpp
 cdc_uart.SetOnSetLineCodingCallback(
-  LibXR::Callback<LibXR::UART::Configuration>(
-    [](bool in_isr, LibXR::UART::Configuration cfg) {
+  LibXR::Callback<LibXR::UART::Configuration>::Create(
+    [](bool in_isr, int, LibXR::UART::Configuration cfg) {
       (void)in_isr;
       // 可在此同步到真实 UART 外设（注意 ISR 场景下不要阻塞）
-    }
+    },
+    0
   )
 );
 
 cdc_uart.SetOnSetControlLineStateCallback(
-  LibXR::Callback<bool, bool>(
-    [](bool in_isr, bool dtr, bool rts) {
+  LibXR::Callback<bool, bool>::Create(
+    [](bool in_isr, int, bool dtr, bool rts) {
       (void)in_isr;
       (void)rts;
       // dtr=true 表示主机已打开串口，可开始发送
-    }
+    },
+    0
   )
 );
 ```

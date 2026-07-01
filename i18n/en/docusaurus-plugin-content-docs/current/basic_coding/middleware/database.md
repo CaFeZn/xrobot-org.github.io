@@ -6,7 +6,7 @@ sidebar_position: 5
 
 # Database Flash Storage
 
-LibXR provides two lightweight embedded key-value database implementations: `DatabaseRawSequential` and `DatabaseRaw<N>`.  
+LibXR provides two lightweight embedded key-value database implementations: `DatabaseRawSequential` and `DatabaseRaw<MinWriteSize>`.
 Both inherit from the abstract interface class `Database`, and are designed for embedded Flash or other sequential-write storage media. They support primary-backup redundancy, power failure protection, type-safe encapsulation, and adaptation to different storage alignment constraints.
 
 ---
@@ -16,8 +16,8 @@ Both inherit from the abstract interface class `Database`, and are designed for 
 - Supports primary/backup block redundancy and verification, with automatic recovery after power loss;
 - Provides a unified interface `Database` and template wrapper `Database::Key<T>`, enabling type-safe read/write;
 - Two implementation modes:
-  - `DatabaseRawSequential`: sequential write, supports arbitrary data length;
-  - `DatabaseRaw<N>`: page-aligned write, suitable for NOR Flash and similar media requiring write alignment;
+  - `DatabaseRawSequential`: sequential write, suitable for Flash that does not support reverse overwrite;
+  - `DatabaseRaw<MinWriteSize>`: for Flash backends constrained by minimum write-unit semantics, with the minimum write size expressed in the template parameter and the constructor taking the underlying `Flash` object plus a recycle threshold;
 - All data operations use `Save()` to write and `Restore()` to clear, supporting a full recovery workflow.
 
 ---
@@ -28,14 +28,14 @@ Both inherit from the abstract interface class `Database`, and are designed for 
 
 ```cpp
 LinuxBinaryFileFlash<2048> flash("/tmp/flash.bin", 512, 8);
-Database& db = *(new DatabaseRawSequential(flash));
+DatabaseRawSequential db(flash);
 ```
 
-Or use the page-aligned version:
+Or use `DatabaseRaw<MinWriteSize>`:
 
 ```cpp
 LinuxBinaryFileFlash<2048> flash2("/tmp/flash2.bin", 512, 16);
-Database& db = *(new DatabaseRaw<16>(flash2));
+DatabaseRaw<16> db(flash2, 128);
 ```
 
 ### Define Type-Safe Keys
@@ -109,7 +109,7 @@ Despite differences in underlying mechanisms, all implementations follow the sam
 - Writing only occurs when calling `key = val` or `key.Set(val)`;
 - All key-value data types must be POD and copy-storable;
 - If storage is full or write fails, `Set()` will return an error code;
-- If manually releasing the database, ensure to delete the derived class pointer.
+- In normal usage, construct the concrete database object directly and bind `Database::Key<T>` to that instance.
 
 ---
 

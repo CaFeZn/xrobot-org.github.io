@@ -1,10 +1,10 @@
 ---
 id: core-mem
 sidebar_position: 11
-title: 快速内存拷贝
+title: 快速内存操作
 ---
 
-# Memory FastCopy / FastSet / FastCmp
+# Memory FastCopy / FastMove / FastSet / FastCmp
 
 `LibXR::Memory` 提供一组经过对齐与突发（burst）优化的内存操作路径，用于替代通用 `memcpy / memset / memcmp` 的热路径场景（如环形缓冲搬运、IO 收发缓存打包等）。实现会根据源/目的指针的对齐关系，自动选择更优的 8/4/2/1 字节粒度，并进行环路展开以提升吞吐。
 
@@ -23,6 +23,14 @@ class Memory {
    * @param size 拷贝字节数
    */
   static void FastCopy(void* dst, const void* src, size_t size);
+
+  /**
+   * @brief 快速内存搬移（允许重叠）
+   * @param dst  目标地址
+   * @param src  源地址
+   * @param size 搬移字节数
+   */
+  static void FastMove(void* dst, const void* src, size_t size);
 
   /**
    * @brief 快速内存填充（类似 memset）
@@ -53,6 +61,13 @@ class Memory {
   - 其它情况回退到按字节复制。
 - 末尾不足一个“宽拷贝”粒度的部分会以字节方式补齐。
 
+## FastMove 语义说明
+
+- `FastMove()` 当前实现会先判断 `dst` 和 `src` 是否重叠：
+  - 若不重叠，则直接退化为 `FastCopy()`；
+  - 若重叠，则走安全的 move 路径。
+- 它面向“可能重叠”的场景；如果你已经明确知道两段区域不会重叠，优先使用 `FastCopy()`。
+
 ## FastSet 语义说明
 
 - `size == 0` 时直接返回。
@@ -68,7 +83,7 @@ class Memory {
 ## 使用示例
 
 ```cpp
-#include "libxr_def.hpp"
+#include "libxr_mem.hpp"
 
 uint8_t src[256];
 uint8_t dst[256];
@@ -77,6 +92,9 @@ uint8_t dst[256];
 
 // 非重叠快速复制
 LibXR::Memory::FastCopy(dst, src, sizeof(src));
+
+// 允许重叠的安全搬移
+LibXR::Memory::FastMove(dst + 8, dst, 64);
 
 // 快速填充
 LibXR::Memory::FastSet(dst, 0x00, sizeof(dst));

@@ -58,7 +58,7 @@ LibXR::ESP32USBDevice usb_dev(
         {ep3_out_buffer, false},
     },
     LibXR::USB::DeviceDescriptor::PacketSize0::SIZE_64,
-    0x1209, 0x0001, 0x0100,
+    0x1D50, 0x6199, 0x0100,
     {&LANG_PACK_EN_US},
     {{&cdc_uart}},
     {uid_addr, uid_size});

@@ -30,11 +30,11 @@ static constexpr auto USB_OTG_HS_LANG_PACK =
 
 LibXR::USB::CDCUart cdc(128, 128, 3);
 
-LibXR::Debug::SwdGeneralGPIO swd(PA0, PA4, 0);
+LibXR::Debug::SwdGeneralGPIO<decltype(PA0), decltype(PA4)> swd(PA0, PA4, 0);
 
-USB::DapLinkV2Class dap(swd);
+LibXR::USB::DapLinkV2Class<decltype(swd)> dap(swd);
 
-LibXR::CH32USBDeviceHS usb_dev_hs(
+LibXR::CH32USBOtgHS usb_dev_hs(
     ...
     /* config */
     {{&dap, &cdc}},
@@ -87,4 +87,3 @@ Speed=10000, Word size=32bit, Iterations=32:
 This benchmark measures SRAM access throughput on an STM32F401RC target using a CH32V307-based USBHS (512B Bulk) CMSIS-DAP v2 implementation (DAPLink) with GPIO bit-banged SWD.
 
 Under Speed=10000, 32-bit accesses, and 32 iterations, large transfers (2 KB to 32 KB) achieve stable read/write throughput around 0.6 MB/s. For a fixed length of 48 KiB, end-to-end SRAM throughput (write+read) is about 709 KiB/s.
-

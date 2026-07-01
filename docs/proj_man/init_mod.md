@@ -107,7 +107,7 @@ set(XROBOT_MODULES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Modules")
 ```cmake
 # 一个简单的例子
 project(xrobot_mod_test CXX)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 add_executable(xr_test main.cpp)
 
 # 在add_subdirectory之前

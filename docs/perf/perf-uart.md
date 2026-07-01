@@ -39,10 +39,10 @@ sidebar_position: 1
   STDIO::write_ = uart_cdc.write_port_;
 
   void (*fun)(void *) = [](void *) {
-    LibXR::STDIO::Printf("read count: %d, write count: %d, error count: %d\r\n",
-                         count_read, count_write, count_error);
-    LibXR::STDIO::Printf("speed: %d BAUD\r\n",
-                         count_read * 10 * sizeof(write_buffer));
+    LibXR::STDIO::Printf<"read count: %d, write count: %d, error count: %d\r\n">(
+        count_read, count_write, count_error);
+    LibXR::STDIO::Printf<"speed: %d BAUD\r\n">(
+        count_read * 10 * sizeof(write_buffer));
     count_read = 0;
     count_write = 0;
   };

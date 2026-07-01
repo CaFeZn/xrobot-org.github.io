@@ -59,7 +59,16 @@ template <typename Data, typename Func>
 ErrorCode Foreach(Func func);
 ```
 
-- In-order traversal that invokes `func` on each `Node<Data>`
+- In-order traversal that invokes `func` on each `Node<Data>`.
+- Traversal continues while the callback returns `ErrorCode::OK`; any non-`OK` code stops traversal immediately and is returned to the caller.
+
+### Node count
+
+```cpp
+uint32_t GetNum();
+```
+
+- Returns the current number of nodes in the tree.
 
 ### Iteration Interface
 
@@ -68,6 +77,8 @@ Node<Data>* ForeachDisc(Node<Data>* node);
 ```
 
 - Returns the next node in in-order sequence; pass `nullptr` to start
+  - Passing `nullptr` starts from the current leftmost node in the tree.
+  - Each subsequent call should pass the previously returned node; `nullptr` is returned when the in-order walk reaches the end.
 
 ### Node Usage Example
 
@@ -80,6 +91,7 @@ tree.Insert(n1, 42);
 ## Notes
 
 - All operations are thread-safe, but node lifetime is user-managed
+- The public interface assumes nodes are created and owned by the caller; the tree itself does not manage node memory.
 - Node type must be known and fixed before usage
 - Node size is validated at runtime to prevent type mismatches
 

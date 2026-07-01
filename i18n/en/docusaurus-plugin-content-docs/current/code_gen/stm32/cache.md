@@ -6,46 +6,41 @@ sidebar_position: 13
 
 # Cache (High Performance Cache)
 
-In STM32 H7/F7 series with Cache support, the **LibXR** framework has already adapted to Cache features and automatically synchronizes Cache to ensure data consistency. Users only need to enable I-Cache and D-Cache in CubeMX to achieve high performance, without manually configuring the MPU.
+On STM32 H7/F7 parts with cache support, LibXR already handles the cache-coherency side needed by its current driver paths. In practice, users mainly need to enable I-Cache and D-Cache in CubeMX. From the current generator's point of view, the real configuration handle on this page is mostly **`dma_section`**: placing DMA buffers into the section you choose, rather than generating a complete MPU/cache policy for you.
 
----
+## Cache Basics
 
-## Basic Cache Configuration
+- According to `ST AN4839`, when MPU is disabled, SRAM regions default to `WBWA (Write-Back, Write-Allocate)`.
+- Once MPU is enabled, cache policy can be further customized, but that is outside the scope of this page.
+- The practical questions are: where the DMA buffer lives, whether that RAM is DMA-accessible, and whether cache synchronization is needed.
 
-- Refer to `ST AN4839 Application Note`: **When MPU is disabled, SRAM areas default to WBWA (Write-Back, Write-Allocate) mode.**
-- When MPU is enabled, cache policy can be customized. (Not discussed here)
+## DMA Buffer Memory Regions
 
----
+Taking STM32H750 as an example, common internal RAM regions can be understood roughly like this:
 
-## Recommended DMA Buffer Memory Regions
+- `AXI RAM`, `SRAM1~4`: DMA-accessible, but CPU/DMA sharing requires cache coherency handling
+- `ITCMRAM`, `DTCMRAM`: CPU-local fast memory, usually not suitable as DMA buffer memory
+- `SRAM4`: also reachable by `BDMA` on STM32H7
 
-Taking STM32H750 as an example, it has several internal RAM regions: **AXI RAM, SRAM1/2/3/4, ITCMRAM, DTCMRAM**. Their relation to Cache and DMA is as follows:
-
-- ✅: **No need to care about Cache consistency** (TCM, directly connected to CPU, inaccessible to DMA)
-- 🔄: **Requires Cache synchronization** (Cacheable, accessible by DMA/CPU, handled by LibXR)
-- ❌: **DMA inaccessible**
+If you only care whether a region can be used as DMA buffer memory, the simplified picture is:
 
 |      | AXI RAM | SRAM1 | SRAM2 | SRAM3 | SRAM4 | ITCMRAM | DTCMRAM |
 | ---- | ------- | ----- | ----- | ----- | ----- | ------- | ------- |
-| CPU  | 🔄       | 🔄     | 🔄     | 🔄     | 🔄     | ✅       | ✅       |
-| DMA1 | 🔄       | 🔄     | 🔄     | 🔄     | 🔄     | ❌       | ❌       |
-| DMA2 | 🔄       | 🔄     | 🔄     | 🔄     | 🔄     | ❌       | ❌       |
-| BDMA | ❌       | ❌     | ❌     | ❌     | 🔄     | ❌       | ❌       |
+| CPU  | ✅      | ✅    | ✅    | ✅    | ✅    | ✅      | ✅      |
+| DMA1 | ✅      | ✅    | ✅    | ✅    | ✅    | ❌      | ❌      |
+| DMA2 | ✅      | ✅    | ✅    | ✅    | ✅    | ❌      | ❌      |
+| BDMA | ❌      | ❌    | ❌    | ❌    | ✅    | ❌      | ❌      |
 
-**Notes:**
+Notes:
 
-- AXI RAM, SRAM1~4: Suitable for large buffers, but **require Cache sync when accessed by DMA** (handled by LibXR).
-- ITCMRAM, DTCMRAM: CPU-exclusive, high-speed, low-latency, **not involved in Cache, unsuitable for DMA buffers** (usually inaccessible to DMA).
-- SRAM4: The only BDMA-accessible region on STM32H7, suitable for special peripheral buffers.
+- `AXI RAM`, `SRAM1~4` work well for larger DMA buffers, but DMA access still needs cache coherency handling; this layer is handled by LibXR.
+- `ITCMRAM`, `DTCMRAM` are good for CPU-hot data, but are not appropriate DMA buffer regions.
+- `SRAM4` is the practical STM32H7 region for `BDMA`-limited peripherals.
 
----
-
-## Linker Script Section Example
-
-In the `.ld` file of STM32H7, you can add sections like below to place variables in physical memory areas:
+If you want explicit placement, add matching sections to the linker script, for example:
 
 ```ld
-.ram_d3 (NOLOAD) : 
+.ram_d3 (NOLOAD) :
 {
   . = ALIGN(4);
   *(.ram_d3)
@@ -62,11 +57,9 @@ In the `.ld` file of STM32H7, you can add sections like below to place variables
 } >RAM
 ```
 
----
+## Configuration File
 
-## LibXR Buffer Allocation Example
-
-In LibXR's `libxr_config.yaml` or your project config, it's recommended to **explicitly assign memory sections for each DMA peripheral**, for example:
+The generator reads `dma_section` directly and places the generated buffers into that section. For example:
 
 ```yaml
 SPI:
@@ -81,11 +74,6 @@ I2C:
     dma_section: '.axi_ram'
     dma_enable_min_size: 3
 USART:
-  lpuart1:
-    tx_buffer_size: 128
-    rx_buffer_size: 128
-    dma_section: '.ram_d3'
-    tx_queue_size: 5
   usart1:
     tx_buffer_size: 128
     rx_buffer_size: 128
@@ -98,18 +86,20 @@ ADC:
     vref: 3.3
 ```
 
----
+Current generator-side behavior:
 
-## Generated Code Example
+- `GeneratorCodeSTM32.py` reads the per-instance `dma_section` field for the relevant peripheral class;
+- if the user leaves it empty, the current generator falls back to its built-in default section-selection logic;
+- the main purpose of this page is therefore “make generated buffer declarations land in the right section”, not “generate the whole cache/MPU architecture for you”.
 
-Run `xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp` to auto-generate:
+## Generated Result
+
+After regeneration, the buffer declarations carry the matching `section` attribute, for example:
 
 ```cpp
 static uint16_t adc3_buf[64] __attribute__((section(".ram_d3")));
 static uint8_t spi4_tx_buf[32] __attribute__((section(".axi_ram")));
 static uint8_t spi4_rx_buf[32] __attribute__((section(".axi_ram")));
-static uint8_t lpuart1_tx_buf[128] __attribute__((section(".ram_d3")));
-static uint8_t lpuart1_rx_buf[128] __attribute__((section(".ram_d3")));
 static uint8_t usart1_tx_buf[128] __attribute__((section(".axi_ram")));
 static uint8_t usart1_rx_buf[128] __attribute__((section(".axi_ram")));
 static uint8_t i2c1_buf[32] __attribute__((section(".axi_ram")));
@@ -117,4 +107,8 @@ static uint8_t i2c1_buf[32] __attribute__((section(".axi_ram")));
 
 ## Usage
 
-No special handling needed; usage is the same as without Cache.
+Business code usage is the same as in non-cache cases. The practical work is mainly:
+
+- enable cache in `CubeMX`;
+- place DMA buffers into DMA-accessible RAM regions;
+- if you want explicit placement, keep the linker script and `libxr_config.yaml` section names aligned.

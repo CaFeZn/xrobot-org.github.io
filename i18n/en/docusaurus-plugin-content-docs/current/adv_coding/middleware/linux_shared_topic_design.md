@@ -14,10 +14,10 @@ tradeoffs behind the current implementation.
 
 `LinuxSharedTopic<T>` solves Linux / Webots inter-process communication, large-payload sharing,
 zero-copy reads, and per-subscriber queue policy. The original `Topic` is closer to in-process
-publish-subscribe with MCU-oriented semantics: cache, callbacks, synchronous or asynchronous
-subscribers, and lightweight queues. Those two paths operate under different constraints, so shared-
-memory semantics were not pushed back into `Topic`. Keeping them separate lets `Topic` stay light
-while Linux IPC evolves along its own model.
+publish-subscribe with MCU-oriented semantics: exact-typed dispatch, callbacks, synchronous or
+asynchronous subscribers, and lightweight queues. Those two paths operate under different
+constraints, so shared-memory semantics were not pushed back into `Topic`. Keeping them separate
+lets `Topic` stay light while Linux IPC evolves along its own model.
 
 ## 2. Separating data plane and control plane
 

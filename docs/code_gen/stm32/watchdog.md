@@ -55,6 +55,19 @@ Watchdog:
 > * 若 `RunAsThread: true`，则每个启用的 IWDG 会自动生成线程，线程参数可全局配置。
 > * 若 `RunAsThread: false`，则采用定时任务方式喂狗。
 
+## 当前 generator 覆盖范围
+
+就当前 `GeneratorCodeSTM32.py` 而言，看门狗这一项主要做：
+
+- 为每个启用的 `IWDG` 生成一个 `STM32Watchdog` 实例；
+- 从 `IWDG.<instance>.timeout_ms` / `feed_interval_ms` 读取构造参数；
+- 根据全局 `Watchdog.run_as_thread` 生成线程版或定时任务版喂狗骨架。
+
+其中：
+
+- 线程模式使用全局 `thread_stack_depth` / `thread_priority`；
+- 非线程模式使用全局 `feed_interval_ms` 生成 `Timer::CreateTask(...)` 的周期参数。
+
 ## 生成代码命令
 
 修改 `libxr_config.yaml` 后，重新生成代码：

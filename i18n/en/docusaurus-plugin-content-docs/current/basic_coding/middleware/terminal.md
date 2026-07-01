@@ -46,18 +46,18 @@ Terminal(RamFS &ramfs,
 ## Usage Example (Thread Mode)
 
 ```cpp
-auto ramfs = LibXR::RamFS();
-LibXR::Terminal terminal(ramfs);
+LibXR::RamFS ramfs;
+LibXR::Terminal<> terminal(ramfs);
 LibXR::Thread term_thread;
-term_thread.Create(&terminal, terminal.ThreadFun, "terminal", thread_stack_depth,
-                   thread_priority);
+term_thread.Create(&terminal, terminal.ThreadFun, "terminal", 1024,
+                   LibXR::Thread::Priority::MEDIUM);
 ```
 
 ## Usage Example (Task Mode)
 
 ```cpp
 static LibXR::RamFS ramfs;
-static LibXR::Terminal terminal(ramfs);
+static LibXR::Terminal<> terminal(ramfs);
 auto terminal_task = Timer::CreateTask(terminal.TaskFun, &terminal, 10);
 Timer::Add(terminal_task);
 Timer::Start(terminal_task);
@@ -80,7 +80,7 @@ Timer::Start(terminal_task);
 ## Internal Classes & Structures
 
 - `Stack<char> input_line_`: Input buffer;
-- `Queue<String> history_`: Command history;
+- `Queue<HistoryLine> history_`: Command history;
 - `arg_tab_[]`: Parsed argument array;
 - `Path2Dir`, `Path2File`: Path resolution utilities;
 - `AutoComplete()`: Completion handler;

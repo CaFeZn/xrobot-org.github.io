@@ -89,6 +89,8 @@ DFU Functional Descriptor 的关键字段来自 backend 上报的 `DFUCapabiliti
 
 当前默认别名 `DfuBootloaderClass` 的最大传输块尺寸是 `4096` 字节，写入描述符时会同步到 `wTransferSize`。
 
+除可选的 WebUSB BOS capability 外，bootloader DFU 路径还会通过 `DfuInterfaceClassBase` 默认发布 **WinUSB MS OS 2.0** 描述符集；若构造时不额外覆盖，当前默认使用的是 device-scoped WinUSB 元数据。
+
 ---
 
 ## 3. 支持的请求与行为
@@ -161,7 +163,7 @@ if (dfu_bl.TryConsumeAppLaunch(now_ms))
 }
 ```
 
-或者通过 `RequestRunApp()` / vendor request `0x5A` 触发运行应用。
+或者通过 `RequestRunApp()` / vendor request `0x5A` 记录一次“请求运行应用”的标志；真正跳转仍发生在后续 `TryConsumeAppLaunch(...)` 被上层显式消费时。
 
 ---
 

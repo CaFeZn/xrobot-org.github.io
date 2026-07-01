@@ -6,7 +6,7 @@ sidebar_position: 2
 
 # SWD GPIO实现
 
-`LibXR::Debug::SwdGeneralGPIO<SwclkGpioType, SwdioGpioType>` 是一个基于 GPIO 轮询（bit-bang）的 SWD 探针实现。它继承自 `LibXR::Debug::Swd`，提供 SWD 链路层能力，通常由上层（如 CMSIS-DAP 处理器或调试器）调用。
+`LibXR::Debug::SwdGeneralGPIO<SwclkGpioType, SwdioGpioType, SwdIoDriveMode>` 是一个基于 GPIO 轮询（bit-bang）的 SWD 探针实现。它继承自 `LibXR::Debug::Swd`，提供 SWD 链路层能力，通常由上层（如 CMSIS-DAP 处理器或调试器）调用。
 
 重点放在使用方式和延时参数 `loops_per_us` 的选取/标定，不展开实现细节。
 
@@ -32,7 +32,8 @@ sidebar_position: 2
 类定义：
 
 ```cpp
-template <typename SwclkGpioType, typename SwdioGpioType>
+template <typename SwclkGpioType, typename SwdioGpioType,
+          SwdIoDriveMode IO_DRIVE_MODE = SwdIoDriveMode::PUSH_PULL>
 class SwdGeneralGPIO final : public Swd;
 ```
 
@@ -41,9 +42,11 @@ class SwdGeneralGPIO final : public Swd;
 - `Write(bool)`
 - `Read() -> bool`
 
-其中 SWDIO 需要支持两种配置：
-- 输出驱动：`OUTPUT_PUSH_PULL`
+其中 SWDIO 需要支持：
 - 输入采样：`INPUT + PULL_UP`
+- 输出驱动由 `IO_DRIVE_MODE` 决定
+  - `SwdIoDriveMode::PUSH_PULL` -> `OUTPUT_PUSH_PULL`
+  - `SwdIoDriveMode::OPEN_DRAIN` -> `OUTPUT_OPEN_DRAIN`
 
 工程上选择输出模式时，可按下面这条经验先做：
 
@@ -73,7 +76,8 @@ explicit SwdGeneralGPIO(SwclkGpioType& swclk,
 示例：
 
 ```cpp
-using Probe = LibXR::Debug::SwdGeneralGPIO<MyGpio, MyGpio>;
+using Probe = LibXR::Debug::SwdGeneralGPIO<
+    MyGpio, MyGpio, LibXR::Debug::SwdIoDriveMode::PUSH_PULL>;
 
 MyGpio swclk, swdio;
 

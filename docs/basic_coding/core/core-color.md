@@ -6,75 +6,112 @@ sidebar_position: 6
 
 # 终端颜色与格式
 
-本模块定义了终端打印时常用的格式控制枚举和 ANSI 转义序列，支持文本加粗、颜色设置、背景色等，适用于串口调试终端、日志系统、彩色输出等场景。
+本模块对应 `libxr_color.hpp`，提供当前主线里用于终端文本样式、控制序列、前景色、背景色和常用预设的枚举与 ANSI 转义字符串。它主要服务于终端输出、Logger、串口调试终端等文本界面路径。
 
-## 文本格式 Format
+## 文本样式 `TextStyle`
 
 ```cpp
-enum class Format : uint8_t {
-  NONE = 0, RESET, BOLD, DARK, UNDERLINE, BLINK, REVERSE, CONCEALED, CLEAR_LINE, COUNT
+enum class TextStyle : uint8_t {
+  NONE = 0,
+  BOLD,
+  DIM,
+  UNDERLINE,
+  BLINK,
+  REVERSE,
+  CONCEALED,
+  COUNT
 };
 ```
 
-- `NONE`: 无格式
-- `RESET`: 重置所有格式
-- `BOLD`: 加粗
-- `DARK`: 暗色字体
-- `UNDERLINE`: 下划线
-- `BLINK`: 闪烁
-- `REVERSE`: 前景/背景反转
-- `CONCEALED`: 隐藏
-- `CLEAR_LINE`: 清除整行
+- `BOLD`：加粗
+- `DIM`：弱化/暗色
+- `UNDERLINE`：下划线
+- `BLINK`：闪烁
+- `REVERSE`：前景/背景反转
+- `CONCEALED`：隐藏文本
 
-对应 ANSI 转义字符串：`LIBXR_FORMAT_STR[]`
+对应 ANSI 转义字符串：`LIBXR_TEXT_STYLE_STR[]`
 
-## 字体颜色 Font
+## 终端控制 `TerminalControl`
 
 ```cpp
-enum class Font : uint8_t {
-  NONE = 0, BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE, COUNT
+enum class TerminalControl : uint8_t {
+  NONE = 0,
+  RESET,
+  ERASE_LINE,
+  COUNT
 };
 ```
 
-对应 ANSI 字符串：`LIBXR_FONT_STR[]`
+- `RESET`：重置当前样式
+- `ERASE_LINE`：清除当前行
 
-## 背景颜色 Background
+对应 ANSI 转义字符串：`LIBXR_TERMINAL_CONTROL_STR[]`
+
+## 前景色 `Foreground`
+
+```cpp
+enum class Foreground : uint8_t {
+  NONE = 0,
+  BLACK,
+  RED,
+  GREEN,
+  YELLOW,
+  BLUE,
+  MAGENTA,
+  CYAN,
+  WHITE,
+  COUNT
+};
+```
+
+对应 ANSI 转义字符串：`LIBXR_FOREGROUND_STR[]`
+
+## 背景色 `Background`
 
 ```cpp
 enum class Background : uint8_t {
-  NONE = 0, BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE, COUNT
+  NONE = 0,
+  BLACK,
+  RED,
+  GREEN,
+  YELLOW,
+  BLUE,
+  MAGENTA,
+  CYAN,
+  WHITE,
+  COUNT
 };
 ```
 
-对应 ANSI 字符串：`LIBXR_BACKGROUND_STR[]`
+对应 ANSI 转义字符串：`LIBXR_BACKGROUND_STR[]`
 
-## 粗体样式 Bold
+## 常用预设 `Preset`
 
 ```cpp
-enum class Bold : uint8_t {
-  NONE = 0, YELLOW, RED, ON_RED, COUNT
+enum class Preset : uint8_t {
+  NONE = 0,
+  YELLOW_BOLD,
+  RED_BOLD,
+  BOLD_ON_RED,
+  COUNT
 };
 ```
 
-简化常用彩色粗体样式输出，例如：
+- `YELLOW_BOLD`：黄色粗体
+- `RED_BOLD`：红色粗体
+- `BOLD_ON_RED`：红底粗体
 
-- `YELLOW`: 黄色加粗
-- `RED`: 红色加粗
-- `ON_RED`: 红底白字加粗
-
-对应 ANSI 字符串：`LIBXR_BOLD_STR[]`
+对应 ANSI 转义字符串：`LIBXR_PRESET_STR[]`
 
 ## 使用示例
 
 ```cpp
-std::cout << LIBXR_FORMAT_STR[(int)Format::BOLD]
-          << LIBXR_FONT_STR[(int)Font::GREEN]
-          << "This is bold green text!"
-          << LIBXR_FORMAT_STR[(int)Format::RESET];
+std::cout
+    << LIBXR_TEXT_STYLE_STR[static_cast<uint8_t>(LibXR::TextStyle::BOLD)]
+    << LIBXR_FOREGROUND_STR[static_cast<uint8_t>(LibXR::Foreground::GREEN)]
+    << "This is bold green text!"
+    << LIBXR_TERMINAL_CONTROL_STR[static_cast<uint8_t>(LibXR::TerminalControl::RESET)];
 ```
 
-效果为绿色加粗文本。
-
----
-
-本模块可配合终端类、调试输出类、日志系统使用，用于构建清晰、可读性强的彩色输出。
+Logger 当前也直接使用这一组常量：按日志级别从 `LIBXR_FOREGROUND_STR[]` 取前景色，再在结尾追加 `TerminalControl::RESET`。

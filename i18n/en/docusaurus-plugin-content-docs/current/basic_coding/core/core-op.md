@@ -63,10 +63,9 @@ void MarkAsRunning();
 
 - `UpdateStatus(...)` triggers a callback, unblocks a waiter, or updates polling state depending on the operation type:
   - CALLBACK: calls `cb.Run(in_isr, status)`, passing `status` as the completion value of type `T`.
-  - BLOCK: calls `Semaphore::PostFromCallback(in_isr)` to unblock; the completion value is not part of the wake-up semantics.
-  - POLLING: updates the `OperationPollingStatus` variable to `DONE` on success, otherwise `ERROR`. This rule is uniform for any `T`: by convention, a value of `0` means success (for example `ErrorCode::OK == 0`).
+  - BLOCK: calls `Semaphore::PostFromCallback(in_isr)` to unblock; the completion value itself is not stored inside `Operation` for the blocking waiter, and the final `ErrorCode` is currently handed off by the owning port-side state.
+  - POLLING: the current implementation checks success using `status == ErrorCode::OK` and sets `DONE` or `ERROR` accordingly. In practice, this makes the polling path most natural for `Operation<ErrorCode>` in current mainline, rather than a fully generic success policy for arbitrary `T`.
 - `MarkAsRunning()` sets the polling status to `RUNNING` if the type is `POLLING`.
-- If `in_isr == true` and the operation type is `BLOCK`, an assertion failure is triggered.
 - These functions are typically called by drivers/ports; users only need to select an `OperationType` and pass an `Operation` instance in.
 
 ## Usage Examples
@@ -108,3 +107,25 @@ if (status == LibXR::ReadOperation::OperationPollingStatus::DONE) {
 ---
 
 `Operation` is the foundation of LibXR's I/O operation mechanism, suitable for serial, network, timer, and other modules. It provides a unified way to manage completion behavior, ensuring safe use in both thread and interrupt contexts.
+
+## Additional current-mainline role: `AsyncBlockWait`
+
+Besides `Operation<T>`, `operation.hpp` also defines an internal helper currently used by synchronous driver paths:
+
+```cpp
+class AsyncBlockWait;
+```
+
+Its purpose is not to replace `Operation`, but to provide a shared BLOCK waiter handoff:
+
+- `Start(Semaphore&)`
+- `Wait(timeout)`
+- `TryPost(in_isr, ErrorCode)`
+- `Cancel()`
+
+Current semantics highlights:
+
+- a timed-out waiter becomes detached from later completions;
+- a late completion may still clean up the in-flight state, but the result no longer belongs to the caller that has already returned with timeout.
+
+That is also why the BLOCK path above is described mainly as “semaphore wake-up”, not as a generic value-storing completion channel inside `Operation` itself.

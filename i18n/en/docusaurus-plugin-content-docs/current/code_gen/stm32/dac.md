@@ -6,11 +6,13 @@ sidebar_position: 6
 
 # DAC
 
-DMA is not enabled; this is for standard DAC output only.
+In current mainline, the generator’s DAC responsibility is straightforward: it reads the DAC channels enabled in CubeMX, generates matching `STM32DAC` instances, and injects the initial output value plus reference voltage from `libxr_config.yaml` into the constructor arguments.
+
+This path currently does not generate DMA-related DAC setup, and does not add a more complex data path during code generation.
 
 ## Example
 
-The code generator will read the enabled channels for each DAC peripheral and generate code like:
+The generator reads each enabled DAC channel and emits code like:
 
 ```cpp
 STM32DAC dac1_out1(&hdac1, DAC_CHANNEL_1, 0.0, 3.3);
@@ -18,7 +20,7 @@ STM32DAC dac1_out1(&hdac1, DAC_CHANNEL_1, 0.0, 3.3);
 
 ## Configuration File
 
-After the code generation step, a DAC configuration will appear in the `User/libxr_config.yaml` file in the following format:
+After the previous generation step, a DAC section appears in `User/libxr_config.yaml`:
 
 ```yaml
 DAC:
@@ -27,9 +29,16 @@ DAC:
     vref: 3.3
 ```
 
-Here, `init_voltage` is the initial output voltage, and `vref` is the reference voltage.
+- `init_voltage`: initial output voltage-like target
+- `vref`: reference voltage used by the generated constructor arguments
 
-You can edit this file directly. To apply the updated configuration, run either of the following commands to regenerate code:  
-`xr_cubemx_cfg -d .`  
-or  
-`xr_gen_code_stm32 -i ./.config.yaml -o ./User/app_main.cpp`
+## Current generator coverage
+
+In current `GeneratorCodeSTM32.py`, the DAC generation path mainly does the following:
+
+- read the enabled channel list for each DAC peripheral;
+- normalize `DAC_OUTx` into `DAC_CHANNEL_x`;
+- read `DAC.<instance>.init_voltage` and `DAC.<instance>.vref` from configuration;
+- generate instance code such as `STM32DAC dac1_out1(&hdac1, DAC_CHANNEL_1, 0.0, 3.3);`.
+
+If a DAC peripheral has no enabled channels, the current generator does not emit any DAC instance for it.

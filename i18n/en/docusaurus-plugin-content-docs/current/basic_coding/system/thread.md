@@ -13,7 +13,7 @@ sidebar_position: 3
 | Goal                 | Description                                                                 |
 |----------------------|-----------------------------------------------------------------------------|
 | **Cross-platform**    | Unified API hides `pthread`, `xTask`, `TX_THREAD`, etc.                    |
-| **Lightweight**       | Depends only on C++17 and optional RTOS headers; supports no-OS scenarios. |
+| **Lightweight**       | Current mainline depends on C++20 plus optional RTOS headers; no-OS scenarios are still supported. |
 | **Priority Enum**     | Uses `enum class Priority { IDLE…REALTIME }`, mapped to platform-specific levels. |
 | **Unified Timebase**  | All `Sleep` / `SleepUntil` use **milliseconds**; `GetTime()` returns milliseconds since boot. |
 
@@ -25,7 +25,7 @@ sidebar_position: 3
 | `static Thread Current()`                                                                                           | Get current thread wrapper.                     |
 | `static uint32_t GetTime()`                                                                                         | Return milliseconds since system start (wraps at 32-bit). |
 | `static void Sleep(uint32_t ms)`                                                                                    | Block current thread for given milliseconds.     |
-| `static void SleepUntil(TimestampMS& last, uint32_t period)`                                                        | Periodic delay with auto-updating `last`.        |
+| `static void SleepUntil(MillisecondTimestamp& last, uint32_t period)`                                               | Periodic delay with auto-updating `last`.        |
 | `static void Yield()`                                                                                               | Yield CPU voluntarily.                          |
 | `operator libxr_thread_handle()`                                                                                    | Implicitly convert to underlying thread handle.  |
 
@@ -68,7 +68,7 @@ int main() {
 
 To port to a new platform:
 
-1. Implement `thread.hpp / thread.cpp` under `platform/<os>/`;
+1. Implement `thread.hpp / thread.cpp` under `system/<os>/`;
 2. Typedef `libxr_thread_handle` in `libxr_system.hpp`;
 3. Update the build system to include the correct source files.
 
@@ -76,4 +76,4 @@ To port to a new platform:
 
 * POSIX version attempts `SCHED_FIFO` and maps `Priority` within available range; falls back to default with a warning if not supported.
 * FreeRTOS/ThreadX versions calculate priority steps from `configMAX_PRIORITIES` or `TX_MAX_PRIORITIES`.
-* Bare-metal version starts thread functions directly upon creation, no return to main thread.
+* The current `none` implementation is a single-shot direct-call placeholder: `Create()` invokes the target function immediately and enforces one creation path via an internal guard, rather than providing a real scheduler-backed thread model.

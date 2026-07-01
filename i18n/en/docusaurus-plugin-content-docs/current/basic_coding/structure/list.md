@@ -47,12 +47,13 @@ class Node : public BaseNode {
 
 - `void Add(BaseNode& node)`: Adds the node to the front of the list.
 - `ErrorCode Delete(BaseNode& node)`: Removes the specified node from the list.
+  - If the node is not currently linked in the list, the implementation returns `ErrorCode::NOT_FOUND`.
 
 ### Query and Traversal
 
 - `uint32_t Size()`: Gets the number of nodes in the list.
 - `ErrorCode Foreach(Func func)`: Traverses all nodes and applies the callback.
-  - Traversal continues if the lambda returns `ErrorCode::OK`, and stops if `ErrorCode::ERROR` is returned.
+  - Traversal continues while the callback returns `ErrorCode::OK`; any non-`OK` code stops traversal immediately and is returned to the caller.
 
 ### Foreach Usage Example
 
@@ -70,7 +71,8 @@ list.Foreach<int>([](int& data) {
 ## Notes
 
 - Nodes must be allocated and freed by the user. `List` does not manage memory.
-- Each node can only exist in one list at a time.
+- Each node can only exist in one list at a time, and should not be added again while it is still linked.
+- The current `BaseNode` destructor asserts that the node has already been detached from any list. If a node object may be destroyed before the list itself, remove it explicitly with `Delete()` first.
 - `Foreach` includes structure validation to ensure type matching.
 
 ## Typical Use Cases

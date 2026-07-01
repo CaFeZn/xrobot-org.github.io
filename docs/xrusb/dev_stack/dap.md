@@ -218,7 +218,7 @@ struct InfoStrings {
 ### 7.2 `DAP_Info` 关键字段
 
 - `CAPABILITIES`：`DAP_CAP_SWD`
-- `PACKET_COUNT`：`127`
+- `PACKET_COUNT`：默认返回 `4`。虽然类模板默认的声明值是 `8`，但当前实现会把实际对主机暴露的数量钳制到 `4`。
 - `PACKET_SIZE`：返回 IN 端点的 `MaxTransferSize()`
 - `TIMESTAMP_CLOCK`：`1,000,000`（与微秒时间基准匹配）
 
@@ -233,13 +233,13 @@ struct InfoStrings {
 #include "usb/device.hpp"
 #include "debug/swd.hpp"
 
-LibXR::Debug::Swd swd(/* ... init ... */);
-LibXR::GPIO nreset(/* ... optional ... */);
+MySwdBackend swd(/* ... init ... */);   // 具体的 SWD 后端实现 Concrete SWD backend
+MyGpio nreset(/* ... optional ... */);  // 具体的 GPIO 实现 Concrete GPIO implementation
 
-LibXR::USB::DapLinkV2Class<LibXR::Debug::Swd> dap(swd, &nreset);
+LibXR::USB::DapLinkV2Class<MySwdBackend> dap(swd, &nreset);
 
 // 可选：覆盖 DAP_Info 字符串
-LibXR::USB::DapLinkV2Class<LibXR::Debug::Swd>::InfoStrings info;
+LibXR::USB::DapLinkV2Class<MySwdBackend>::InfoStrings info;
 info.vendor = "XRobot";
 info.product = "DAPLinkV2";
 info.serial = "00000001";
@@ -254,4 +254,3 @@ dap.SetInfoStrings(info);
 ### 8.2 Windows/WinUSB 侧访问
 
 该类通过 BOS/MS OS 2.0 描述符集声明 WinUSB 与 DeviceInterfaceGUIDs，Windows 通常可在无需自定义 INF 的情况下枚举为 WinUSB 设备，并可通过 GUID 在用户态进行枚举与打开。
-

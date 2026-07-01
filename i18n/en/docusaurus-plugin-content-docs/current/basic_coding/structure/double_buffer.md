@@ -6,62 +6,83 @@ sidebar_position: 7
 
 # Double Buffer
 
-`LibXR::DoubleBuffer` is a double-buffered data structure designed for embedded scenarios. It is primarily used for seamless switching and filling control in high-speed transfers such as DMA and USB. It supports active and pending buffer management, making it especially suitable for performance-critical data transmission tasks.
+`LibXR::DoubleBuffer` is a double-buffer state manager designed for embedded scenarios. It is mainly used to control switching and filling across two half-buffers in high-speed paths such as DMA and USB. It manages the active/pending halves and their state bits, but does not allocate or free the backing storage itself.
 
 ## Key Features
 
-- Splits a block of contiguous memory into two buffers.
+- Splits one contiguous memory block into two equal halves under the current implementation contract.
 - Supports switching between the active buffer and the pending buffer.
 - Provides direct access and data fill interfaces for both buffers.
-- Supports manual switching and automatic validity checking.
-- Allows querying whether the pending buffer is ready and how much data it holds.
+- Supports default construction followed by later `Init()` binding.
+- Exposes pending state plus auxiliary active/pending length metadata.
 
 ## Interface Overview
 
-### Constructor
+### Construction and initialization
 
 ```cpp
+DoubleBuffer() = default;
 explicit DoubleBuffer(const LibXR::RawData& raw_data);
+void Init(const LibXR::RawData& raw_data);
+void Reset();
 ```
 
-- Accepts a block of continuous memory and splits it into two buffers.
+- `DoubleBuffer(raw_data)` and `Init(raw_data)` use the same initialization path.
+- `raw_data` must satisfy the current half-split contract; an empty double buffer may be initialized with `nullptr + 0`.
+- `Reset()` only clears runtime state and keeps the two bound halves attached.
 
 ### Data Operation Interfaces
 
 - `uint8_t* ActiveBuffer()`: Get the currently active buffer.
 - `uint8_t* PendingBuffer()`: Get the pending buffer.
+- `uint8_t* Buffer(int block)`: Access half `0` or `1` by stable block number.
 - `bool FillActive(const uint8_t* data, size_t len)`: Write data to the active buffer.
 - `bool FillPending(const uint8_t* data, size_t len)`: Write data to the pending buffer.
-- `void EnablePending()`: Manually mark the pending buffer as valid (used with `FillActive`).
+- `void EnablePending()`: Manually mark the current pending state as valid; this API **does not copy data and does not switch the active block**.
 - `bool HasPending() const`: Check if there is a pending buffer ready to be switched.
-- `void Switch()`: Switch between active and pending buffers.
+- `void Switch()`: If pending is valid, flips the active block and clears the pending-valid bit.
 - `size_t GetPendingLength() const`: Get the valid data length in the pending buffer.
-- `size_t SetPendingLength(size_t size)`: Set the valid data length in the pending buffer.
+- `size_t GetActiveLength() const`: Get the auxiliary length field of the active buffer.
+- `void SetPendingLength(size_t length)`: Set the auxiliary length field of the pending buffer.
+- `void SetActiveLength(size_t length)`: Set the auxiliary length field of the active buffer.
+- `int ActiveBlock() const` / `void SetActiveBlock(bool)` / `void FlipActiveBlock()`: Directly control the active block index.
 - `size_t Size() const`: Get the capacity of each buffer.
+
+Additional notes:
+
+- In the current implementation, `FillPending()` both copies bytes into the pending half and updates `pending_len_`.
+- `FillActive()` only copies bytes into the active half and does not update `active_len_`; if upper layers also use the length metadata, they must call `SetActiveLength()` explicitly.
+- `EnablePending()` only changes `pending_valid_` and does not set `pending_len_` automatically.
 
 ## Usage Example
 
 ```cpp
-LibXR::RawData mem{malloc(512), 512};
-LibXR::DoubleBuffer buf(mem);
+alignas(size_t) uint8_t mem[512] = {};
+LibXR::RawData raw(mem, sizeof(mem));
+LibXR::DoubleBuffer buf;
+buf.Init(raw);
 
-// First write to the pending buffer
+// Write to the current pending half and mark it ready for the next switch
 buf.FillPending(data1, len1);
 if (buf.HasPending()) {
     buf.Switch();  // Switch to the new active buffer
 }
+```
 
-// Fill the current active buffer for initial transmission
-buf.FillActive(data2, len2);
-buf.EnablePending();  // Mark the current active as the next pending
+If the upper layer writes bytes into the pending half by itself and only needs the state transition, it should usually also provide the length explicitly:
+
+```cpp
+std::memcpy(buf.PendingBuffer(), data2, len2);
+buf.SetPendingLength(len2);
+buf.EnablePending();
 ```
 
 ## Notes
 
 - You must call `Switch()` after filling the pending buffer to activate it.
-- Dynamic allocation is not supported; memory must be prepared before construction.
+- The class itself does not allocate backing storage. The caller prepares it; this can be a static array or caller-managed dynamic memory, as long as the current alignment and size contract is satisfied.
 - `FillPending` is not reentrant; ensure the pending state is false before calling.
-- `EnablePending()` is used with `FillActive()` to support proactive switching.
+- `EnablePending()` only changes the pending-valid bit. It does not copy data and does not synchronize the length fields automatically.
 
 ## Application Scenarios
 

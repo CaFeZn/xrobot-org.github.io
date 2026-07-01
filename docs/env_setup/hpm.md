@@ -6,111 +6,84 @@ sidebar_position: 5
 
 # HPM 环境配置
 
-这里只覆盖 HPM 开发环境的基础配置，不包含 LibXR 自动代码生成部分。
+这一页只说明 **当前 LibXR 主线在 HPM 平台上的接入边界**，不展开先楫 SDK 的完整 GUI 建工程流程。
 
-先楫官方的快速入门手册配置比较麻烦且并无新建工程的操作，因此本文以这篇文章为基础进行介绍
-[[HPM杂谈]你想要了解的先楫hpm_sdk开发都在这里系列 (二)](https://www.hpmicro.com/service-support/technical-articles/212)
+如果你要快速起步，优先参考模板工程：
 
-> 在阅读上述文章前，你需要先了解一点：当前仓库名为 `sdk_env`，其中已包含 `hpm_sdk`。另外，由于其中包含需要配置环境变量的内容，建议将其存放在固定且不易移动的位置。本文示例统一使用 `D:/HPM/sdk_env`。
+- [HPM5301_LibXR_Template](https://github.com/xrobot-org/HPM5301_LibXR_Template)
 
+## 当前主线里已经有什么
 
-根据网络状况选择 `gitee` 或 `github` 源进行克隆。
+按 `libxr master` 当前 `driver/hpm` 目录，已经存在这些驱动实现：
 
-```sh
- # gitee
- git clone https://gitee.com/hpmicro/sdk_env.git D:/HPM/sdk_env
- # github
- git clone https://github.com/hpmicro/sdk_env.git D:/HPM/sdk_env
-```
+- `hpm_gpio.*`
+- `hpm_i2c.*`
+- `hpm_pwm.*`
+- `hpm_timebase.*`
 
-若终端可上网但 `git clone github` 失败，可先为命令行配置代理（示例端口 `7897`）：
+它们通过 `driver/hpm/CMakeLists.txt` 统一加入构建。和某些平台页不同，这里不是“目录里有文件，但默认构建没接进来”的状态。
 
-```powershell
-git config --global http.proxy  http://127.0.0.1:7897
-git config --global https.proxy http://127.0.0.1:7897
-```
+## 基本集成思路
 
-此处以`hpm5301evklite`开发板为例，其余配置均保持默认
-
-# 新建工程
-
-自行创建一个`CMakeLists.txt`内容如下
+HPM 这条线仍然是普通 LibXR 外部工程接入方式：
 
 ```cmake
-# Copyright (c) 2021 HPMicro
-# SPDX-License-Identifier: BSD-3-Clause
+set(LIBXR_SYSTEM None)
+set(LIBXR_DRIVER hpm)
 
-cmake_minimum_required(VERSION 3.13)
-
-find_package(hpm-sdk REQUIRED HINTS $ENV{HPM_SDK_BASE})
-
-project(user_app)
-
-sdk_app_inc(inc)
-sdk_app_src(src/main.cpp)
-
+add_subdirectory(path_to_libxr)
 ```
 
-加入`src/main.cpp`(为了方便融入LibXR，此处直接使用了main.cpp)，内容如下：
-```cpp
-#include <stdio.h>
-#include "board.h"
+这里的前提是：
 
-int main(void)
-{
-    board_init();
+- 你的工程本身已经能通过 HPM SDK 正常编译；
+- 工程已经把 HPM SDK 的头文件、启动文件、链接脚本和板级初始化接好；
+- LibXR 只是在这个基础上接入 `driver/hpm` 与通用 runtime/middleware。
 
-    while(1) {
-        ;
-    }
-    return 0;
-}
+也就是说，LibXR 不代替 HPM SDK 的项目骨架，它是在 HPM 工程已经成立之后接进去的。
 
-```
+## 当前文档建议的实际入口
 
+如果你现在手上是 HPM 项目，建议按这个顺序确认：
 
->前提：已经设置好环境变量了。若使用 `sdk_env\hpm_sdk\env.cmd` 设置系统环境变量后又移动了 `sdk_env`，直接重新运行该脚本可能无法自动修复旧路径，需要手动到系统环境变量中改为最新路径。
->
-> **强烈建议一次配置完毕之后不要移动路径，重新配置系统变量非常麻烦**
+1. 先用 HPM SDK 或模板工程把最小工程跑通。
+2. 再检查工程里是否已经能正常 `add_subdirectory(libxr)`。
+3. 最后再按需要接入具体外设类，例如 `HPMGPIO`、`HPMI2C`、`HPMPWM`、`HPMTimebase`。
 
-示例工程文件结构如下
-![alt text](/img/hpm_template_dir.png)
+## 关于 `I2C` 的当前边界
 
-> linkers可忽略，在gui配置时可配置为本地ld文件，若不配置则使用默认ld文件，此处为了高级开发保留了该目录，这些文件可从`sdk_env\user_template\user_app`获取
+HPM `I2C` 这一条现在已经不是简单 blocking-only 包装。按当前主线头文件，`HPMI2C` 还覆盖了：
 
-然后运行`sdk_env\start_gui.exe`
+- 7-bit / 10-bit 主机寻址模式；
+- sequence frame；
+- transfer flags；
+- 可选 DMA helper 背景路径；
+- 等待策略与恢复路径。
 
-按照下图配置
-![alt text](/img/hpm_example_setup.png)
+但这类能力是否在你的具体工程上可直接用，仍取决于：
 
-其中框出的区域是刚刚新建工程的路径。为了方便 VSCode 配置，我们将`生成文件夹`设置为`build`而非默认的长字符串。
+- HPM SDK 头文件是否完整；
+- 是否存在对应 DMA / interrupt helper；
+- 目标板级时钟、引脚和总线恢复路径是否已验证。
 
-然后点击`本地化SDK`
+所以这页只把它定义成“主线代码已存在的能力边界”，不把它直接写成“所有 HPM 项目默认可用并已充分验证”。
 
-## VSCode 环境配置
+## 关于 `PWM` 的当前边界
 
-安装以下插件（或者直接创建`.vscode`文件夹，新建`extensions.json`，将下面内容粘贴，然后在扩展处安装工作区推荐插件）
-```json
-{
-    "recommendations": [
-        "llvm-vs-code-extensions.vscode-clangd",
-        "ms-vscode.cmake-tools",
-        "josetr.cmake-language-support-vscode",
-        "hpmicro.hpm-pinmux-tool",
-    ]
-}
-```
+`HPMPWM` 当前主线支持两类路径：
 
-按下面步骤配置
+- 如果目标 SoC 提供标准 PWM 外设，则走 `hpm_pwm_drv`；
+- 如果不满足该条件，代码里还有 `GPTMR` fallback 路径。
 
-![alt text](/img/hpm-setup-1.png)
+这意味着文档里不能简单写成“只有某一种固定 PWM 方案”。具体走哪条线，要看你的芯片和 SDK 宏条件。
 
-找到 `sdk_env` 的路径（`D:/HPM/sdk_env`），然后选择文件夹
+## 这页不做什么
 
-![alt text](/img/hpm-setup-2.png)
+这页不打算替代这些内容：
 
-此时就可以找到`GCC 13.2.0 riscv32-unknown-elf`，选择后即可使用CMake插件进行管理
+- HPM SDK 本身的安装和环境变量教程；
+- 图形化建工程步骤；
+- 板级时钟/引脚向导截图；
+- 先楫 IDE 或 GUI 工具的完整操作手册。
 
-现在按`F7`即可完成编译
-
-![alt text](/img/hpm-setup-3.png)
+如果这些步骤已经和 LibXR 接入强相关，并且后面在模板仓库里形成了稳定做法，再单独补到模板或项目文档里更合适。

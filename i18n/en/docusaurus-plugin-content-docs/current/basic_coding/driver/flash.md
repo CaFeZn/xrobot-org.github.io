@@ -22,7 +22,7 @@ public:
   virtual ErrorCode Write(size_t offset, ConstRawData data) = 0;
 
   // Read data from the specified offset
-  virtual ErrorCode Read(size_t offset, RawData data) = 0;
+  virtual ErrorCode Read(size_t offset, RawData data);
 
   // Get the minimum erasable block size
   size_t MinEraseSize() const { return min_erase_size_; }
@@ -38,6 +38,7 @@ public:
 
 ## Usage Notes
 
-- All writes must be aligned to `min_write_size_`, and erases to `min_erase_size_`;  
+- Backends are typically organized around `MinWriteSize()` / `MinEraseSize()` granularity. Upper-layer layouts should be designed with those limits in mind, but the exact front-door acceptance rules remain backend-specific.
+- `Read()` already has a common default implementation in the base class; platform backends usually only need to implement `Erase()` and `Write()` unless they require special read behavior;
 - `flash_area_` points to the actual memory region or flash-mapped address used for storage;  
 - This interface can be used as a foundation for implementing parameter storage, file systems, log management, and more.

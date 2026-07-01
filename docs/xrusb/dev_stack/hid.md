@@ -29,7 +29,7 @@ sidebar_position: 2
 - `REPORT_DESC_LEN`：Report Descriptor 长度（字节）
 - `TX_REPORT_LEN`：Input Report 最大长度（Interrupt IN 端点最大包长）
 - `RX_REPORT_LEN`：Output Report 最大长度（Interrupt OUT 端点最大包长）
-  - 取 `0` 表示不启用 OUT 中断端点
+  - 若需要使用 OUT 中断端点，除设置合适的 `RX_REPORT_LEN` 外，还需要在构造时显式启用 `enable_out_endpoint`
 
 基类提供：
 
@@ -83,7 +83,7 @@ HID 基类贡献 **1 个 HID 接口**，不使用 IAD：
 
 1. 记录接口号，并清理运行态标志
 2. 从 `EndpointPool` 申请 Interrupt IN，按 `TX_REPORT_LEN` 配置
-3. 若 `RX_REPORT_LEN > 0`：申请 Interrupt OUT，按 `RX_REPORT_LEN` 配置
+3. 若构造时启用了 `enable_out_endpoint`：申请 Interrupt OUT，按 `RX_REPORT_LEN` 配置
 4. 生成并提交配置描述符块（Interface + HID Descriptor + Endpoint Descriptors）
 5. 注册端点完成回调（IN 必选；OUT 可选）
 6. 若启用 OUT：启动首次 OUT 接收（之后每次完成会自动 re-arm）
@@ -133,8 +133,10 @@ virtual ConstRawData GetReportDesc() = 0;
 建议派生类覆写的钩子（按需）：
 
 - 获取报告：`OnGetInputReport(...)` / `OnGetLastOutputReport(...)` / `OnGetFeatureReport(...)`
+  - 其中基类默认的 `OnGetLastOutputReport(...)` 仅返回空数据；如需通过控制传输返回最近的 Output Report，需要派生类自行覆写
 - 设置报告：`OnSetReport(...)`（Setup 阶段）与 `OnSetReportData(...)`（Data 阶段）
 - 自定义扩展：`OnCustomClassRequest(...)` / `OnCustomClassData(...)`
+  - 对于基类未直接处理的类请求，默认实现返回 `NOT_SUPPORT`
 
 ---
 
@@ -191,11 +193,25 @@ IN 发送完成后会触发 `OnDataInComplete(in_isr, data)`，典型用途：
 - 可选启用 OUT 端点（例如 1 字节 LED）
 - 也可兼容主机通过控制端点下发 LED（`SET_REPORT`）
 
+当前派生类还提供了几组与 LED 状态相关的接口：
+
+- `SetOnLedChangeCallback(...)`
+- `GetNumLock()`
+- `GetCapsLock()`
+- `GetScrollLock()`
+
 ### 7.3 `HIDGamepadT`
 
 - 模板化手柄（例如 4 轴 + 8 按钮）
 - Input Report 与 Report Descriptor 在编译期固化
 - 通常提供便捷发送接口用于更新轴值与按键位图
+
+当前主线中还直接提供了两个常用别名：
+
+- `HIDGamepad = HIDGamepadT<0, 2047, 1>`
+- `HIDGamepadBipolar = HIDGamepadT<-2048, 2047, 1>`
+
+其中 `HIDGamepad` 适合单极范围输入，`HIDGamepadBipolar` 适合以 0 为中心的双极范围输入。
 
 ---
 
@@ -230,6 +246,17 @@ LibXR::USB::HIDKeyboard hid_kbd(true);
 hid_kbd.PressKey({LibXR::USB::HIDKeyboard::KeyCode::A},
                  LibXR::USB::HIDKeyboard::Modifier::LEFT_SHIFT);
 hid_kbd.ReleaseAll();
+
+// 可选：注册 LED 状态变化回调
+hid_kbd.SetOnLedChangeCallback(
+    LibXR::Callback<bool, bool, bool>::Create(
+        [](bool in_isr, int, bool num_lock, bool caps_lock, bool scroll_lock) {
+          (void)in_isr;
+          (void)num_lock;
+          (void)caps_lock;
+          (void)scroll_lock;
+        },
+        0));
 ```
 
 ### 8.3 手柄
@@ -239,6 +266,9 @@ hid_kbd.ReleaseAll();
 
 LibXR::USB::HIDGamepad gamepad;
 gamepad.Send(1024, 1024, 1024, 1024, LibXR::USB::HIDGamepad::BTN1);
+
+LibXR::USB::HIDGamepadBipolar bipolar_gamepad;
+bipolar_gamepad.SendAxes(0, -512, 512, 0);
 ```
 
 ---
@@ -251,6 +281,6 @@ gamepad.Send(1024, 1024, 1024, 1024, LibXR::USB::HIDGamepad::BTN1);
 2. 定义并管理 Input Report 数据结构（长度不超过 `TX_REPORT_LEN`）
 3. 如需 Output/Feature：
    - 控制传输：覆写 `OnSetReport(...) / OnSetReportData(...)`
-   - OUT 中断端点：启用 `RX_REPORT_LEN > 0` 并覆写 `OnDataOutComplete(...)`
+   - OUT 中断端点：为 `RX_REPORT_LEN` 预留足够长度，并在构造时启用 `enable_out_endpoint`，再覆写 `OnDataOutComplete(...)`
 
 如需连续发送/队列化，可在 `OnDataInComplete(...)` 中实现“发送下一帧”的调度。
