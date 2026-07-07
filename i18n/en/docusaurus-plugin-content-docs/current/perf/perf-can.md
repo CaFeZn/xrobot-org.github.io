@@ -87,7 +87,7 @@ Ideal case: `64 / 108 * 1Mbps / 105% = 0.564 Mbps`
 
 3617 packets/s, data segment rate = 1.85 Mbps, bus load ≈ 100%
 
-[^1]: Here, “data segment rate” means effective payload throughput, calculated as `packets/s × payload bytes per packet × 8`. It is not the physical CAN FD data-phase bit rate configured in the controller; this test still uses a 2.5 Mbps FD data phase.
+[^1]: Here, “data segment rate” means effective payload throughput, calculated as `packets/s × payload bytes per packet × 8`. It is not the physical CAN FD data-phase bit rate configured in the controller; according to the test conditions above, the physical FD data-phase bit rate is 2.5 Mbps.
 
 ## Summary
 
